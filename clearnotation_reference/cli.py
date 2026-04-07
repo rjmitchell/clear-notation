@@ -9,8 +9,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import tomllib
-
+from .config import load_config
 from .diagnostics import Diagnostic, format_diagnostic
 from .errors import ClearNotationError
 from .normalizer import Normalizer
@@ -50,12 +49,18 @@ def main(argv: list[str] | None = None) -> int:
     ast_p.add_argument("--config", help="Path to clearnotation.toml")
     ast_p.add_argument("--format", choices=["human", "plain", "json"], default=None)
 
+    fmt_p = sub.add_parser("fmt", help="Format .cln source")
+    fmt_p.add_argument("input", help="File to format")
+    fmt_p.add_argument("--write", "-w", action="store_true", help="Write formatted output back to file")
+    fmt_p.add_argument("--check", action="store_true", help="Exit 1 if file would change (for CI)")
+    fmt_p.add_argument("--config", help="Path to clearnotation.toml")
+
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
         return 0
 
-    fmt = args.format or ("human" if sys.stderr.isatty() else "plain")
+    fmt = getattr(args, "format", None) or ("human" if sys.stderr.isatty() else "plain")
 
     try:
         if args.command == "build":
@@ -64,6 +69,8 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_check(Path(args.input), args.config, fmt)
         if args.command == "ast":
             return _cmd_ast(Path(args.input), args.config, fmt)
+        if args.command == "fmt":
+            return _cmd_fmt(Path(args.input), args.write, args.check, args.config)
     except (OSError, UnicodeDecodeError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -83,7 +90,7 @@ def _build_file(
     config_path: str | None,
     fmt: str,
 ) -> int:
-    config, reg_data = _load_config(input_path, config_path)
+    config, reg_data = load_config(input_path, config_path)
     registry = Registry.from_toml(reg_data)
     source = input_path.read_text(encoding="utf-8")
 
@@ -144,7 +151,7 @@ def _cmd_check(input_path: Path, config_path: str | None, fmt: str) -> int:
     files = sorted(input_path.rglob("*.cln")) if input_path.is_dir() else [input_path]
     errors = 0
     for f in files:
-        config, reg_data = _load_config(f, config_path)
+        config, reg_data = load_config(f, config_path)
         registry = Registry.from_toml(reg_data)
         source = f.read_text(encoding="utf-8")
         try:
@@ -157,7 +164,7 @@ def _cmd_check(input_path: Path, config_path: str | None, fmt: str) -> int:
 
 
 def _cmd_ast(input_path: Path, config_path: str | None, fmt: str) -> int:
-    config, reg_data = _load_config(input_path, config_path)
+    config, reg_data = load_config(input_path, config_path)
     registry = Registry.from_toml(reg_data)
     source = input_path.read_text(encoding="utf-8")
 
@@ -170,6 +177,31 @@ def _cmd_ast(input_path: Path, config_path: str | None, fmt: str) -> int:
 
     ndoc = Normalizer(registry).normalize(doc)
     print(json.dumps(_ast_to_dict(ndoc), indent=2))
+    return 0
+
+
+def _cmd_fmt(input_path: Path, write: bool, check: bool, config_path: str | None) -> int:
+    from .formatter import Formatter
+
+    config, reg_data = load_config(input_path, config_path)
+    registry = Registry.from_toml(reg_data)
+    source = input_path.read_text(encoding="utf-8")
+
+    try:
+        formatter = Formatter(registry)
+        formatted = formatter.format(source)
+    except ClearNotationError as exc:
+        _print_error(exc, source, str(input_path), "human")
+        return 1
+
+    if check:
+        return 0 if formatted == source else 1
+
+    if write:
+        input_path.write_text(formatted, encoding="utf-8")
+        return 0
+
+    sys.stdout.write(formatted)
     return 0
 
 
@@ -187,41 +219,6 @@ def _ast_to_dict(obj: Any) -> Any:
     if isinstance(obj, Path):
         return str(obj)
     return obj
-
-
-def _load_config(
-    input_path: Path,
-    explicit_config: str | None,
-) -> tuple[dict[str, Any], dict[str, Any]]:
-    if explicit_config:
-        config_file = Path(explicit_config)
-    else:
-        config_file = _discover_config(input_path)
-
-    if config_file and config_file.exists():
-        with open(config_file, "rb") as f:
-            config = tomllib.load(f)
-    else:
-        config = {"spec": "0.1"}
-
-    # Load built-in registry
-    builtin_path = Path(__file__).parent.parent / "reference" / "builtin-registry.toml"
-    if builtin_path.exists():
-        with open(builtin_path, "rb") as f:
-            reg_data = tomllib.load(f)
-    else:
-        reg_data = {}
-
-    return config, reg_data
-
-
-def _discover_config(input_path: Path) -> Path | None:
-    search = input_path.parent if input_path.is_file() else input_path
-    for parent in (search, *search.parents):
-        candidate = parent / "clearnotation.toml"
-        if candidate.exists():
-            return candidate
-    return None
 
 
 def _css_relative_path(output_path: Path) -> str:
