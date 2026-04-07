@@ -1,0 +1,21 @@
+name: Publish VS Code Extension
+
+on:
+  push:
+    tags:
+      - "vscode-v*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - working-directory: vscode-clearnotation
+        run: npm ci
+      - working-directory: vscode-clearnotation
+        run: npm run compile
+      - working-directory: vscode-clearnotation
+        run: npx vsce publish -p ${{ secrets.VSCE_PAT }}
