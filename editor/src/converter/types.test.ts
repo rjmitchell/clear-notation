@@ -98,7 +98,9 @@ describe("BNTableRow", () => {
       ],
     };
     expect(row.cells).toHaveLength(2);
-    expect(row.cells[0][0].text).toBe("A");
+    const firstCell = row.cells[0][0];
+    expect(firstCell.type).toBe("text");
+    expect((firstCell as BNStyledText).text).toBe("A");
   });
 });
 
