@@ -1,0 +1,44 @@
+{
+  "version": "0.1",
+  "description": "Shared cross-language escaping test matrix for ClearNotation",
+  "domains": {
+    "inline": {
+      "description": "Characters with syntactic meaning in inline content",
+      "cases": [
+        { "raw": "{", "escaped": "\\{", "note": "opens strong/emphasis/note" },
+        { "raw": "}", "escaped": "\\}", "note": "closes strong/emphasis/note" },
+        { "raw": "[", "escaped": "\\[", "note": "opens link" },
+        { "raw": "]", "escaped": "\\]", "note": "closes link" },
+        { "raw": "\\", "escaped": "\\\\", "note": "escape character itself" },
+        { "raw": "`", "escaped": "\\`", "note": "code span delimiter" },
+        { "raw": "+{", "escaped": "\\+{", "note": "strong open (escape the +)" },
+        { "raw": "*{", "escaped": "\\*{", "note": "emphasis open (escape the *)" },
+        { "raw": "^{", "escaped": "\\^{", "note": "note open (escape the ^)" },
+        { "raw": "::", "escaped": "\\::", "note": "directive marker (escape first :)" },
+        { "raw": "hello world", "escaped": "hello world", "note": "no escaping needed" },
+        { "raw": "a { b", "escaped": "a \\{ b", "note": "brace in text" },
+        { "raw": "100% done", "escaped": "100% done", "note": "percent is not special" },
+        { "raw": "a -> b", "escaped": "a -> b", "note": "arrow outside link is literal" }
+      ]
+    },
+    "attribute": {
+      "description": "Characters needing escaping inside quoted attribute strings",
+      "cases": [
+        { "raw": "hello", "escaped": "hello", "note": "no escaping needed" },
+        { "raw": "say \"hi\"", "escaped": "say \\\"hi\\\"", "note": "double quotes" },
+        { "raw": "back\\slash", "escaped": "back\\\\slash", "note": "backslash" },
+        { "raw": "line\nbreak", "escaped": "line\\nbreak", "note": "newline" },
+        { "raw": "tab\there", "escaped": "tab\\there", "note": "tab" }
+      ]
+    },
+    "table": {
+      "description": "Characters needing escaping inside table cells",
+      "cases": [
+        { "raw": "hello", "escaped": "hello", "note": "no escaping needed" },
+        { "raw": "a | b", "escaped": "a \\| b", "note": "pipe is cell separator" },
+        { "raw": "back\\slash", "escaped": "back\\\\slash", "note": "backslash" },
+        { "raw": "a | b | c", "escaped": "a \\| b \\| c", "note": "multiple pipes" }
+      ]
+    }
+  }
+}
