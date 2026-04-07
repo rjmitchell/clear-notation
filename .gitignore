@@ -1,6 +1,14 @@
 __pycache__/
 *.pyc
 .DS_Store
+*.egg-info/
+dist/
+build/
+
+# Build artifacts from cln build
+*.html
+clearnotation.css
+!clearnotation_reference/clearnotation.css
 
 # AI/editor tooling
 .claude/
