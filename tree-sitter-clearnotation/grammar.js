@@ -415,7 +415,7 @@ module.exports = grammar({
 
     // ─── Inline directive: ::name[attrs] ─────────────────────────────
     inline_directive: ($) =>
-      prec(10, seq(
+      prec.right(10, seq(
         $.directive_marker,
         alias($.identifier, $.directive_name),
         optional($.attribute_list),

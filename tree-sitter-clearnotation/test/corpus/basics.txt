@@ -1,0 +1,114 @@
+================
+Minimal document (heading + paragraph)
+================
+
+# ClearNotation
+
+A docs-first markup language.
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)))
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (text)))))
+
+================
+Thematic break
+================
+
+---
+
+---
+
+(document
+  (thematic_break))
+
+================
+Heading with thematic break and paragraph
+================
+
+# Title
+
+---
+
+A paragraph.
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)))
+  (thematic_break)
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (text)))))
+
+================
+Fenced code block
+================
+
+```python
+print("hello")
+```
+
+---
+
+(document
+  (fenced_code_block
+    (code_fence_open)
+    (language_tag)
+    (code_block_content)
+    (code_fence_close)))
+
+================
+Multiple heading levels
+================
+
+# H1
+
+## H2
+
+### H3
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)))
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)))
+  (heading
+    (heading_marker)
+    (inline_content
+      (text))))
+
+================
+Multi-line paragraph
+================
+
+First line.
+Second line.
+
+---
+
+(document
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (text)))
+    (paragraph_line
+      (inline_content
+        (text)))))

@@ -1,0 +1,122 @@
+================
+Self-closing directive (toc)
+================
+
+::toc
+
+---
+
+(document
+  (block_directive_self_closing
+    (directive_marker)
+    (directive_name)))
+
+================
+Directive with attributes (anchor)
+================
+
+::anchor[id="top"]
+
+---
+
+(document
+  (block_directive_self_closing
+    (directive_marker)
+    (directive_name)
+    (attribute_list
+      (attribute
+        (attribute_key)
+        (value
+          (string
+            (string_content)))))))
+
+================
+Directive with body (callout)
+================
+
+::callout[kind="info"]{
+This is a callout.
+}
+
+---
+
+(document
+  (block_directive_with_body
+    (directive_marker)
+    (directive_name)
+    (attribute_list
+      (attribute
+        (attribute_key)
+        (value
+          (string
+            (string_content)))))
+    (directive_body_open)
+    (directive_body_content)
+    (block_close)))
+
+================
+Meta block
+================
+
+::meta{
+title = "Doc"
+}
+
+---
+
+(document
+  (meta_block
+    (meta_block_open)
+    (meta_entry
+      (meta_key
+        (identifier))
+      (value
+        (string
+          (string_content))))
+    (block_close)))
+
+================
+Meta block with multiple entries
+================
+
+::meta{
+title = "My Doc"
+lang = "en"
+}
+
+---
+
+(document
+  (meta_block
+    (meta_block_open)
+    (meta_entry
+      (meta_key
+        (identifier))
+      (value
+        (string
+          (string_content))))
+    (meta_entry
+      (meta_key
+        (identifier))
+      (value
+        (string
+          (string_content))))
+    (block_close)))
+
+================
+Directive with body but no attributes
+================
+
+::callout{
+Some body text.
+}
+
+---
+
+(document
+  (block_directive_with_body
+    (directive_marker)
+    (directive_name)
+    (directive_body_open)
+    (directive_body_content)
+    (block_close)))

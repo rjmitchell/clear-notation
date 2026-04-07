@@ -41,15 +41,5 @@
     "build": "tree-sitter generate && node-gyp rebuild",
     "test": "tree-sitter test",
     "parse": "tree-sitter parse"
-  },
-  "tree-sitter": [
-    {
-      "scope": "source.clearnotation",
-      "file-types": [
-        "cln"
-      ],
-      "highlights": "queries/highlights.scm",
-      "injection-regex": "^clearnotation$"
-    }
-  ]
+  }
 }

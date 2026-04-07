@@ -1,0 +1,31 @@
+{
+  "grammars": [
+    {
+      "name": "clearnotation",
+      "camelcase": "Clearnotation",
+      "scope": "source.clearnotation",
+      "path": ".",
+      "file-types": [
+        "cln"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^clearnotation$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for ClearNotation v0.1",
+    "links": {
+      "repository": "https://github.com/clearnotation/tree-sitter-clearnotation"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}

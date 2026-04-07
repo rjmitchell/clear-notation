@@ -1,0 +1,109 @@
+================
+Strong
+================
+
+# +{bold text}
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (strong
+        (strong_open)
+        (styled_text)
+        (styled_close)))))
+
+================
+Emphasis
+================
+
+# *{italic text}
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (emphasis
+        (emphasis_open)
+        (styled_text)
+        (styled_close)))))
+
+================
+Link
+================
+
+# [ClearNotation -> https://example.com]
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (link
+        (link_label
+          (link_text))
+        (link_separator)
+        (link_target)))))
+
+================
+Note
+================
+
+# text ^{a footnote}
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)
+      (note
+        (note_open)
+        (note_text)
+        (styled_close)))))
+
+================
+Code span
+================
+
+# use `code` here
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)
+      (code_span
+        (code_span_content))
+      (text))))
+
+================
+Inline directive
+================
+
+# see ::ref[target="intro"]
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)
+      (inline_directive
+        (directive_marker)
+        (directive_name)
+        (attribute_list
+          (attribute
+            (attribute_key)
+            (value
+              (string
+                (string_content)))))))))
