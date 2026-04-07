@@ -1,0 +1,239 @@
+{
+  "name": "ClearNotation",
+  "scopeName": "source.clearnotation",
+  "patterns": [
+    { "include": "#meta-block" },
+    { "include": "#fenced-code" },
+    { "include": "#heading" },
+    { "include": "#thematic-break" },
+    { "include": "#blockquote" },
+    { "include": "#block-directive" },
+    { "include": "#ordered-list" },
+    { "include": "#unordered-list" },
+    { "include": "#inline" }
+  ],
+  "repository": {
+    "meta-block": {
+      "begin": "^\\s*::meta\\{",
+      "end": "^\\s*\\}",
+      "name": "meta.block.clearnotation",
+      "beginCaptures": {
+        "0": { "name": "keyword.control.meta.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "keyword.control.meta.clearnotation" }
+      },
+      "patterns": [
+        {
+          "match": "([\\w.]+)\\s*=",
+          "captures": {
+            "1": { "name": "variable.other.meta-key.clearnotation" }
+          }
+        },
+        { "include": "#literal-string" },
+        { "include": "#literal-number" },
+        { "include": "#literal-boolean" }
+      ]
+    },
+    "heading": {
+      "match": "^(#{1,6})\\s+(.*)",
+      "captures": {
+        "1": { "name": "punctuation.definition.heading.clearnotation" },
+        "2": {
+          "name": "markup.heading.clearnotation",
+          "patterns": [{ "include": "#inline" }]
+        }
+      }
+    },
+    "thematic-break": {
+      "match": "^---\\s*$",
+      "name": "meta.separator.thematic-break.clearnotation"
+    },
+    "fenced-code": {
+      "begin": "^\\s*(```)([\\w+-]+)?",
+      "end": "^\\s*```\\s*$",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.code.fence.clearnotation" },
+        "2": { "name": "entity.name.tag.language.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.code.fence.clearnotation" }
+      },
+      "name": "markup.fenced_code.block.clearnotation",
+      "contentName": "meta.embedded.block.code.clearnotation"
+    },
+    "blockquote": {
+      "match": "^\\s*(>)\\s(.*)",
+      "captures": {
+        "1": { "name": "punctuation.definition.quote.clearnotation" },
+        "2": {
+          "name": "markup.quote.clearnotation",
+          "patterns": [{ "include": "#inline" }]
+        }
+      }
+    },
+    "unordered-list": {
+      "match": "^\\s*(-)\\s(.*)",
+      "captures": {
+        "1": { "name": "punctuation.definition.list.clearnotation" },
+        "2": {
+          "patterns": [{ "include": "#inline" }]
+        }
+      }
+    },
+    "ordered-list": {
+      "match": "^\\s*(\\d+\\.)\\s(.*)",
+      "captures": {
+        "1": { "name": "punctuation.definition.list.ordered.clearnotation" },
+        "2": {
+          "patterns": [{ "include": "#inline" }]
+        }
+      }
+    },
+    "block-directive": {
+      "patterns": [
+        {
+          "comment": "Block directive with body: ::name[attrs]{",
+          "begin": "^\\s*(::)(\\w+)(\\[.*?\\])?\\s*(\\{)\\s*$",
+          "end": "^\\s*(\\})\\s*$",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.directive.clearnotation" },
+            "2": { "name": "entity.name.function.directive.clearnotation" },
+            "3": {
+              "name": "meta.attribute-list.clearnotation",
+              "patterns": [{ "include": "#attribute-list" }]
+            },
+            "4": { "name": "punctuation.section.block.begin.clearnotation" }
+          },
+          "endCaptures": {
+            "1": { "name": "punctuation.section.block.end.clearnotation" }
+          },
+          "patterns": [
+            { "include": "$self" }
+          ]
+        },
+        {
+          "comment": "Self-closing block directive: ::name[attrs]",
+          "match": "^\\s*(::)(\\w+)(\\[.*?\\])?\\s*$",
+          "captures": {
+            "1": { "name": "punctuation.definition.directive.clearnotation" },
+            "2": { "name": "entity.name.function.directive.clearnotation" },
+            "3": {
+              "name": "meta.attribute-list.clearnotation",
+              "patterns": [{ "include": "#attribute-list" }]
+            }
+          }
+        }
+      ]
+    },
+    "attribute-list": {
+      "patterns": [
+        {
+          "match": "(\\w+)\\s*=",
+          "captures": {
+            "1": { "name": "entity.other.attribute-name.clearnotation" }
+          }
+        },
+        { "include": "#literal-string" },
+        { "include": "#literal-boolean" },
+        { "include": "#literal-number" }
+      ]
+    },
+    "inline": {
+      "patterns": [
+        { "include": "#escape-sequence" },
+        { "include": "#code-span" },
+        { "include": "#strong" },
+        { "include": "#emphasis" },
+        { "include": "#note" },
+        { "include": "#inline-directive" },
+        { "include": "#link" }
+      ]
+    },
+    "strong": {
+      "begin": "\\+\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.bold.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.bold.clearnotation" }
+      },
+      "name": "markup.bold.clearnotation",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "emphasis": {
+      "begin": "\\*\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.italic.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.italic.clearnotation" }
+      },
+      "name": "markup.italic.clearnotation",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "note": {
+      "begin": "\\^\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.note.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.note.clearnotation" }
+      },
+      "name": "markup.other.note.clearnotation",
+      "patterns": [{ "include": "#inline" }]
+    },
+    "code-span": {
+      "match": "`[^`]*`",
+      "name": "markup.inline.raw.string.clearnotation"
+    },
+    "inline-directive": {
+      "match": "(::)(\\w+)(\\[.*?\\])?",
+      "captures": {
+        "1": { "name": "punctuation.definition.directive.inline.clearnotation" },
+        "2": { "name": "entity.name.function.directive.inline.clearnotation" },
+        "3": {
+          "name": "meta.attribute-list.clearnotation",
+          "patterns": [{ "include": "#attribute-list" }]
+        }
+      }
+    },
+    "link": {
+      "begin": "\\[",
+      "end": "\\]",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.link.clearnotation" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.link.clearnotation" }
+      },
+      "name": "markup.underline.link.clearnotation",
+      "patterns": [
+        {
+          "match": "\\s->\\s",
+          "name": "punctuation.separator.link-target.clearnotation"
+        },
+        { "include": "#inline" }
+      ]
+    },
+    "escape-sequence": {
+      "match": "\\\\[+*^`\\[\\]{}|\\\\>:#-]",
+      "name": "constant.character.escape.clearnotation"
+    },
+    "literal-string": {
+      "match": "\"[^\"]*\"",
+      "name": "string.quoted.double.clearnotation"
+    },
+    "literal-number": {
+      "match": "\\b\\d+\\b",
+      "name": "constant.numeric.clearnotation"
+    },
+    "literal-boolean": {
+      "match": "\\b(true|false)\\b",
+      "name": "constant.language.boolean.clearnotation"
+    }
+  }
+}
