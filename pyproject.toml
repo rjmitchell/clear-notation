@@ -6,11 +6,30 @@ build-backend = "setuptools.build_meta"
 name = "clearnotation"
 dynamic = ["version"]
 description = "ClearNotation: a docs-first, formally specified markup language"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Documentation",
+    "Topic :: Text Processing :: Markup",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[project.optional-dependencies]
+lsp = ["pygls>=1.0"]
+
+[project.urls]
+Homepage = "https://github.com/rjmitchell/clear-notation"
+Repository = "https://github.com/rjmitchell/clear-notation"
 
 [project.scripts]
 cln = "clearnotation_reference.cli:main"
+cln-lsp = "clearnotation_reference.lsp:main"
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}
@@ -19,4 +38,4 @@ version = {file = "VERSION"}
 include = ["clearnotation_reference*", "clearnotation_harness*"]
 
 [tool.setuptools.package-data]
-clearnotation_reference = ["clearnotation.css"]
+clearnotation_reference = ["clearnotation.css", "builtin-registry.toml"]
