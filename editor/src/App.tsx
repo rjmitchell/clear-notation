@@ -1,8 +1,20 @@
-import React from "react";
+import React, { useCallback } from "react";
 import "./app.css";
 import SplitPane from "./components/SplitPane";
+import VisualEditor from "./components/VisualEditor";
+import SourcePane from "./components/SourcePane";
+import { useSync } from "./hooks/useSync";
 
 export default function App() {
+  const { source, syncing, onDocumentChange } = useSync();
+
+  const handleChange = useCallback(
+    (blocks: Parameters<typeof onDocumentChange>[0]) => {
+      onDocumentChange(blocks);
+    },
+    [onDocumentChange]
+  );
+
   return (
     <div className="app-shell">
       <header className="toolbar">
@@ -11,14 +23,8 @@ export default function App() {
 
       <main className="main-content">
         <SplitPane
-          left={
-            <div className="visual-editor">Visual editor placeholder</div>
-          }
-          right={
-            <div className="source-pane">
-              <pre>Source pane placeholder</pre>
-            </div>
-          }
+          left={<VisualEditor onDocumentChange={handleChange} />}
+          right={<SourcePane source={source} syncing={syncing} />}
         />
       </main>
 
