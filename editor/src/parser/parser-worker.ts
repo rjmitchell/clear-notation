@@ -48,7 +48,8 @@ function serializeNode(node: SyntaxNode): CSTNode {
 
 async function handleInit(wasmUrl: string): Promise<void> {
   try {
-    const TreeSitter = (await import("web-tree-sitter")).default;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const TreeSitter = (await import("web-tree-sitter")).default as any;
     await TreeSitter.init();
 
     parser = new TreeSitter();

@@ -3,16 +3,14 @@ import { createRoot } from "react-dom/client";
 import { BlockNoteEditor } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
-import { BUILTIN_DIRECTIVES, logResult } from "./spike-blocks";
+import {
+  ALL_BLOCK_SPECS,
+  CLN_INLINE_MARKS,
+  SLASH_MENU_ITEMS,
+  DIRECTIVE_BLOCK_SPECS,
+} from "./schema";
 
-// ---------------------------------------------------------------
-// Spike: BlockNote editor — answers three questions:
-// 1. Can BlockNote render without React? (Partial — core mounts, but UI chrome needs React)
-// 2. Does the slash menu work?
-// 3. What is the bundle size? (measured via `pnpm build`)
-// ---------------------------------------------------------------
-
-function SpikeEditor() {
+function EditorApp() {
   const editor = useMemo(() => {
     return BlockNoteEditor.create();
   }, []);
@@ -23,52 +21,44 @@ function SpikeEditor() {
     if (hasLogged.current) return;
     hasLogged.current = true;
 
-    // Log spike findings
-    logResult("=== BlockNote Spike Results ===");
-    logResult("");
+    // Log schema summary to console
+    console.log("=== ClearNotation Editor Schema ===");
+    console.log(`Block specs: ${Object.keys(ALL_BLOCK_SPECS).length}`);
+    console.log(`Inline marks: ${Object.keys(CLN_INLINE_MARKS).length}`);
+    console.log(`Slash menu items: ${SLASH_MENU_ITEMS.length}`);
+    console.log("");
 
-    // Q1: Vanilla JS support
-    logResult("Q1: Vanilla JS (no React)?");
-    logResult("  BlockNoteEditor.create() — OK");
-    logResult("  editor.mount(el) — exists, mounts ProseMirror content area");
-    logResult("  BUT: UI chrome (toolbar, slash menu, side menu, block handles)");
-    logResult("  lives in @blocknote/mantine which imports @blocknote/react.");
-    logResult("  VERDICT: React REQUIRED for full editor UI.");
-    logResult("");
-
-    // Q2: Slash menu
-    logResult("Q2: Slash menu?");
-    logResult("  BlockNoteView renders with built-in slash menu.");
-    logResult("  Type '/' in the editor above to verify interactively.");
-    logResult("  VERDICT: PASS (renders via Mantine/React).");
-    logResult("");
-
-    // Q3: Bundle size (measured via `pnpm build`)
-    logResult("Q3: Bundle size?");
-    logResult("  JS:  1,990 KB raw / 553 KB gzipped");
-    logResult("  CSS:   203 KB raw /  32 KB gzipped");
-    logResult("  Total gzipped: ~585 KB (under 750 KB budget)");
-    logResult("  VERDICT: PASS (within budget, leaves room for tree-sitter ~9 KB).");
-    logResult("");
-
-    // Log directive registry
-    logResult("=== Directive Registry ===");
-    for (const d of BUILTIN_DIRECTIVES) {
-      const attrs = d.attributes.map((a) => `${a.name}${a.required ? "*" : ""}`).join(", ");
-      logResult(`  @${d.name} [${d.body_mode}] attrs: ${attrs || "(none)"}`);
+    console.log("Block types:");
+    for (const [type, spec] of Object.entries(ALL_BLOCK_SPECS)) {
+      const props = Object.keys(spec.propSchema).join(", ") || "(none)";
+      console.log(`  ${type} [content=${spec.content}] props: ${props}`);
     }
-    logResult("");
-    logResult(`Total directives: ${BUILTIN_DIRECTIVES.length}`);
+
+    console.log("\nDirective blocks:");
+    for (const [, spec] of Object.entries(DIRECTIVE_BLOCK_SPECS)) {
+      console.log(
+        `  ::${spec.directiveName} -> ${spec.type} [${spec.bodyMode}]`
+      );
+    }
+
+    console.log("\nInline marks:");
+    for (const [name, mark] of Object.entries(CLN_INLINE_MARKS)) {
+      console.log(
+        `  ${name}: ${mark.clnSyntax.open}...${mark.clnSyntax.close} -> <${mark.tag}>`
+      );
+    }
+
+    console.log("\nSlash menu:");
+    for (const item of SLASH_MENU_ITEMS) {
+      console.log(`  [${item.group}] ${item.label} -> ${item.blockType}`);
+    }
   }, []);
 
-  return (
-    <BlockNoteView editor={editor} theme="light" />
-  );
+  return <BlockNoteView editor={editor} theme="light" />;
 }
 
-// Mount the app
 const container = document.getElementById("editor");
 if (container) {
   const root = createRoot(container);
-  root.render(<SpikeEditor />);
+  root.render(<EditorApp />);
 }
