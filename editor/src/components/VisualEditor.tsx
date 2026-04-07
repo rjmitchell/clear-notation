@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { BlockNoteEditor } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
@@ -6,6 +6,8 @@ import type { BNBlock, BNInlineContent, BNStyledText, BNLink } from "../converte
 
 interface VisualEditorProps {
   onDocumentChange: (blocks: BNBlock[]) => void;
+  editorRef?: React.MutableRefObject<BlockNoteEditor | null>;
+  darkMode?: boolean;
 }
 
 /**
@@ -106,10 +108,21 @@ function convertDocument(blocks: any[]): BNBlock[] {
   return blocks.map(convertBlock);
 }
 
-export default function VisualEditor({ onDocumentChange }: VisualEditorProps) {
+export default function VisualEditor({
+  onDocumentChange,
+  editorRef,
+  darkMode,
+}: VisualEditorProps) {
   const editor = useMemo(() => {
     return BlockNoteEditor.create();
   }, []);
+
+  // Expose editor instance to parent via ref
+  useEffect(() => {
+    if (editorRef) {
+      editorRef.current = editor;
+    }
+  }, [editor, editorRef]);
 
   const handleChange = useCallback(() => {
     const doc = editor.document;
@@ -122,7 +135,7 @@ export default function VisualEditor({ onDocumentChange }: VisualEditorProps) {
       <BlockNoteView
         editor={editor}
         onChange={handleChange}
-        theme="light"
+        theme={darkMode ? "dark" : "light"}
       />
     </div>
   );

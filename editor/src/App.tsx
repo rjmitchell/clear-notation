@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import type { BlockNoteEditor } from "@blocknote/core";
 import "./app.css";
 import SplitPane from "./components/SplitPane";
 import VisualEditor from "./components/VisualEditor";
@@ -6,11 +7,13 @@ import SourcePane from "./components/SourcePane";
 import Toolbar from "./components/Toolbar";
 import { useSync } from "./hooks/useSync";
 import { useFileOps } from "./hooks/useFileOps";
+import { useDarkMode } from "./hooks/useDarkMode";
 
 export default function App() {
   const { source, syncing, onDocumentChange } = useSync();
   const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, toggleDarkMode } = useDarkMode();
+  const editorRef = useRef<BlockNoteEditor | null>(null);
 
   const fileOps = useFileOps({
     getCurrentSource: () => source,
@@ -53,7 +56,50 @@ export default function App() {
     fileOps.exportHtml(html);
   }, [fileOps, source]);
 
-  const noop = useCallback(() => {}, []);
+  // Formatting handlers that use the BlockNote editor API
+  const handleToggleBold = useCallback(() => {
+    editorRef.current?.toggleStyles({ bold: true });
+  }, []);
+
+  const handleToggleItalic = useCallback(() => {
+    editorRef.current?.toggleStyles({ italic: true });
+  }, []);
+
+  const handleToggleCode = useCallback(() => {
+    editorRef.current?.toggleStyles({ code: true });
+  }, []);
+
+  const handleInsertLink = useCallback(() => {
+    // Link insertion requires a URL dialog; stub for now
+    const url = prompt("Enter URL:");
+    if (url && editorRef.current) {
+      editorRef.current.createLink(url);
+    }
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      if (e.key === "s" && e.shiftKey) {
+        e.preventDefault();
+        handleExportHtml();
+      } else if (e.key === "s") {
+        e.preventDefault();
+        handleSave();
+      } else if (e.key === "e" && !e.shiftKey) {
+        e.preventDefault();
+        handleToggleCode();
+      }
+      // Cmd+B and Cmd+I are handled natively by BlockNote,
+      // but the toolbar buttons also call toggleStyles for consistency
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleSave, handleExportHtml, handleToggleCode]);
 
   const statusLabel = fileOps.fileName
     ? `${fileOps.fileName}${fileOps.isDirty ? " *" : ""}`
@@ -68,12 +114,12 @@ export default function App() {
           onOpen={handleOpen}
           onSave={handleSave}
           onExportHtml={handleExportHtml}
-          onToggleBold={noop}
-          onToggleItalic={noop}
-          onToggleCode={noop}
-          onInsertLink={noop}
+          onToggleBold={handleToggleBold}
+          onToggleItalic={handleToggleItalic}
+          onToggleCode={handleToggleCode}
+          onInsertLink={handleInsertLink}
           darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode((d) => !d)}
+          onToggleDarkMode={toggleDarkMode}
           cheatSheetOpen={cheatSheetOpen}
           onToggleCheatSheet={() => setCheatSheetOpen((o) => !o)}
         />
@@ -81,7 +127,13 @@ export default function App() {
 
       <main className="main-content">
         <SplitPane
-          left={<VisualEditor onDocumentChange={handleChange} />}
+          left={
+            <VisualEditor
+              onDocumentChange={handleChange}
+              editorRef={editorRef}
+              darkMode={darkMode}
+            />
+          }
           right={<SourcePane source={source} syncing={syncing} />}
         />
       </main>
