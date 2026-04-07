@@ -1,5 +1,6 @@
 import React from "react";
 import "./app.css";
+import SplitPane from "./components/SplitPane";
 
 export default function App() {
   return (
@@ -9,13 +10,16 @@ export default function App() {
       </header>
 
       <main className="main-content">
-        <div style={{ flex: 1, padding: 24 }}>Visual editor placeholder</div>
-        <div
-          className="source-pane"
-          style={{ flex: "0 0 40%", borderLeft: "1px solid var(--cn-border)" }}
-        >
-          <pre>Source pane placeholder</pre>
-        </div>
+        <SplitPane
+          left={
+            <div className="visual-editor">Visual editor placeholder</div>
+          }
+          right={
+            <div className="source-pane">
+              <pre>Source pane placeholder</pre>
+            </div>
+          }
+        />
       </main>
 
       <footer className="status-bar">
