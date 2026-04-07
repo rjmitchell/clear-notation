@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ClearNotation</title>
+<link rel="stylesheet" href="clearnotation.css">
+</head>
+<body>
+<h1 id="clearnotation">ClearNotation</h1>
+<p>A docs-first markup language with a formally specified grammar, fail-closed parsing, and typed extensibility. Not Markdown-compatible. That&#x27;s the point.</p>
+<h2 id="why">Why</h2>
+<p>Markdown has no formal grammar, ambiguous parse rules, 41 incompatible flavors, and uses inline HTML as an escape hatch. ClearNotation is a clean-sheet design that trades Markdown compatibility for correctness, predictability, and a real spec you can implement against.</p>
+<h2 id="quick-look">Quick look</h2>
+<pre><code class="language-cln">::meta{
+title = &quot;Example Document&quot;
+}
+
+# Getting started
+
+ClearNotation uses +{strong text}, *{emphasized text}, `code spans`, [links -&gt; https://example.com], and ^{inline footnotes that render as endnotes}.
+
+::callout[kind=&quot;tip&quot;, title=&quot;One syntax per concept&quot;]{
+No `*` vs `**` ambiguity. No flavor differences. No inline HTML.
+}
+
+::table[header=true, align=[&quot;left&quot;, &quot;right&quot;]]{
+Feature | Syntax
+Strong | +\{text\}
+Emphasis | *\{text\}
+Link | [label -&gt; url]
+Note | ^\{text\}
+}</code></pre>
+<h2 id="install">Install</h2>
+<pre><code class="language-bash">git clone https://github.com/rjmitchell/clear-notation.git
+cd clear-notation
+pip install -e .</code></pre>
+<h2 id="usage">Usage</h2>
+<pre><code class="language-bash">cln build document.cln
+cln check document.cln
+cln ast document.cln</code></pre>
+<ul>
+<li><code>cln build</code> compiles <code>.cln</code> to HTML with a default stylesheet</li>
+<li><code>cln check</code> validates without rendering (for CI)</li>
+<li><code>cln ast</code> dumps the normalized AST as JSON</li>
+</ul>
+<h2 id="what-s-in-the-box">What&#x27;s in the box</h2>
+<ul>
+<li><strong>Normative EBNF grammar</strong> (<code>clearnotation-v0.1.ebnf</code>)</li>
+<li><strong>Reference parser, validator, normalizer, and HTML renderer</strong> in Python (stdlib-only)</li>
+<li><strong>44 conformance fixtures</strong> with a manifest-driven test harness</li>
+<li><strong>Default stylesheet</strong> with light/dark mode, callouts, tables, footnotes, and TOC</li>
+<li><strong>Tree-sitter grammar</strong> for editor syntax highlighting</li>
+<li><strong>Migration cheat sheet</strong> from Markdown (<code>docs/migration-from-markdown.cln</code>)</li>
+</ul>
+<h2 id="key-differences-from-markdown">Key differences from Markdown</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left">Concept</th>
+<th style="text-align: left">Markdown</th>
+<th style="text-align: left">ClearNotation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left">Bold</td>
+<td style="text-align: left"><code>**text**</code></td>
+<td style="text-align: left"><code>+{text}</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Italic</td>
+<td style="text-align: left"><code>*text*</code></td>
+<td style="text-align: left"><code>*{text}</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Link</td>
+<td style="text-align: left"><code>[label](url)</code></td>
+<td style="text-align: left"><code>[label -&gt; url]</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Footnote</td>
+<td style="text-align: left"><code>[^ref]</code> + definition</td>
+<td style="text-align: left"><code>^{inline note text}</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Table</td>
+<td style="text-align: left">pipe tables</td>
+<td style="text-align: left"><code>::table[header=true]{ ... }</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Callout</td>
+<td style="text-align: left">blockquote hacks</td>
+<td style="text-align: left"><code>::callout[kind=&quot;warning&quot;]{ ... }</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Image</td>
+<td style="text-align: left"><code>![alt](src)</code></td>
+<td style="text-align: left"><code>::figure[src=&quot;path&quot;]{ caption }</code></td>
+</tr>
+<tr>
+<td style="text-align: left">Code fence</td>
+<td style="text-align: left">language optional</td>
+<td style="text-align: left">language required</td>
+</tr>
+<tr>
+<td style="text-align: left">Inline HTML</td>
+<td style="text-align: left">allowed</td>
+<td style="text-align: left">always escaped</td>
+</tr>
+</tbody>
+</table>
+<h2 id="design-principles">Design principles</h2>
+<ul>
+<li>One canonical syntax per concept</li>
+<li>Formally defined, trivially parsable grammar</li>
+<li>Fail-closed: unknown directives, attributes, and refs are errors, not silent passthrough</li>
+<li>Extensions declared in <code>clearnotation.toml</code>, never in documents</li>
+<li>No inline HTML, no executable hooks, no Turing completeness</li>
+<li>Readable raw source</li>
+</ul>
+<h2 id="running-the-test-suite">Running the test suite</h2>
+<pre><code class="language-bash">python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter
+python3 -m unittest discover -s tests -v</code></pre>
+<h2 id="spec-documents">Spec documents</h2>
+<ul>
+<li><code>clearnotation-v0.1.ebnf</code> - normative grammar</li>
+<li><code>clearnotation-v0.1-syntax.md</code> - syntax decisions</li>
+<li><code>clearnotation-v0.1-config.md</code> - config contract</li>
+<li><code>clearnotation-v0.1-ast-conformance.md</code> - AST model and conformance</li>
+<li><code>clearnotation-v0.1-examples.md</code> - conformance corpus</li>
+</ul>
+<h2 id="license">License</h2>
+<p>MIT</p>
+</body>
+</html>
