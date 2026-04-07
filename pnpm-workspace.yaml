@@ -1,0 +1,5 @@
+packages:
+  - 'tree-sitter-clearnotation'
+  - 'clearnotation-js'
+  - 'editor'
+  - 'vscode-clearnotation'
