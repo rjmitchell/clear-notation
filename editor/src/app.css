@@ -1,0 +1,212 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ClearNotation Editor — Design System CSS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Light theme (default) ─── */
+:root {
+  --cn-bg: #ffffff;
+  --cn-fg: #1a1a1a;
+  --cn-accent: #2563eb;
+  --cn-accent-hover: #1d4ed8;
+  --cn-surface: #f9fafb;
+  --cn-border: #e5e7eb;
+  --cn-muted: #6b7280;
+  --cn-code-bg: #f3f4f6;
+
+  --cn-success: #22c55e;
+  --cn-warning: #f59e0b;
+  --cn-error: #ef4444;
+  --cn-info: #3b82f6;
+
+  --cn-radius-sm: 4px;
+  --cn-radius-md: 8px;
+  --cn-radius-lg: 12px;
+
+  --cn-font-ui: "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --cn-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, sans-serif;
+  --cn-font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ─── Dark theme ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --cn-bg: #111827;
+    --cn-fg: #f3f4f6;
+    --cn-accent: #60a5fa;
+    --cn-accent-hover: #3b82f6;
+    --cn-surface: #1f2937;
+    --cn-border: #374151;
+    --cn-muted: #9ca3af;
+    --cn-code-bg: #1f2937;
+  }
+}
+
+[data-theme="dark"] {
+  --cn-bg: #111827;
+  --cn-fg: #f3f4f6;
+  --cn-accent: #60a5fa;
+  --cn-accent-hover: #3b82f6;
+  --cn-surface: #1f2937;
+  --cn-border: #374151;
+  --cn-muted: #9ca3af;
+  --cn-code-bg: #1f2937;
+}
+
+/* ─── Reset ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--cn-font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--cn-fg);
+  background: var(--cn-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   App Shell — CSS Grid
+   ═══════════════════════════════════════════════════════════════════ */
+.app-shell {
+  display: grid;
+  grid-template-rows: 48px 1fr 24px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ─── Toolbar ─── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--cn-surface);
+  border-bottom: 1px solid var(--cn-border);
+  font-family: var(--cn-font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  gap: 12px;
+}
+
+/* ─── Main content area ─── */
+.main-content {
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Split Pane
+   ═══════════════════════════════════════════════════════════════════ */
+.split-pane {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.split-pane__left,
+.split-pane__right {
+  overflow: auto;
+  min-width: 0;
+}
+
+.split-pane__divider {
+  flex-shrink: 0;
+  width: 1px;
+  background: var(--cn-border);
+  position: relative;
+  cursor: col-resize;
+}
+
+/* Invisible hit area for easier grab */
+.split-pane__divider::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  width: 7px;
+  cursor: col-resize;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Visual Editor Pane
+   ═══════════════════════════════════════════════════════════════════ */
+.visual-editor {
+  padding: 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Source Pane
+   ═══════════════════════════════════════════════════════════════════ */
+.source-pane {
+  background: var(--cn-code-bg);
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+}
+
+.source-pane pre {
+  font-family: var(--cn-font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: var(--cn-fg);
+  margin: 0;
+}
+
+.source-pane .line {
+  display: block;
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+.source-pane .line-changed {
+  background: color-mix(in srgb, var(--cn-accent) 10%, transparent);
+  animation: line-fade 600ms ease-out forwards;
+}
+
+@keyframes line-fade {
+  from {
+    background: color-mix(in srgb, var(--cn-accent) 10%, transparent);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Status Bar
+   ═══════════════════════════════════════════════════════════════════ */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--cn-surface);
+  border-top: 1px solid var(--cn-border);
+  font-family: var(--cn-font-ui);
+  font-size: 12px;
+  color: var(--cn-muted);
+  user-select: none;
+}
