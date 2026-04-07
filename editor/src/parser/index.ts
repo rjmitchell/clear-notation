@@ -8,3 +8,12 @@ export type {
   WorkerRequest,
   WorkerResponse,
 } from "./types";
+export {
+  findChildByType,
+  findChildrenByType,
+  getDirectiveName,
+  getHeadingLevel,
+  getAttributeMap,
+  getBodyText,
+  hasErrorDescendant,
+} from "./cst-utils";
