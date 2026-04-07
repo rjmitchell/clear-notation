@@ -12,6 +12,8 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
+  clearnotation-js: {}
+
   tree-sitter-clearnotation:
     dependencies:
       node-addon-api:
@@ -27,6 +29,9 @@ importers:
       tree-sitter-cli:
         specifier: ^0.24.0
         version: 0.24.7
+      web-tree-sitter:
+        specifier: ^0.26.8
+        version: 0.26.8
 
   vscode-clearnotation:
     dependencies:
@@ -753,6 +758,9 @@ packages:
 
   vscode-languageserver-types@3.17.5:
     resolution: {integrity: sha512-Ld1VelNuX9pdF39h2Hgaeb5hEZM2Z3jUrrMgWQAu82jMtZp7p3vJT3BzToKtZI7NgQssZje5o0zryOrhQvzQAg==}
+
+  web-tree-sitter@0.26.8:
+    resolution: {integrity: sha512-4sUwi7ZyOrIk5KLgYLkc2A/F0LFMQnBhfb+2Cdl7ik4ePJ6JD+fk4ofI2sA5eGawBKBaK4Vntt7Ww5KcEsay4A==}
 
   whatwg-encoding@3.1.1:
     resolution: {integrity: sha512-6qN4hJdMwfYBtE3YBTTHhoeuUrDBPZmbQaxWAqSALV/MeEnR5z1xd8UKud2RAkFoPkmB+hli1TZSnyi84xz1vQ==}
@@ -1612,6 +1620,8 @@ snapshots:
       vscode-languageserver-types: 3.17.5
 
   vscode-languageserver-types@3.17.5: {}
+
+  web-tree-sitter@0.26.8: {}
 
   whatwg-encoding@3.1.1:
     dependencies:

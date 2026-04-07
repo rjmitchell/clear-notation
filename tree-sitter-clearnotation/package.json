@@ -26,7 +26,8 @@
     "node-gyp-build": "^4.8.0"
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.24.0"
+    "tree-sitter-cli": "^0.24.0",
+    "web-tree-sitter": "^0.26.8"
   },
   "peerDependencies": {
     "tree-sitter": "^0.21.0"
