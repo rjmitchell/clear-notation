@@ -1,0 +1,120 @@
+spec = "0.1"
+registry_kind = "builtin"
+registry_source = "compiler-core"
+
+[[directive]]
+name = "toc"
+placement = "block"
+body_mode = "none"
+emits = ["toc"]
+built_in = true
+
+[[directive]]
+name = "ref"
+placement = "inline"
+body_mode = "none"
+emits = ["ref"]
+built_in = true
+
+[[directive.attribute]]
+name = "target"
+type = "string"
+required = true
+
+[[directive]]
+name = "anchor"
+placement = "block"
+body_mode = "none"
+emits = ["anchor"]
+built_in = true
+
+[[directive.attribute]]
+name = "id"
+type = "string"
+required = true
+
+[[directive]]
+name = "include"
+placement = "block"
+body_mode = "none"
+emits = ["include"]
+built_in = true
+
+[[directive.attribute]]
+name = "src"
+type = "string"
+required = true
+
+[[directive]]
+name = "callout"
+placement = "block"
+body_mode = "parsed"
+emits = ["callout"]
+built_in = true
+
+[[directive.attribute]]
+name = "kind"
+type = "string"
+required = true
+
+[[directive.attribute]]
+name = "title"
+type = "string"
+required = false
+
+[[directive.attribute]]
+name = "compact"
+type = "boolean"
+required = false
+default = false
+
+[[directive]]
+name = "figure"
+placement = "block"
+body_mode = "parsed"
+emits = ["figure"]
+built_in = true
+
+[[directive.attribute]]
+name = "src"
+type = "string"
+required = true
+
+[[directive]]
+name = "math"
+placement = "block"
+body_mode = "raw"
+emits = ["math"]
+built_in = true
+
+[[directive]]
+name = "table"
+placement = "block"
+body_mode = "raw"
+emits = ["table"]
+built_in = true
+
+[[directive.attribute]]
+name = "header"
+type = "boolean"
+required = false
+default = false
+
+[[directive.attribute]]
+name = "align"
+type = "string[]"
+required = false
+allowed_values = ["left", "center", "right"]
+cardinality = "matches_table_columns"
+
+[[directive]]
+name = "source"
+placement = "block"
+body_mode = "raw"
+emits = ["source"]
+built_in = true
+
+[[directive.attribute]]
+name = "language"
+type = "string"
+required = true

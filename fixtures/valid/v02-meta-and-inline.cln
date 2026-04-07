@@ -1,0 +1,9 @@
+::meta{
+title = "ClearNotation"
+draft = true
+authors = ["Three Raccoons in a Trenchcoat", "Core Team"]
+}
+
+# Intro
+
+ClearNotation uses +{strong}, *{emphasis}, `code`, [links -> /docs/intro], and ^{inline notes}.

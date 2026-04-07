@@ -1,0 +1,55 @@
+{
+  "name": "tree-sitter-clearnotation",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for ClearNotation v0.1",
+  "license": "MIT",
+  "main": "bindings/node",
+  "keywords": [
+    "tree-sitter",
+    "clearnotation",
+    "parser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clearnotation/tree-sitter-clearnotation"
+  },
+  "files": [
+    "grammar.js",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**"
+  ],
+  "dependencies": {
+    "node-addon-api": "^8.0.0",
+    "node-gyp-build": "^4.8.0"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.24.0"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "tree-sitter": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "generate": "tree-sitter generate",
+    "build": "tree-sitter generate && node-gyp rebuild",
+    "test": "tree-sitter test",
+    "parse": "tree-sitter parse"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.clearnotation",
+      "file-types": [
+        "cln"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^clearnotation$"
+    }
+  ]
+}

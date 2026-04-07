@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clearnotation"
+version = "0.1.0"
+description = "ClearNotation: a docs-first, formally specified markup language"
+requires-python = ">=3.11"
+license = "MIT"
+
+[project.scripts]
+cln = "clearnotation_reference.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["clearnotation_reference*", "clearnotation_harness*"]
+
+[tool.setuptools.package-data]
+clearnotation_reference = ["clearnotation.css"]

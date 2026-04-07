@@ -1,0 +1,12 @@
+# Rules
+
+- One syntax per concept
+- No inline HTML
+- Fail closed
+
+1. Parse
+2. Validate
+3. Render
+
+> Clear syntax helps tools.
+> Clear constraints help authors.

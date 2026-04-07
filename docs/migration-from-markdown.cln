@@ -1,0 +1,275 @@
+::meta{
+title = "Migration Cheat Sheet: Markdown to ClearNotation"
+draft = false
+}
+
+# Migration Cheat Sheet: Markdown to ClearNotation
+
+This document shows the 15 most common Markdown constructs and their ClearNotation equivalents. Each section shows the Markdown syntax first, then the ClearNotation equivalent.
+
+---
+
+## 1. Headings
+
+::source[language="markdown"]{
+# Heading 1
+## Heading 2
+### Heading 3
+}
+
+ClearNotation headings are the same, but exactly one space after `#` is required. `#Bad` is a parse error.
+
+```cln
+# Heading 1
+## Heading 2
+### Heading 3
+```
+
+---
+
+## 2. Bold / Strong
+
+::source[language="markdown"]{
+This is **bold text** in Markdown.
+}
+
+ClearNotation uses `+{...}` instead of `**...**`. No delimiter-run ambiguity.
+
+```cln
+This is +{bold text} in ClearNotation.
+```
+
+---
+
+## 3. Italic / Emphasis
+
+::source[language="markdown"]{
+This is *italic text* in Markdown.
+This is _also italic_ in Markdown.
+}
+
+ClearNotation uses `*{...}` with explicit braces. No `_underscore_` form exists.
+
+```cln
+This is *{italic text} in ClearNotation.
+```
+
+---
+
+## 4. Inline Code
+
+::source[language="markdown"]{
+Use `console.log()` to debug.
+}
+
+Inline code spans use backticks in both formats. No change needed.
+
+```cln
+Use `console.log()` to debug.
+```
+
+---
+
+## 5. Links
+
+::source[language="markdown"]{
+Visit [the docs](https://example.com/docs).
+See [API Reference][api-ref] for details.
+
+[api-ref]: https://example.com/api
+}
+
+ClearNotation uses `[label -> url]` with a ` -> ` separator. No reference-style links exist.
+
+```cln
+Visit [the docs -> https://example.com/docs].
+See [API Reference -> https://example.com/api] for details.
+```
+
+---
+
+## 6. Images
+
+::source[language="markdown"]{
+![Alt text](image.png)
+![Screenshot](screenshot.png "A screenshot")
+}
+
+ClearNotation uses the `::figure` directive. The body is the caption.
+
+```cln
+::figure[src="image.png"]{
+Alt text
+}
+
+::figure[src="screenshot.png"]{
+A screenshot
+}
+```
+
+---
+
+## 7. Unordered Lists
+
+::source[language="markdown"]{
+- First item
+- Second item
+  - Nested item
+- Third item
+}
+
+ClearNotation lists are flat in v0.1. No nesting is supported.
+
+```cln
+- First item
+- Second item
+- Third item
+```
+
+---
+
+## 8. Ordered Lists
+
+::source[language="markdown"]{
+1. First step
+2. Second step
+3. Third step
+}
+
+Ordered lists work the same way. Authored numbers are preserved.
+
+```cln
+1. First step
+2. Second step
+3. Third step
+```
+
+---
+
+## 9. Blockquotes
+
+::source[language="markdown"]{
+> This is a quote.
+> It can span multiple lines.
+>
+> > Nested quotes work too.
+}
+
+ClearNotation blockquotes are flat. No nesting, no multi-paragraph blocks.
+
+```cln
+> This is a quote.
+> It can span multiple lines.
+```
+
+---
+
+## 10. Fenced Code Blocks
+
+::source[language="markdown"]{
+```python
+def greet(name):
+    return f"Hello, {name}"
+```
+}
+
+ClearNotation fences look the same but the language tag is +{mandatory}. Omitting it is a parse error.
+
+````cln
+```python
+def greet(name):
+    return f"Hello, {name}"
+```
+````
+
+---
+
+## 11. Horizontal Rules
+
+::source[language="markdown"]{
+---
+}
+
+Horizontal rules are identical. Use `---` on its own line.
+
+```cln
+---
+```
+
+---
+
+## 12. Tables
+
+::source[language="markdown"]{
+| Name   | Role      |
+|--------|-----------|
+| Alice  | Engineer  |
+| Bob    | Designer  |
+}
+
+ClearNotation uses the `::table` directive instead of pipe tables. No separator row needed.
+
+```cln
+::table[header=true, align=["left", "left"]]{
+Name | Role
+Alice | Engineer
+Bob | Designer
+}
+```
+
+---
+
+## 13. Footnotes / Notes
+
+::source[language="markdown"]{
+This needs clarification[^1].
+
+[^1]: Here is the explanation.
+}
+
+ClearNotation uses inline-only notes with `^{...}`. No reference-style footnotes.
+
+```cln
+This needs clarification^{Here is the explanation.}.
+```
+
+---
+
+## 14. Callouts / Admonitions
+
+::source[language="markdown"]{
+> **Warning:** Do not run this in production.
+
+> [!WARNING]
+> Do not run this in production.
+}
+
+ClearNotation uses the `::callout` directive with a `kind` attribute.
+
+```cln
+::callout[kind="warning", title="Warning"]{
+Do not run this in production.
+}
+```
+
+---
+
+## 15. Not Supported in ClearNotation v0.1
+
+The following Markdown constructs have +{no equivalent} in ClearNotation v0.1:
+
+- +{Inline HTML}: `<div>`, `<span>`, `<br>` and all other HTML tags are not allowed
+- +{Reference-style links}: `[text][id]` with `[id]: url` definitions
+- +{Reference-style footnotes}: `[^id]` with `[^id]: text` definitions
+- +{Autolinks}: `<https://example.com>` auto-linking; use explicit `[label -> url]` instead
+- +{Nested lists}: indented sub-lists are deferred to a future version
+- +{Nested blockquotes}: `> > nested` quoting is not supported
+- +{Multi-paragraph list items}: list items are single-line only
+- +{YAML frontmatter}: use `::meta{...}` instead
+- +{Code fences without a language tag}: always specify the language
+
+---
+
+::callout[kind="tip", title="Quick Reference"]{
+Bold: `+{text}` not `**text**`. Italic: `*{text}` not `*text*`. Links: `[label -> url]` not `[label](url)`. Notes: `^{inline text}` not `[^ref]`. Tables: `::table[header=true]{...}` not pipe syntax. Images: `::figure[src="path"]{caption}` not `![alt](path)`.
+}

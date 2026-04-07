@@ -1,0 +1,376 @@
+spec = "0.1"
+default_config = "../clearnotation.toml"
+project_root = ".."
+builtin_registry = "../reference/builtin-registry.toml"
+
+[suite]
+name = "clearnotation-v0.1-core"
+document_extension = ".cln"
+
+[[case]]
+id = "v01"
+title = "Minimal document"
+kind = "valid"
+path = "valid/v01-minimal.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v02"
+title = "Metadata and core inline forms"
+kind = "valid"
+path = "valid/v02-meta-and-inline.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v03"
+title = "Link label formatting and note-local linking"
+kind = "valid"
+path = "valid/v03-link-and-note.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v04"
+title = "Flat lists and flat blockquotes"
+kind = "valid"
+path = "valid/v04-lists-and-blockquote.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v05"
+title = "Fenced code with required language tag"
+kind = "valid"
+path = "valid/v05-fenced-code.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v06"
+title = "Parsed block directive"
+kind = "valid"
+path = "valid/v06-callout.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v07"
+title = "Raw block directives"
+kind = "valid"
+path = "valid/v07-raw-blocks.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v08"
+title = "Explicit anchors and refs"
+kind = "valid"
+path = "valid/v08-anchor-and-ref.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v09"
+title = "Include under a valid project-relative path"
+kind = "valid"
+path = "valid/v09-include.cln"
+parse = "accept"
+validate = "accept"
+requires = ["valid/partials/intro.cln"]
+
+[[case]]
+id = "v10"
+title = "Escaped opener text in restricted contexts"
+kind = "valid"
+path = "valid/v10-escaped-openers.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v11"
+title = "TOC with repeated heading slugs"
+kind = "valid"
+path = "valid/v11-toc-and-slug-collision.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v12"
+title = "Figure directive with parsed caption body"
+kind = "valid"
+path = "valid/v12-figure.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v13"
+title = "Source directive with required language attribute"
+kind = "valid"
+path = "valid/v13-source-directive.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v14"
+title = "Anchor attached to a paragraph"
+kind = "valid"
+path = "valid/v14-anchor-paragraph.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v15"
+title = "Table with escaped cell delimiters"
+kind = "valid"
+path = "valid/v15-table-escaped-pipe.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "p01"
+title = "Meta block not first"
+kind = "parse-invalid"
+path = "parse-invalid/p01-meta-not-first.cln"
+parse = "reject"
+error_kind = "meta_not_first"
+
+[[case]]
+id = "p02"
+title = "Missing required space after heading marker"
+kind = "parse-invalid"
+path = "parse-invalid/p02-heading-space.cln"
+parse = "reject"
+error_kind = "missing_required_marker_space"
+
+[[case]]
+id = "p03"
+title = "Missing code fence language tag"
+kind = "parse-invalid"
+path = "parse-invalid/p03-missing-fence-language.cln"
+parse = "reject"
+error_kind = "missing_code_fence_language"
+
+[[case]]
+id = "p04"
+title = "Unclosed note"
+kind = "parse-invalid"
+path = "parse-invalid/p04-unclosed-note.cln"
+parse = "reject"
+error_kind = "unclosed_inline_construct"
+
+[[case]]
+id = "p05"
+title = "Unknown inline directive"
+kind = "parse-invalid"
+path = "parse-invalid/p05-unknown-inline-directive.cln"
+parse = "reject"
+error_kind = "unknown_inline_directive"
+
+[[case]]
+id = "p06"
+title = "Unsupported nested construct inside strong text"
+kind = "parse-invalid"
+path = "parse-invalid/p06-invalid-strong-nesting.cln"
+parse = "reject"
+error_kind = "disallowed_inline_construct"
+
+[[case]]
+id = "p07"
+title = "Invalid escape sequence"
+kind = "parse-invalid"
+path = "parse-invalid/p07-invalid-escape.cln"
+parse = "reject"
+error_kind = "invalid_escape_sequence"
+
+[[case]]
+id = "p08"
+title = "Link target with unescaped space"
+kind = "parse-invalid"
+path = "parse-invalid/p08-link-target-space.cln"
+parse = "reject"
+error_kind = "invalid_link_target"
+
+[[case]]
+id = "p09"
+title = "Unknown block directive"
+kind = "parse-invalid"
+path = "parse-invalid/p09-unknown-block-directive.cln"
+parse = "reject"
+error_kind = "unknown_block_directive"
+
+[[case]]
+id = "p10"
+title = "Standalone closer outside directive body"
+kind = "parse-invalid"
+path = "parse-invalid/p10-standalone-closer.cln"
+parse = "reject"
+error_kind = "unexpected_directive_closer"
+
+[[case]]
+id = "p11"
+title = "Parsed directive missing body opener"
+kind = "parse-invalid"
+path = "parse-invalid/p11-missing-parsed-body-opener.cln"
+parse = "reject"
+error_kind = "invalid_block_directive"
+
+[[case]]
+id = "p12"
+title = "Meta entry with trailing content"
+kind = "parse-invalid"
+path = "parse-invalid/p12-meta-trailing-content.cln"
+parse = "reject"
+error_kind = "invalid_meta_block"
+
+[[case]]
+id = "p13"
+title = "Unclosed raw directive body"
+kind = "parse-invalid"
+path = "parse-invalid/p13-unclosed-raw-directive.cln"
+parse = "reject"
+error_kind = "unclosed_block_directive"
+
+[[case]]
+id = "p14"
+title = "Self-closing directive with unexpected body syntax"
+kind = "parse-invalid"
+path = "parse-invalid/p14-self-closing-with-body.cln"
+parse = "reject"
+error_kind = "invalid_block_directive"
+
+[[case]]
+id = "x01"
+title = "Unknown attribute on built-in directive"
+kind = "validate-invalid"
+path = "validate-invalid/x01-unknown-attribute.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "unknown_attribute"
+
+[[case]]
+id = "x02"
+title = "Wrong attribute type"
+kind = "validate-invalid"
+path = "validate-invalid/x02-wrong-attribute-type.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x03"
+title = "Anchor with no following addressable block"
+kind = "validate-invalid"
+path = "validate-invalid/x03-anchor-without-target.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "anchor_without_addressable_block"
+
+[[case]]
+id = "x04"
+title = "Unresolved ref target"
+kind = "validate-invalid"
+path = "validate-invalid/x04-unresolved-ref.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "unresolved_ref"
+
+[[case]]
+id = "x05"
+title = "Duplicate explicit IDs"
+kind = "validate-invalid"
+path = "validate-invalid/x05-duplicate-explicit-ids.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "duplicate_id"
+
+[[case]]
+id = "x06"
+title = "Include escaping project root"
+kind = "validate-invalid"
+path = "validate-invalid/x06-include-escapes-root.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "include_path_outside_root"
+
+[[case]]
+id = "x07"
+title = "Missing include target"
+kind = "validate-invalid"
+path = "validate-invalid/x07-missing-include-target.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "include_target_missing"
+
+[[case]]
+id = "x08"
+title = "Empty heading slug without explicit anchor"
+kind = "validate-invalid"
+path = "validate-invalid/x08-empty-heading-slug.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "empty_generated_slug"
+
+[[case]]
+id = "x09"
+title = "Inline ref with wrong attribute type"
+kind = "validate-invalid"
+path = "validate-invalid/x09-inline-ref-wrong-type.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x10"
+title = "Inline ref with unknown attribute"
+kind = "validate-invalid"
+path = "validate-invalid/x10-inline-ref-unknown-attribute.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "unknown_attribute"
+
+[[case]]
+id = "x11"
+title = "Figure missing required src attribute"
+kind = "validate-invalid"
+path = "validate-invalid/x11-figure-missing-src.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x12"
+title = "Table align with invalid value"
+kind = "validate-invalid"
+path = "validate-invalid/x12-table-align-invalid-value.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x13"
+title = "Table align length mismatch"
+kind = "validate-invalid"
+path = "validate-invalid/x13-table-align-length-mismatch.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x14"
+title = "Source directive missing language attribute"
+kind = "validate-invalid"
+path = "validate-invalid/x14-source-missing-language.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x15"
+title = "Anchor inside callout without target block"
+kind = "validate-invalid"
+path = "validate-invalid/x15-anchor-inside-callout-without-target.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "anchor_without_addressable_block"

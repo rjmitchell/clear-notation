@@ -1,0 +1,4 @@
+::table[header=true, align=["left", "center"]]{
+Name | Notes
+A \| B | `literal`
+}

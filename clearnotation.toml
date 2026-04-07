@@ -1,0 +1,12 @@
+spec = "0.1"
+
+[project]
+root = "."
+main = "fixtures/valid/v01-minimal.cln"
+
+[render]
+primary = "html"
+secondary = ["pdf"]
+
+[includes]
+roots = ["fixtures"]

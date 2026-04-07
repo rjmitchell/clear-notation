@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# AI/editor tooling
+.claude/
+CLAUDE.md
+TODOS.md
+.cursorrules
+.cursorignore
+.copilot/
+.github/copilot-instructions.md
+.aider*

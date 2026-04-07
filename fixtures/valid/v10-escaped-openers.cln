@@ -1,0 +1,5 @@
+# Escapes
+
++{Write \[ literally inside strong text.}
+
+^{Use \^{ when you mean the literal opener, not a nested note.}

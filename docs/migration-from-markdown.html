@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Migration Cheat Sheet: Markdown to ClearNotation</title>
+<link rel="stylesheet" href="clearnotation.css">
+</head>
+<body>
+<h1 id="migration-cheat-sheet-markdown-to-clearnotation">Migration Cheat Sheet: Markdown to ClearNotation</h1>
+<p>This document shows the 15 most common Markdown constructs and their ClearNotation equivalents. Each section shows the Markdown syntax first, then the ClearNotation equivalent.</p>
+<hr>
+<h2 id="1-headings">1. Headings</h2>
+<pre><code class="language-markdown"># Heading 1
+## Heading 2
+### Heading 3</code></pre>
+<p>ClearNotation headings are the same, but exactly one space after <code>#</code> is required. <code>#Bad</code> is a parse error.</p>
+<pre><code class="language-cln"># Heading 1
+## Heading 2
+### Heading 3</code></pre>
+<hr>
+<h2 id="2-bold-strong">2. Bold / Strong</h2>
+<pre><code class="language-markdown">This is **bold text** in Markdown.</code></pre>
+<p>ClearNotation uses <code>+{...}</code> instead of <code>**...**</code>. No delimiter-run ambiguity.</p>
+<pre><code class="language-cln">This is +{bold text} in ClearNotation.</code></pre>
+<hr>
+<h2 id="3-italic-emphasis">3. Italic / Emphasis</h2>
+<pre><code class="language-markdown">This is *italic text* in Markdown.
+This is _also italic_ in Markdown.</code></pre>
+<p>ClearNotation uses <code>*{...}</code> with explicit braces. No <code>_underscore_</code> form exists.</p>
+<pre><code class="language-cln">This is *{italic text} in ClearNotation.</code></pre>
+<hr>
+<h2 id="4-inline-code">4. Inline Code</h2>
+<pre><code class="language-markdown">Use `console.log()` to debug.</code></pre>
+<p>Inline code spans use backticks in both formats. No change needed.</p>
+<pre><code class="language-cln">Use `console.log()` to debug.</code></pre>
+<hr>
+<h2 id="5-links">5. Links</h2>
+<pre><code class="language-markdown">Visit [the docs](https://example.com/docs).
+See [API Reference][api-ref] for details.
+
+[api-ref]: https://example.com/api</code></pre>
+<p>ClearNotation uses <code>[label -&gt; url]</code> with a <code> -&gt; </code> separator. No reference-style links exist.</p>
+<pre><code class="language-cln">Visit [the docs -&gt; https://example.com/docs].
+See [API Reference -&gt; https://example.com/api] for details.</code></pre>
+<hr>
+<h2 id="6-images">6. Images</h2>
+<pre><code class="language-markdown">![Alt text](image.png)
+![Screenshot](screenshot.png &quot;A screenshot&quot;)</code></pre>
+<p>ClearNotation uses the <code>::figure</code> directive. The body is the caption.</p>
+<pre><code class="language-cln">::figure[src=&quot;image.png&quot;]{
+Alt text
+}
+
+::figure[src=&quot;screenshot.png&quot;]{
+A screenshot
+}</code></pre>
+<hr>
+<h2 id="7-unordered-lists">7. Unordered Lists</h2>
+<pre><code class="language-markdown">- First item
+- Second item
+  - Nested item
+- Third item</code></pre>
+<p>ClearNotation lists are flat in v0.1. No nesting is supported.</p>
+<pre><code class="language-cln">- First item
+- Second item
+- Third item</code></pre>
+<hr>
+<h2 id="8-ordered-lists">8. Ordered Lists</h2>
+<pre><code class="language-markdown">1. First step
+2. Second step
+3. Third step</code></pre>
+<p>Ordered lists work the same way. Authored numbers are preserved.</p>
+<pre><code class="language-cln">1. First step
+2. Second step
+3. Third step</code></pre>
+<hr>
+<h2 id="9-blockquotes">9. Blockquotes</h2>
+<pre><code class="language-markdown">&gt; This is a quote.
+&gt; It can span multiple lines.
+&gt;
+&gt; &gt; Nested quotes work too.</code></pre>
+<p>ClearNotation blockquotes are flat. No nesting, no multi-paragraph blocks.</p>
+<pre><code class="language-cln">&gt; This is a quote.
+&gt; It can span multiple lines.</code></pre>
+<hr>
+<h2 id="10-fenced-code-blocks">10. Fenced Code Blocks</h2>
+<pre><code class="language-markdown">```python
+def greet(name):
+    return f&quot;Hello, {name}&quot;
+```</code></pre>
+<p>ClearNotation fences look the same but the language tag is <strong>mandatory</strong>. Omitting it is a parse error.</p>
+<pre><code class="language-`cln">```python
+def greet(name):
+    return f&quot;Hello, {name}&quot;</code></pre>
+<pre><code class="language-`">
+---
+
+## 11. Horizontal Rules
+
+::source[language=&quot;markdown&quot;]{
+---
+}
+
+Horizontal rules are identical. Use `---` on its own line.
+
+```cln
+---</code></pre>
+<hr>
+<h2 id="12-tables">12. Tables</h2>
+<pre><code class="language-markdown">| Name   | Role      |
+|--------|-----------|
+| Alice  | Engineer  |
+| Bob    | Designer  |</code></pre>
+<p>ClearNotation uses the <code>::table</code> directive instead of pipe tables. No separator row needed.</p>
+<pre><code class="language-cln">::table[header=true, align=[&quot;left&quot;, &quot;left&quot;]]{
+Name | Role
+Alice | Engineer
+Bob | Designer
+}</code></pre>
+<hr>
+<h2 id="13-footnotes-notes">13. Footnotes / Notes</h2>
+<pre><code class="language-markdown">This needs clarification[^1].
+
+[^1]: Here is the explanation.</code></pre>
+<p>ClearNotation uses inline-only notes with <code>^{...}</code>. No reference-style footnotes.</p>
+<pre><code class="language-cln">This needs clarification^{Here is the explanation.}.</code></pre>
+<hr>
+<h2 id="14-callouts-admonitions">14. Callouts / Admonitions</h2>
+<pre><code class="language-markdown">&gt; **Warning:** Do not run this in production.
+
+&gt; [!WARNING]
+&gt; Do not run this in production.</code></pre>
+<p>ClearNotation uses the <code>::callout</code> directive with a <code>kind</code> attribute.</p>
+<pre><code class="language-cln">::callout[kind=&quot;warning&quot;, title=&quot;Warning&quot;]{
+Do not run this in production.
+}</code></pre>
+<hr>
+<h2 id="15-not-supported-in-clearnotation-v0-1">15. Not Supported in ClearNotation v0.1</h2>
+<p>The following Markdown constructs have <strong>no equivalent</strong> in ClearNotation v0.1:</p>
+<ul>
+<li><strong>Inline HTML</strong>: <code>&lt;div&gt;</code>, <code>&lt;span&gt;</code>, <code>&lt;br&gt;</code> and all other HTML tags are not allowed</li>
+<li><strong>Reference-style links</strong>: <code>[text][id]</code> with <code>[id]: url</code> definitions</li>
+<li><strong>Reference-style footnotes</strong>: <code>[^id]</code> with <code>[^id]: text</code> definitions</li>
+<li><strong>Autolinks</strong>: <code>&lt;https://example.com&gt;</code> auto-linking; use explicit <code>[label -&gt; url]</code> instead</li>
+<li><strong>Nested lists</strong>: indented sub-lists are deferred to a future version</li>
+<li><strong>Nested blockquotes</strong>: <code>&gt; &gt; nested</code> quoting is not supported</li>
+<li><strong>Multi-paragraph list items</strong>: list items are single-line only</li>
+<li><strong>YAML frontmatter</strong>: use <code>::meta{...}</code> instead</li>
+<li><strong>Code fences without a language tag</strong>: always specify the language</li>
+</ul>
+<hr>
+<aside class="callout callout-tip">
+<p class="callout-title">Quick Reference</p>
+<p>Bold: <code>+{text}</code> not <code>**text**</code>. Italic: <code>*{text}</code> not <code>*text*</code>. Links: <code>[label -&gt; url]</code> not <code>[label](url)</code>. Notes: <code>^{inline text}</code> not <code>[^ref]</code>. Tables: <code>::table[header=true]{...}</code> not pipe syntax. Images: <code>::figure[src=&quot;path&quot;]{caption}</code> not <code>![alt](path)</code>.</p>
+</aside>
+</body>
+</html>

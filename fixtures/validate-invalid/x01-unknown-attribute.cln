@@ -1,0 +1,3 @@
+::callout[kind="warning", tone="calm"]{
+Unknown attributes must fail closed.
+}

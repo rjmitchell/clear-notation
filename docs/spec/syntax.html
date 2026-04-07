@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ClearNotation v0.1 Syntax Decisions</title>
+<link rel="stylesheet" href="clearnotation.css">
+</head>
+<body>
+<h1 id="clearnotation-v0-1-syntax-decisions">ClearNotation v0.1 Syntax Decisions</h1>
+<p>This note freezes the remaining syntax choices that the v0.1 grammar depends on. It keeps the handoff baseline intact: readable-hybrid authoring, no inline HTML, inline-only notes, explicit directive blocks, trusted typed extensions in <code>clearnotation.toml</code>, and fail-closed behavior.</p>
+<h2 id="frozen-v0-1-choices">Frozen v0.1 choices</h2>
+<ul>
+<li>Canonical document extension: <code>.cln</code></li>
+<li>Primary normative output target: HTML</li>
+<li>Secondary target status: PDF is supported, but only semantically conforming against the normalized AST; page layout is non-normative in v0.1</li>
+<li>Inline emphasis forms stay as <code>+{...}</code> and <code>*{...}</code></li>
+<li>Directives remain explicit <code>::name[...]</code> forms, with bodies opened by <code>{</code> and closed by a line whose left-trimmed content is exactly <code>}</code></li>
+<li><code>::meta{...}</code> is reserved core preamble syntax, not an extension-defined directive</li>
+</ul>
+<p>The grammar intentionally chooses a slightly smaller feature set for v0.1 to keep the syntax fully specified and predictably parsable.</p>
+<h2 id="why-keep-and">Why keep <code>+{}</code> and <code>*{}</code></h2>
+<p>They still fit the design better than Markdown-style delimiter runs:</p>
+<ul>
+<li><code>+{}</code> and <code>*{}</code> have one opener each, so there is no <code>*</code>/<code>**</code> ambiguity family</li>
+<li>the <code>{</code> makes accidental matches much rarer in technical prose</li>
+<li>they remain short enough for docs-first writing</li>
+<li>the forms are distinct from HTML-derived names without introducing heavy directive syntax</li>
+</ul>
+<p>To reduce accidental parsing in code-like prose, <code>+{</code>, <code>*{</code>, <code>^{</code>, and inline <code>::name[...]</code> are recognized only at valid inline boundaries. In prose terms: they must either start the inline sequence or follow a non-alphanumeric character.</p>
+<h2 id="parser-model">Parser model</h2>
+<p>The parser is parameterized by the trusted directive registry from <code>clearnotation.toml</code>. Parsing does not execute extensions or renderer logic. The registry only contributes static facts needed before parsing:</p>
+<ul>
+<li>directive <code>name</code></li>
+<li><code>placement = &quot;block&quot; | &quot;inline&quot;</code></li>
+<li><code>body_mode = &quot;none&quot; | &quot;parsed&quot; | &quot;raw&quot;</code></li>
+</ul>
+<p><code>::meta{...}</code> is the one reserved exception. It is part of the core document grammar and is parsed before general directive lookup.</p>
+<p>Everything else stays outside parse:</p>
+<ul>
+<li>attribute schema validation</li>
+<li>include policy checks</li>
+<li>reference resolution</li>
+<li>ID generation and collision handling</li>
+<li>transform/render behavior</li>
+</ul>
+<p>This keeps the pipeline aligned with the handoff while still making directive parsing deterministic.</p>
+<h2 id="inline-rules">Inline rules</h2>
+<p>The inline model is intentionally acyclic.</p>
+<ul>
+<li>Paragraphs, headings, blockquotes, list items, and parsed table cells accept text, code spans, strong, emphasis, links, notes, and inline directives.</li>
+<li>Strong and emphasis bodies accept only plain text, escapes, and code spans.</li>
+<li>Link labels accept plain text, escapes, code spans, strong, and emphasis.</li>
+<li>Notes accept plain text, escapes, code spans, strong, emphasis, links, and inline directives.</li>
+<li>Notes may not nest inside notes.</li>
+<li>Links may not nest inside links.</li>
+</ul>
+<p>When a context does not permit a construct, its opener is not treated as ordinary text. Authors must escape it. For example, a literal <code>\[</code> inside strong text is written as <code>\\[</code> and a literal <code>^\{</code> inside a note is written as <code>\\^\{</code>.</p>
+<p>This preserves useful authoring patterns like <code>[+{API} reference -&gt; /api]</code> and <code>^{See [the guide -&gt; /guide]}</code> without enabling open-ended recursive inline combinations.</p>
+<p>Link targets are deliberately simpler than link labels.</p>
+<ul>
+<li>A link target is a non-empty opaque string after the separator <code> -&gt; </code></li>
+<li>Unescaped ASCII spaces or tabs are not allowed in link targets</li>
+<li><code>\]</code> escapes a literal closing bracket in the target</li>
+<li><code>\\</code> escapes a literal backslash in the target</li>
+<li>Internal document references should prefer <code>::ref[target=&quot;...&quot;]</code> rather than overloading link-target syntax</li>
+</ul>
+<h2 id="escaping">Escaping</h2>
+<p>Escapes are recognized only in parsed text and in quoted strings. Raw directive bodies and fenced code bodies do not interpret general escapes.</p>
+<p>Parsed-text escapes are:</p>
+<pre><code class="language-text">\\  \{  \}  \[  \]  \`  \+  \*  \^  \:  \&gt;  \-  \#</code></pre>
+<p>Quoted strings use a smaller escape set:</p>
+<pre><code class="language-text">\\  \&quot;  \n  \r  \t</code></pre>
+<p>Any other escape sequence is a parse error.</p>
+<h2 id="meta-syntax"><code>::meta</code> syntax</h2>
+<p><code>::meta{ ... }</code> is the only document-level metadata block in v0.1.</p>
+<ul>
+<li>It must be the first nonblank block in the file if present.</li>
+<li>Its body is a restricted TOML-like subset, not general TOML.</li>
+<li>Each nonblank line is exactly <code>key = value</code>.</li>
+<li>Keys are lowercase identifiers with optional dotted segments, like <code>title</code> or <code>page.lang</code>.</li>
+<li>Values may be strings, integers, booleans, or flat arrays of those scalar values.</li>
+<li>Comments, multiline strings, inline tables, dates, and floats are not part of v0.1 <code>::meta</code>.</li>
+<li>If <code>title</code> is absent, the document title defaults to the first level-1 heading.</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-text">::meta{
+title = &quot;ClearNotation&quot;
+authors = [&quot;Three Raccoons in a Trenchcoat&quot;, &quot;Core Team&quot;]
+draft = true
+page.lang = &quot;en&quot;
+}</code></pre>
+<h2 id="directive-attributes">Directive attributes</h2>
+<p>Directive attributes use the same scalar and array literal grammar as <code>::meta</code>, but inline:</p>
+<pre><code class="language-text">::callout[kind=&quot;warning&quot;, compact=false]{
+Read this first.
+}</code></pre>
+<p>Rules:</p>
+<ul>
+<li>Attribute names are lowercase identifiers</li>
+<li>Strings must use double quotes</li>
+<li>Booleans are <code>true</code> or <code>false</code></li>
+<li>Integers are base-10 only</li>
+<li>Arrays are flat arrays of scalar values</li>
+<li>Nested arrays and object literals are not part of v0.1</li>
+</ul>
+<p>This replaces stringly packed values such as <code>align=&quot;left,right&quot;</code> with typed values like <code>align=[&quot;left&quot;, &quot;right&quot;]</code>.</p>
+<h2 id="built-in-directive-signatures">Built-in directive signatures</h2>
+<p>These are the intended built-in v0.1 signatures. <code>meta</code> is core syntax; the remaining entries belong to the compiler&#x27;s core trusted registry and may be extended, but not redefined, by project config:</p>
+<ul>
+<li><code>meta</code>: reserved core preamble block with dedicated grammar</li>
+<li><code>toc</code>: block, none</li>
+<li><code>ref</code>: inline, none</li>
+<li><code>anchor</code>: block, none</li>
+<li><code>include</code>: block, none</li>
+<li><code>callout</code>: block, parsed</li>
+<li><code>figure</code>: block, parsed</li>
+<li><code>math</code>: block, raw</li>
+<li><code>table</code>: block, raw</li>
+<li><code>source</code>: block, raw</li>
+</ul>
+<p><code>::ref[target=&quot;...&quot;]</code> is therefore explicitly part of the inline grammar in v0.1, while <code>::anchor[id=&quot;...&quot;]</code> remains a block directive that attaches to the next addressable block.</p>
+<p>The v0.1 set of addressable blocks is frozen in the AST conformance document.</p>
+<p>The built-in attribute schemas and defaults are frozen in the config document.</p>
+<h2 id="directive-block-closing">Directive block closing</h2>
+<p>For parsed and raw directive bodies, a line whose left-trimmed content is exactly <code>}</code> closes the body.</p>
+<ul>
+<li>This is a syntactic rule, not a semantic hint</li>
+<li>In parsed bodies, a literal standalone <code>}</code> line must be rewritten, for example as <code>\}</code></li>
+<li>In raw bodies, a literal standalone <code>}</code> line is not directly representable in v0.1 and must be rewritten or split</li>
+</ul>
+<p>This constraint is deliberate. It keeps directive blocks indentation-insensitive and easy to detect with a single-line closer.</p>
+<h2 id="lists-and-blockquotes">Lists and blockquotes</h2>
+<p>To keep the grammar closed in v0.1:</p>
+<ul>
+<li>unordered lists are flat sequences of <code>- item</code></li>
+<li>ordered lists are flat sequences of <code>1. item</code>, <code>2. item</code>, and so on, with the authored numbers preserved</li>
+<li>blockquotes are flat sequences of <code>&gt; quoted line</code></li>
+<li>nested lists, nested blockquotes, and multi-paragraph list items are deferred</li>
+</ul>
+<p>This is intentionally conservative. It avoids indentation-sensitive subgrammars in the first normative release.</p>
+<h2 id="table-syntax">Table syntax</h2>
+<p>Tables are a built-in raw-body directive.</p>
+<p>Example:</p>
+<pre><code class="language-text">::table[header=true, align=[&quot;left&quot;, &quot;right&quot;]]{
+Name | Value
+Parser | Deterministic
+Notes | Inline only
+}</code></pre>
+<p>Rules:</p>
+<ul>
+<li>Each body line is one row</li>
+<li>Cells are separated by <code>|</code></li>
+<li>Leading and trailing whitespace around each cell is trimmed</li>
+<li>A literal pipe inside a cell is written as <code>\|</code></li>
+<li>A literal backslash inside a cell is written as <code>\\</code></li>
+<li>If <code>header=true</code>, the first row is the header row</li>
+<li><code>align</code> entries, when present, must be <code>left</code>, <code>center</code>, or <code>right</code></li>
+<li><code>align</code> must contain one entry per column when present</li>
+<li>Every row must have the same cell count after splitting and unescaping</li>
+</ul>
+<p>The table body is split first, then each cell is parsed with the core inline grammar. This keeps table syntax readable without making pipe tables part of the top-level language surface.</p>
+<h2 id="slug-algorithm">Slug algorithm</h2>
+<p>Heading IDs are generated from the heading&#x27;s plain-text content after stripping note bodies and inline markup wrappers.</p>
+<p>Algorithm:</p>
+<ol>
+<li>Extract plain text from the heading inline AST.</li>
+<li>Normalize with Unicode NFKD.</li>
+<li>Lowercase.</li>
+<li>Replace each run of non-ASCII alphanumeric characters with a single <code>-</code>.</li>
+<li>Trim leading and trailing <code>-</code>.</li>
+<li>If the result is empty, validation fails unless an explicit <code>::anchor[id=&quot;...&quot;]</code> supplies the ID.</li>
+<li>If the slug already exists in the document, append <code>-2</code>, <code>-3</code>, and so on by source order.</li>
+</ol>
+<p>This makes slugs deterministic while keeping repeated headings legal.</p>
+<h2 id="include-rules">Include rules</h2>
+<p><code>::include[src=&quot;...&quot;]</code> resolves paths under validation, not during raw text parse.</p>
+<p>Rules:</p>
+<ul>
+<li><code>src</code> must be a quoted string</li>
+<li>only POSIX-style <code>/</code> separators are valid in source</li>
+<li>absolute paths are forbidden</li>
+<li>URI schemes such as <code>http:</code> and <code>file:</code> are forbidden</li>
+<li>the path is resolved relative to the containing document</li>
+<li>after normalization and symlink resolution, the target must remain inside the project root</li>
+<li><code>clearnotation.toml</code> may narrow the allowed include roots further, but not widen them beyond the project root</li>
+</ul>
+<p>Includes fail closed:</p>
+<ul>
+<li>missing targets fail</li>
+<li>directory targets fail</li>
+<li>escaping the allowed root fails</li>
+<li>disabled include capability fails</li>
+</ul>
+<h2 id="validation-boundary-notes">Validation boundary notes</h2>
+<p>The grammar alone does not decide these; validation does:</p>
+<ul>
+<li>unknown attributes</li>
+<li>missing required attributes</li>
+<li>wrong attribute types</li>
+<li><code>::anchor</code> with no following addressable block</li>
+<li>duplicate IDs after <code>::anchor</code> overrides</li>
+<li>unresolved <code>::ref</code></li>
+<li>invalid include targets</li>
+<li>extension trust and capability checks</li>
+</ul>
+<h2 id="what-stays-intentionally-out-of-v0-1">What stays intentionally out of v0.1</h2>
+<ul>
+<li>inline HTML</li>
+<li>YAML frontmatter</li>
+<li>reference-style links or footnotes</li>
+<li>autolinks</li>
+<li>nested list subgrammars</li>
+<li>arbitrary inline directive bodies</li>
+<li>raw renderer markup from extensions</li>
+</ul>
+<p>That gives ClearNotation a fully specified first syntax rather than a broad but underspecified one.</p>
+</body>
+</html>

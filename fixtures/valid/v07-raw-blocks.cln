@@ -1,0 +1,9 @@
+::math{
+\int_0^1 x^2 dx
+}
+
+::table[header=true, align=["left", "right"]]{
+Name | Value
+Mode | Deterministic
+Notes | Inline only
+}
