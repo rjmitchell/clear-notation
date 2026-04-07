@@ -2,19 +2,8 @@
 
 ## Active — Visual Editor (in progress)
 
-### Phase 3-4: CST-to-BlockNote converter + serializer
-Next implementation phase. The converter walks the tree-sitter CST and produces BlockNote document model. The serializer does the reverse. Together they enable the split-pane editor.
-- **Phase 3**: CST-to-BlockNote converter (registry-aware, re-parses parsed-mode directive bodies, full re-render via ProseMirror diffing)
-- **Phase 4**: BlockNote-to-CLN serializer + shared escaping test matrix (JSON, cross-language: inline, attribute, table escaping)
-- Effort: L (CC: ~1-2 hours)
-- Depends on: Phase 1-2 (DONE)
-- Plan: `docs/superpowers/plans/` (Phase 3-4 plan not yet written)
-- CEO plan: `~/.gstack/projects/rjmitchell-clear-notation/ceo-plans/2026-04-07-visual-editor.md`
-
-### Phase 4.5: JS validator + normalizer + renderer (HTML export)
-Port ~540 lines Python (normalizer.py + renderer.py + validator logic for ref resolution, slug generation, note numbering) to TypeScript in `clearnotation-js/`.
-- Effort: M (CC: ~45 min)
-- Depends on: Phase 2 shared inline module (DONE)
+### ~~Phase 4.5: JS validator + normalizer + renderer (HTML export)~~ DONE
+Ported to `clearnotation-js/src/`: normalizer (flat-to-tree inline conversion, slug generation, note numbering), renderer (full HTML5 output matching Python), utilities (slugify, splitTableRow, escHtml). 86 tests. Plan: `docs/superpowers/plans/2026-04-07-phase4.5-js-normalizer-renderer.md`.
 
 ### Phase 5a: One-directional split-pane editor
 The product. Visual editor left, read-only source pane right. Includes: templates, keyboard shortcuts, dark mode, cheat sheet, Markdown paste conversion, File System Access API, localStorage autosave, WCAG 2.1 AA, welcome state, status bar, draggable divider, source pane diff-highlight animation.
@@ -46,6 +35,9 @@ Parser module at `editor/src/parser/`: types, Web Worker, main-thread client, CS
 
 ### ~~Phase 2: BlockNote schema from registry~~ DONE
 Schema module at `editor/src/schema/`: TOML-to-JSON converter, registry types, core blocks (8), directive blocks (8), inline marks (6 with nesting whitelist), slash menu (16 items). 111 tests total.
+
+### ~~Phase 3-4: CST-to-BlockNote converter + serializer~~ DONE
+Converter at `editor/src/converter/`: CST-to-BlockNote with style stacking, directive re-parsing, error fallback. Serializer at `editor/src/serializer/`: style-to-tree inline reconstruction, all block types, shared escaping matrix. 184 tests. Plan: `docs/superpowers/plans/2026-04-07-phase3-4-converter-serializer.md`.
 
 ## P1 — Next after v0.1 toolchain ships
 
