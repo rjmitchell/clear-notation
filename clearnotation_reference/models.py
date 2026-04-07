@@ -71,24 +71,28 @@ class Heading:
     level: int
     children: list[InlineNode]
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
 class Paragraph:
     children: list[InlineNode]
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
 class BlockQuote:
     lines: list[list[InlineNode]]
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
 class UnorderedList:
     items: list[list[InlineNode]]
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
@@ -101,11 +105,12 @@ class OrderedItem:
 class OrderedList:
     items: list[OrderedItem]
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
 class ThematicBreak:
-    pass
+    source_line: int | None = None
 
 
 @dataclass
@@ -113,6 +118,7 @@ class SourceBlock:
     language: str
     text: str
     id: str | None = None
+    source_line: int | None = None
 
 
 @dataclass
@@ -123,6 +129,7 @@ class BlockDirective:
     blocks: list["BlockNode"] = field(default_factory=list)
     raw_text: str = ""
     id: str | None = None
+    source_line: int | None = None
 
 
 BlockNode = (

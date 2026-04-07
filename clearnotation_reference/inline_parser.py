@@ -18,6 +18,7 @@ class InlineParser:
         text: str,
         registry: Registry,
         *,
+        line: int | None = None,
         allow_strong: bool = True,
         allow_emphasis: bool = True,
         allow_link: bool = True,
@@ -26,6 +27,7 @@ class InlineParser:
     ) -> None:
         self.text = text
         self.registry = registry
+        self.line = line
         self.pos = 0
         self.allow_strong = allow_strong
         self.allow_emphasis = allow_emphasis
@@ -41,35 +43,35 @@ class InlineParser:
                 break
             if self.text.startswith("+{", self.pos):
                 if not self.allow_strong:
-                    raise ParseFailure("disallowed_inline_construct", "Strong text is not allowed here")
+                    raise ParseFailure("disallowed_inline_construct", "Strong text is not allowed here", line=self.line)
                 self._flush_text(nodes, buffer)
                 self.pos += 2
                 nodes.append(Strong(self._parse_until_closer(context="styled")))
                 continue
             if self.text.startswith("*{", self.pos):
                 if not self.allow_emphasis:
-                    raise ParseFailure("disallowed_inline_construct", "Emphasis is not allowed here")
+                    raise ParseFailure("disallowed_inline_construct", "Emphasis is not allowed here", line=self.line)
                 self._flush_text(nodes, buffer)
                 self.pos += 2
                 nodes.append(Emphasis(self._parse_until_closer(context="styled")))
                 continue
             if self.text.startswith("^{", self.pos):
                 if not self.allow_note:
-                    raise ParseFailure("disallowed_inline_construct", "Notes are not allowed here")
+                    raise ParseFailure("disallowed_inline_construct", "Notes are not allowed here", line=self.line)
                 self._flush_text(nodes, buffer)
                 self.pos += 2
                 nodes.append(Note(self._parse_until_closer(context="note")))
                 continue
             if self.text.startswith("::", self.pos):
                 if not self.allow_inline_directive:
-                    raise ParseFailure("disallowed_inline_construct", "Inline directives are not allowed here")
+                    raise ParseFailure("disallowed_inline_construct", "Inline directives are not allowed here", line=self.line)
                 self._flush_text(nodes, buffer)
                 nodes.append(self._parse_inline_directive())
                 continue
             ch = self.text[self.pos]
             if ch == "[":
                 if not self.allow_link:
-                    raise ParseFailure("disallowed_inline_construct", "Links are not allowed here")
+                    raise ParseFailure("disallowed_inline_construct", "Links are not allowed here", line=self.line)
                 self._flush_text(nodes, buffer)
                 nodes.append(self._parse_link())
                 continue
@@ -80,11 +82,11 @@ class InlineParser:
             if ch == "\\":
                 self.pos += 1
                 if self.pos >= len(self.text):
-                    raise ParseFailure("invalid_escape_sequence", "Dangling escape at end of line")
+                    raise ParseFailure("invalid_escape_sequence", "Dangling escape at end of line", line=self.line)
                 escaped = self.text[self.pos]
                 self.pos += 1
                 if escaped not in TEXT_ESCAPES:
-                    raise ParseFailure("invalid_escape_sequence", f"Unsupported escape \\{escaped}")
+                    raise ParseFailure("invalid_escape_sequence", f"Unsupported escape \\{escaped}", line=self.line)
                 buffer.append(TEXT_ESCAPES[escaped])
                 continue
             if stop_token is not None and ch == "}":
@@ -108,6 +110,7 @@ class InlineParser:
         child = InlineParser(
             self.text[self.pos:],
             self.registry,
+            line=self.line,
             allow_strong=context == "note",
             allow_emphasis=context == "note",
             allow_link=context == "note",
@@ -116,7 +119,7 @@ class InlineParser:
         )
         nodes = child.parse(stop_token="}")
         if child.pos >= len(child.text) or child.text[child.pos] != "}":
-            raise ParseFailure("unclosed_inline_construct", "Expected closing '}'")
+            raise ParseFailure("unclosed_inline_construct", "Expected closing '}'", line=self.line)
         self.pos += child.pos + 1
         return nodes
 
@@ -130,24 +133,24 @@ class InlineParser:
                 return CodeSpan("".join(chars))
             if ch == "\\":
                 if self.pos >= len(self.text):
-                    raise ParseFailure("invalid_escape_sequence", "Dangling escape in code span")
+                    raise ParseFailure("invalid_escape_sequence", "Dangling escape in code span", line=self.line)
                 escaped = self.text[self.pos]
                 self.pos += 1
                 if escaped not in {"\\", "`"}:
-                    raise ParseFailure("invalid_escape_sequence", f"Unsupported code escape \\{escaped}")
+                    raise ParseFailure("invalid_escape_sequence", f"Unsupported code escape \\{escaped}", line=self.line)
                 chars.append(escaped)
                 continue
             chars.append(ch)
-        raise ParseFailure("unclosed_inline_construct", "Unterminated code span")
+        raise ParseFailure("unclosed_inline_construct", "Unterminated code span", line=self.line)
 
     def _parse_inline_directive(self) -> InlineDirective:
         match = IDENTIFIER_RE.match(self.text, self.pos + 2)
         if match is None:
-            raise ParseFailure("unknown_inline_directive", "Expected inline directive name")
+            raise ParseFailure("unknown_inline_directive", "Expected inline directive name", line=self.line)
         name = match.group(0)
         spec = self.registry.inline(name)
         if spec is None:
-            raise ParseFailure("unknown_inline_directive", f"Unknown inline directive {name}")
+            raise ParseFailure("unknown_inline_directive", f"Unknown inline directive {name}", line=self.line)
         pos = match.end()
         attrs: dict[str, Any] = {}
         parser = LiteralParser(self.text[pos:])
@@ -163,6 +166,7 @@ class InlineParser:
         label_parser = InlineParser(
             self.text[self.pos:],
             self.registry,
+            line=self.line,
             allow_strong=True,
             allow_emphasis=True,
             allow_link=False,
@@ -171,7 +175,7 @@ class InlineParser:
         )
         label = label_parser.parse(stop_token=" -> ")
         if not label_parser.text.startswith(" -> ", label_parser.pos):
-            raise ParseFailure("invalid_link_target", "Link is missing a valid target separator")
+            raise ParseFailure("invalid_link_target", "Link is missing a valid target separator", line=self.line)
         self.pos += label_parser.pos + 4
         target_chars: list[str] = []
         while self.pos < len(self.text):
@@ -180,18 +184,18 @@ class InlineParser:
             if ch == "]":
                 target = "".join(target_chars)
                 if not target:
-                    raise ParseFailure("invalid_link_target", "Link target must not be empty")
+                    raise ParseFailure("invalid_link_target", "Link target must not be empty", line=self.line)
                 return Link(label=label, target=target)
             if ch in {" ", "\t"}:
-                raise ParseFailure("invalid_link_target", "Link target may not contain spaces or tabs")
+                raise ParseFailure("invalid_link_target", "Link target may not contain spaces or tabs", line=self.line)
             if ch == "\\":
                 if self.pos >= len(self.text):
-                    raise ParseFailure("invalid_escape_sequence", "Dangling escape in link target")
+                    raise ParseFailure("invalid_escape_sequence", "Dangling escape in link target", line=self.line)
                 escaped = self.text[self.pos]
                 self.pos += 1
                 if escaped not in LINK_TARGET_ESCAPES:
-                    raise ParseFailure("invalid_escape_sequence", f"Unsupported link target escape \\{escaped}")
+                    raise ParseFailure("invalid_escape_sequence", f"Unsupported link target escape \\{escaped}", line=self.line)
                 target_chars.append(LINK_TARGET_ESCAPES[escaped])
                 continue
             target_chars.append(ch)
-        raise ParseFailure("unclosed_inline_construct", "Unterminated link target")
+        raise ParseFailure("unclosed_inline_construct", "Unterminated link target", line=self.line)

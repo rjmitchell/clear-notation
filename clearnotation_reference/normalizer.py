@@ -49,6 +49,7 @@ from .models import (
     UnorderedList,
 )
 from .registry import Registry
+from .utils import split_table_row
 
 
 class Normalizer:
@@ -214,7 +215,7 @@ class Normalizer:
         block_id: str | None,
     ) -> NTable:
         raw_rows = [
-            self._split_table_row(line)
+            split_table_row(line)
             for line in block.raw_text.splitlines()
             if line.strip()
         ]
@@ -222,7 +223,7 @@ class Normalizer:
         for raw_row in raw_rows:
             cells: list[NTableCell] = []
             for cell_text in raw_row:
-                parsed = InlineParser(cell_text, self.registry).parse()
+                parsed = InlineParser(cell_text, self.registry, line=block.source_line).parse()
                 cells.append(NTableCell(content=self._normalize_inlines(parsed)))
             rows.append(NTableRow(cells=cells))
 
@@ -232,30 +233,6 @@ class Normalizer:
             rows=rows,
             id=block_id,
         )
-
-    def _split_table_row(self, line: str) -> list[str]:
-        cells: list[str] = []
-        current: list[str] = []
-        index = 0
-        while index < len(line):
-            ch = line[index]
-            if ch == "\\":
-                index += 1
-                if index < len(line) and line[index] in {"|", "\\"}:
-                    current.append(line[index])
-                    index += 1
-                    continue
-                current.append("\\")
-                continue
-            if ch == "|":
-                cells.append("".join(current).strip())
-                current.clear()
-                index += 1
-                continue
-            current.append(ch)
-            index += 1
-        cells.append("".join(current).strip())
-        return cells
 
     def _normalize_inlines(self, inlines: list[InlineNode]) -> list[NormalizedInline]:
         result: list[NormalizedInline] = []

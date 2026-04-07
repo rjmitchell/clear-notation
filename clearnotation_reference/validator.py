@@ -123,19 +123,20 @@ class ReferenceValidator:
         pending_anchor: str | None,
         slug_counts: dict[str, int],
     ) -> str | None:
+        _line = block.source_line
         spec = self.registry.block(block.name)
         if spec is None:
-            raise ValidationFailure("unknown_block_directive", f"Unknown directive {block.name}")
-        attrs = self._validate_attrs(spec, block.attrs)
+            raise ValidationFailure("unknown_block_directive", f"Unknown directive {block.name}", line=_line)
+        attrs = self._validate_attrs(spec, block.attrs, line=_line)
         block.attrs = attrs
 
         if block.name == "anchor":
             anchor_id = cast(str, attrs.get("id"))
             if anchor_id is None:
-                raise ValidationFailure("attribute_type_mismatch", "anchor.id is required")
+                raise ValidationFailure("attribute_type_mismatch", "anchor.id is required", line=_line)
             return anchor_id
         if block.name == "include":
-            self._validate_include(cast(str, attrs.get("src")), document_path, project_root, include_roots)
+            self._validate_include(cast(str, attrs.get("src")), document_path, project_root, include_roots, line=_line)
             return pending_anchor
         if block.name == "toc":
             return self._assign_optional_id(block, pending_anchor)
@@ -165,11 +166,11 @@ class ReferenceValidator:
             return self._assign_optional_id(block, pending_anchor)
         return pending_anchor
 
-    def _validate_attrs(self, spec: DirectiveSpec, raw_attrs: dict[str, Any]) -> dict[str, Any]:
+    def _validate_attrs(self, spec: DirectiveSpec, raw_attrs: dict[str, Any], *, line: int | None = None) -> dict[str, Any]:
         attrs = dict(raw_attrs)
         for key in attrs:
             if key not in spec.attributes:
-                raise ValidationFailure("unknown_attribute", f"Unknown attribute {key} on {spec.name}")
+                raise ValidationFailure("unknown_attribute", f"Unknown attribute {key} on {spec.name}", line=line)
         normalized: dict[str, Any] = {}
         for name, attr_spec in spec.attributes.items():
             if name not in attrs:
@@ -177,6 +178,7 @@ class ReferenceValidator:
                     raise ValidationFailure(
                         "attribute_type_mismatch",
                         f"Missing required attribute {name} on {spec.name}",
+                        line=line,
                     )
                 if attr_spec.default is not None:
                     normalized[name] = attr_spec.default
@@ -186,6 +188,7 @@ class ReferenceValidator:
                 raise ValidationFailure(
                     "attribute_type_mismatch",
                     f"Attribute {name} on {spec.name} must be {attr_spec.type_name}",
+                    line=line,
                 )
             if attr_spec.allowed_values:
                 values = value if isinstance(value, list) else [value]
@@ -194,6 +197,7 @@ class ReferenceValidator:
                         raise ValidationFailure(
                             "attribute_type_mismatch",
                             f"Attribute {name} on {spec.name} contains unsupported value {item!r}",
+                            line=line,
                         )
             normalized[name] = value
         return normalized
@@ -204,33 +208,36 @@ class ReferenceValidator:
         document_path: Path,
         project_root: Path,
         include_roots: tuple[Path, ...],
+        *,
+        line: int | None = None,
     ) -> None:
         if src is None:
-            raise ValidationFailure("attribute_type_mismatch", "include.src is required")
+            raise ValidationFailure("attribute_type_mismatch", "include.src is required", line=line)
         if Path(src).is_absolute() or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", src):
-            raise ValidationFailure("include_path_outside_root", "Include paths must be relative project paths")
+            raise ValidationFailure("include_path_outside_root", "Include paths must be relative project paths", line=line)
         target = (document_path.parent / src).resolve()
         if not self._is_within(target, project_root):
-            raise ValidationFailure("include_path_outside_root", "Include target escapes the project root")
+            raise ValidationFailure("include_path_outside_root", "Include target escapes the project root", line=line)
         if include_roots and not any(self._is_within(target, root) for root in include_roots):
-            raise ValidationFailure("include_path_outside_root", "Include target is outside allowed include roots")
+            raise ValidationFailure("include_path_outside_root", "Include target is outside allowed include roots", line=line)
         if not target.exists() or not target.is_file():
-            raise ValidationFailure("include_target_missing", f"Include target does not exist: {src}")
+            raise ValidationFailure("include_target_missing", f"Include target does not exist: {src}", line=line)
 
     def _validate_table(self, block: BlockDirective) -> None:
+        _line = block.source_line
         rows = [self._split_table_row(line) for line in block.raw_text.splitlines() if line]
         if not rows:
             return
         column_count = len(rows[0])
         for row in rows[1:]:
             if len(row) != column_count:
-                raise ValidationFailure("attribute_type_mismatch", "All table rows must have the same cell count")
+                raise ValidationFailure("attribute_type_mismatch", "All table rows must have the same cell count", line=_line)
         align = block.attrs.get("align")
         if align is not None and len(cast(list[Any], align)) != column_count:
-            raise ValidationFailure("attribute_type_mismatch", "table.align length must match the column count")
+            raise ValidationFailure("attribute_type_mismatch", "table.align length must match the column count", line=_line)
         for row in rows:
             for cell in row:
-                self._visit_inlines(InlineParser(cell, self.registry).parse())
+                self._visit_inlines(InlineParser(cell, self.registry, line=_line).parse())
 
     def _split_table_row(self, line: str) -> list[str]:
         cells: list[str] = []
@@ -295,7 +302,7 @@ class ReferenceValidator:
             return None
         base = self._slugify(self._plain_text(block.children, include_notes=False))
         if not base:
-            raise ValidationFailure("empty_generated_slug", "Heading slug is empty")
+            raise ValidationFailure("empty_generated_slug", "Heading slug is empty", line=block.source_line)
         count = slug_counts.get(base, 0) + 1
         slug_counts[base] = count
         slug = base if count == 1 else f"{base}-{count}"
@@ -310,7 +317,7 @@ class ReferenceValidator:
 
     def _register_id(self, block: Any, block_id: str) -> None:
         if block_id in self.ids:
-            raise ValidationFailure("duplicate_id", f"Duplicate id: {block_id}")
+            raise ValidationFailure("duplicate_id", f"Duplicate id: {block_id}", line=getattr(block, "source_line", None))
         block.id = block_id
         self.ids[block_id] = block
 
