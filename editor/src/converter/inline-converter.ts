@@ -7,7 +7,7 @@
 
 import type { CSTNode } from "../parser/types";
 import type { BNInlineContent, BNStyledText, BNLink } from "./types";
-import { findChildByType } from "../parser/cst-utils";
+import { findChildByType, getDirectiveName, getAttributeMap } from "../parser/cst-utils";
 
 /** Node types that map directly to a BNStyledText leaf. */
 const TEXT_TYPES = new Set([
@@ -149,31 +149,11 @@ function convertInlineDirective(
   node: CSTNode,
   activeStyles: Record<string, boolean | string>
 ): BNInlineContent[] {
-  // Check if this is a ::ref directive
-  const nameNode = findChildByType(node, "directive_name");
-  const name = nameNode ? nameNode.text : "";
+  const name = getDirectiveName(node);
 
   if (name === "ref") {
-    // Extract target attribute
-    const attrList = findChildByType(node, "attribute_list");
-    let target = "";
-    if (attrList) {
-      // Walk attributes looking for target="..."
-      for (const attr of attrList.children) {
-        if (attr.type !== "attribute") continue;
-        const key = findChildByType(attr, "attribute_key");
-        if (key && key.text === "target") {
-          const value = findChildByType(attr, "value");
-          if (value) {
-            const str = findChildByType(value, "string");
-            if (str) {
-              const strContent = findChildByType(str, "string_content");
-              target = strContent ? strContent.text : "";
-            }
-          }
-        }
-      }
-    }
+    const attrs = getAttributeMap(node);
+    const target = typeof attrs.target === "string" ? attrs.target : "";
     return [styledText(target, { ...activeStyles, clnRef: target })];
   }
 
