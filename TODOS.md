@@ -1,5 +1,52 @@
 # TODOS
 
+## Active — Visual Editor (in progress)
+
+### Phase 3-4: CST-to-BlockNote converter + serializer
+Next implementation phase. The converter walks the tree-sitter CST and produces BlockNote document model. The serializer does the reverse. Together they enable the split-pane editor.
+- **Phase 3**: CST-to-BlockNote converter (registry-aware, re-parses parsed-mode directive bodies, full re-render via ProseMirror diffing)
+- **Phase 4**: BlockNote-to-CLN serializer + shared escaping test matrix (JSON, cross-language: inline, attribute, table escaping)
+- Effort: L (CC: ~1-2 hours)
+- Depends on: Phase 1-2 (DONE)
+- Plan: `docs/superpowers/plans/` (Phase 3-4 plan not yet written)
+- CEO plan: `~/.gstack/projects/rjmitchell-clear-notation/ceo-plans/2026-04-07-visual-editor.md`
+
+### Phase 4.5: JS validator + normalizer + renderer (HTML export)
+Port ~540 lines Python (normalizer.py + renderer.py + validator logic for ref resolution, slug generation, note numbering) to TypeScript in `clearnotation-js/`.
+- Effort: M (CC: ~45 min)
+- Depends on: Phase 2 shared inline module (DONE)
+
+### Phase 5a: One-directional split-pane editor
+The product. Visual editor left, read-only source pane right. Includes: templates, keyboard shortcuts, dark mode, cheat sheet, Markdown paste conversion, File System Access API, localStorage autosave, WCAG 2.1 AA, welcome state, status bar, draggable divider, source pane diff-highlight animation.
+- Effort: L (CC: ~2 hours)
+- Depends on: Phase 3-4 + Phase 4.5
+
+### Phase 5b: Bidirectional editing
+CodeMirror source pane, sync protocol (generation counter, 300ms debounce, last-edit-wins), error recovery (visual holds last valid parse), per-pane undo stacks.
+- Effort: L (CC: ~2 hours)
+- Depends on: Phase 5a
+
+### Phase 5.5: CI/CD
+GitHub Actions: build WASM, run Vitest, run Playwright E2E, build static site, deploy to GitHub Pages on tag push.
+- Effort: M (CC: ~30 min)
+- Depends on: Phase 5a
+
+### Tree-sitter grammar fixes (3 fixture failures)
+v03-link-and-note.cln, v08-anchor-and-ref.cln, v14-anchor-paragraph.cln fail due to: (1) grammar requires blank lines between all blocks but some fixtures have blocks without separators, (2) standalone notes on their own line not handled. Not blocking editor work.
+- Effort: S-M (CC: ~20 min)
+- Depends on: nothing
+
+## Completed — Visual Editor Phases
+
+### ~~Phase 0: Feasibility spikes~~ DONE
+Tree-sitter WASM builds (28KB raw, 9KB gzipped). BlockNote requires React (vanilla JS has no UI chrome). Bundle: 594KB gzipped, under 750KB budget. Stack: React + Vite + TypeScript.
+
+### ~~Phase 1: Tree-sitter WASM parser + Web Worker~~ DONE
+Parser module at `editor/src/parser/`: types, Web Worker, main-thread client, CST utilities. 38 tests.
+
+### ~~Phase 2: BlockNote schema from registry~~ DONE
+Schema module at `editor/src/schema/`: TOML-to-JSON converter, registry types, core blocks (8), directive blocks (8), inline marks (6 with nesting whitelist), slash menu (16 items). 111 tests total.
+
 ## P1 — Next after v0.1 toolchain ships
 
 ### Multi-error collection for LSP diagnostics
@@ -55,7 +102,26 @@ Generate a starter project with `clearnotation.toml`, `docs/` directory, and `in
 - Effort: S (human: ~4 hours / CC: ~10 min)
 - Depends on: CLI being stable
 
-### VS Code extension (LSP)
+### Tree-sitter WASM playground page
+Interactive syntax playground at /playground where users try ClearNotation syntax and see the parsed tree live. Near-zero marginal cost once the WASM parser exists.
+- Effort: S (CC: ~15 min)
+- Depends on: Phase 1 WASM parser (DONE)
+- Context: Teaching tool and marketing asset. Great for blog posts and docs.
+
+### VS Code custom editor provider (v1.1)
+Register a custom editor for .cln files in the VS Code extension. Embed the same BlockNote editor in a VS Code webview. Deferred until browser editor validates with real users.
+- Effort: L (CC: ~2 hours)
+- Depends on: Phase 5a browser editor working
+
+### VS Code extension (LSP) improvements
 Full VS Code extension with diagnostics, autocomplete for directive names/attributes, and error underlining. Uses tree-sitter for highlighting and a custom LSP server for semantic analysis.
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
+
+## P3 — Future
+
+### Cross-implementation conformance test suite
+Expand the shared JSON escaping test matrix into a full language-agnostic conformance suite (input .cln text -> expected normalized AST -> expected HTML output) that any ClearNotation implementation (Python, JS, future Rust/Go) can run.
+- Effort: M (CC: ~30 min)
+- Depends on: Phase 4.5 JS pipeline
+- Context: The existing fixtures + parity tests produce most of this data naturally.
