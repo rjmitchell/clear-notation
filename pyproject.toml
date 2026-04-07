@@ -4,13 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "clearnotation"
-version = "0.1.0"
+dynamic = ["version"]
 description = "ClearNotation: a docs-first, formally specified markup language"
 requires-python = ">=3.11"
 license = "MIT"
 
 [project.scripts]
 cln = "clearnotation_reference.cli:main"
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
 
 [tool.setuptools.packages.find]
 include = ["clearnotation_reference*", "clearnotation_harness*"]
