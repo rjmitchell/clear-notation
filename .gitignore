@@ -10,10 +10,8 @@ build/
 clearnotation.css
 !clearnotation_reference/clearnotation.css
 
-# AI/editor tooling
+# AI/editor tooling (local config, not project files)
 .claude/
-CLAUDE.md
-TODOS.md
 .cursorrules
 .cursorignore
 .copilot/
