@@ -234,3 +234,209 @@ describe("convertInline — container passthrough", () => {
     ]);
   });
 });
+
+// ── links ───────────────────────────────────────────────────
+
+describe("convertInline — links", () => {
+  it("converts a simple link [docs -> /docs]", () => {
+    const link = node("link", "[docs -> /docs]", [
+      node("link_open", "["),
+      node("link_label", "docs", [
+        node("link_text", "docs"),
+      ]),
+      node("link_separator", "->"),
+      node("link_target", "/docs"),
+      node("link_close", "]"),
+    ]);
+    const result = convertInline(link);
+    expect(result).toEqual([
+      {
+        type: "link",
+        href: "/docs",
+        content: [{ type: "text", text: "docs", styles: {} }],
+      },
+    ]);
+  });
+
+  it("converts a link with styled label [+{API} ref -> /api]", () => {
+    const link = node("link", "[+{API} ref -> /api]", [
+      node("link_open", "["),
+      node("link_label", "+{API} ref", [
+        node("strong", "+{API}", [
+          node("strong_open", "+{"),
+          node("styled_text", "API"),
+          node("styled_close", "}"),
+        ]),
+        node("link_text", " ref"),
+      ]),
+      node("link_separator", "->"),
+      node("link_target", "/api"),
+      node("link_close", "]"),
+    ]);
+    const result = convertInline(link);
+    expect(result).toEqual([
+      {
+        type: "link",
+        href: "/api",
+        content: [
+          { type: "text", text: "API", styles: { clnStrong: true } },
+          { type: "text", text: " ref", styles: {} },
+        ],
+      },
+    ]);
+  });
+
+  it("preserves parent styles on link content", () => {
+    // A link nested inside a note: ^{See [guide -> /g].}
+    // The note wraps the link, so link content inherits clnNote
+    const link = node("link", "[guide -> /g]", [
+      node("link_open", "["),
+      node("link_label", "guide", [
+        node("link_text", "guide"),
+      ]),
+      node("link_separator", "->"),
+      node("link_target", "/g"),
+      node("link_close", "]"),
+    ]);
+    const result = convertInline(link, { clnNote: true });
+    expect(result).toEqual([
+      {
+        type: "link",
+        href: "/g",
+        content: [{ type: "text", text: "guide", styles: { clnNote: true } }],
+      },
+    ]);
+  });
+});
+
+// ── inline refs ─────────────────────────────────────────────
+
+describe("convertInline — inline refs", () => {
+  it("converts ::ref[target=\"intro\"] to styled text with clnRef", () => {
+    const ref = node("inline_directive", "::ref[target=\"intro\"]", [
+      node("directive_marker", "::"),
+      node("directive_name", "ref"),
+      node("attribute_list", "[target=\"intro\"]", [
+        node("attribute", "target=\"intro\"", [
+          node("attribute_key", "target"),
+          node("value", "\"intro\"", [
+            node("string", "\"intro\"", [
+              node("string_content", "intro"),
+            ]),
+          ]),
+        ]),
+      ]),
+    ]);
+    const result = convertInline(ref);
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "intro",
+        styles: { clnRef: "intro" },
+      },
+    ]);
+  });
+
+  it("preserves parent styles on ref", () => {
+    const ref = node("inline_directive", "::ref[target=\"sec1\"]", [
+      node("directive_marker", "::"),
+      node("directive_name", "ref"),
+      node("attribute_list", "[target=\"sec1\"]", [
+        node("attribute", "target=\"sec1\"", [
+          node("attribute_key", "target"),
+          node("value", "\"sec1\"", [
+            node("string", "\"sec1\"", [
+              node("string_content", "sec1"),
+            ]),
+          ]),
+        ]),
+      ]),
+    ]);
+    const result = convertInline(ref, { clnStrong: true });
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "sec1",
+        styles: { clnStrong: true, clnRef: "sec1" },
+      },
+    ]);
+  });
+});
+
+// ── notes ───────────────────────────────────────────────────
+
+describe("convertInline — notes", () => {
+  it("converts a simple note ^{a note}", () => {
+    const note = node("note", "^{a note}", [
+      node("note_open", "^{"),
+      node("note_text", "a note"),
+      node("note_close", "}"),
+    ]);
+    const result = convertInline(note);
+    expect(result).toEqual([
+      { type: "text", text: "a note", styles: { clnNote: true } },
+    ]);
+  });
+
+  it("converts a note with nested link ^{See [guide -> /g].}", () => {
+    const note = node("note", "^{See [guide -> /g].}", [
+      node("note_open", "^{"),
+      node("note_text", "See "),
+      node("link", "[guide -> /g]", [
+        node("link_open", "["),
+        node("link_label", "guide", [
+          node("link_text", "guide"),
+        ]),
+        node("link_separator", "->"),
+        node("link_target", "/g"),
+        node("link_close", "]"),
+      ]),
+      node("note_text", "."),
+      node("note_close", "}"),
+    ]);
+    const result = convertInline(note);
+    expect(result).toEqual([
+      { type: "text", text: "See ", styles: { clnNote: true } },
+      {
+        type: "link",
+        href: "/g",
+        content: [
+          { type: "text", text: "guide", styles: { clnNote: true } },
+        ],
+      },
+      { type: "text", text: ".", styles: { clnNote: true } },
+    ]);
+  });
+
+  it("converts a note with strong and code ^{+{key} is `val`}", () => {
+    const note = node("note", "^{+{key} is `val`}", [
+      node("note_open", "^{"),
+      node("strong", "+{key}", [
+        node("strong_open", "+{"),
+        node("styled_text", "key"),
+        node("styled_close", "}"),
+      ]),
+      node("note_text", " is "),
+      node("code_span", "`val`", [
+        node("code_span_delimiter", "`"),
+        node("code_span_content", "val"),
+        node("code_span_delimiter", "`"),
+      ]),
+      node("note_close", "}"),
+    ]);
+    const result = convertInline(note);
+    expect(result).toEqual([
+      {
+        type: "text",
+        text: "key",
+        styles: { clnNote: true, clnStrong: true },
+      },
+      { type: "text", text: " is ", styles: { clnNote: true } },
+      {
+        type: "text",
+        text: "val",
+        styles: { clnNote: true, clnCode: true },
+      },
+    ]);
+  });
+});
