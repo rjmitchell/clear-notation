@@ -211,9 +211,33 @@ def _render_toc(headings: list[NHeading]) -> str:
     items: list[str] = []
     for h in headings:
         indent = "  " * (h.level - 1)
-        label = _render_inlines(h.content)
+        label = _render_inlines_text_only(h.content)
         items.append(f'{indent}<li><a href="#{_esc(h.id)}">{label}</a></li>')
     return "<ul>\n" + "\n".join(items) + "\n</ul>"
+
+
+def _render_inlines_text_only(inlines: list[NormalizedInline]) -> str:
+    """Render inlines without links or refs — safe for wrapping in <a> tags (TOC)."""
+    parts: list[str] = []
+    for node in inlines:
+        if isinstance(node, Text):
+            parts.append(_esc(node.value))
+        elif isinstance(node, CodeSpan):
+            parts.append(f"<code>{_esc(node.value)}</code>")
+        elif isinstance(node, Strong):
+            parts.append(f"<strong>{_render_inlines_text_only(node.children)}</strong>")
+        elif isinstance(node, Emphasis):
+            parts.append(f"<em>{_render_inlines_text_only(node.children)}</em>")
+        elif isinstance(node, Link):
+            # Render label text only — no <a> tag to avoid nested anchors
+            parts.append(_render_inlines_text_only(node.label))
+        elif isinstance(node, Note):
+            assert node.number is not None
+            n = node.number
+            parts.append(f"[{n}]")
+        elif isinstance(node, NRef):
+            parts.append(_esc(node.target))
+    return "".join(parts)
 
 
 def _render_table(table: NTable) -> str:

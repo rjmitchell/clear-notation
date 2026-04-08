@@ -149,11 +149,14 @@ export default function VisualEditor({
 
   // Load blocks from simple CLN loader (already in BlockNote format, no conversion)
   useEffect(() => {
-    if (!blockNoteBlocksToLoad || !onDocumentLoaded) return;
+    if (blockNoteBlocksToLoad === null || blockNoteBlocksToLoad === undefined || !onDocumentLoaded) return;
 
+    suppressNextChange.current = true;
     if (blockNoteBlocksToLoad.length > 0) {
-      suppressNextChange.current = true;
       editor.replaceBlocks(editor.document, blockNoteBlocksToLoad);
+    } else {
+      // Empty array: clear the editor by replacing all blocks with a single empty paragraph
+      editor.replaceBlocks(editor.document, [{ type: "paragraph", content: [] }]);
     }
     onDocumentLoaded();
   }, [blockNoteBlocksToLoad, onDocumentLoaded, editor]);

@@ -173,10 +173,36 @@ function renderTocList(headings: NHeading[]): string {
   const items: string[] = [];
   for (const h of headings) {
     const indent = "  ".repeat(h.level - 1);
-    const label = renderInlines(h.content);
+    const label = renderInlinesTextOnly(h.content);
     items.push(`${indent}<li><a href="#${escHtml(h.id)}">${label}</a></li>`);
   }
   return "<ul>\n" + items.join("\n") + "\n</ul>";
+}
+
+/** Render inlines without links or refs — safe for wrapping in <a> tags (TOC). */
+function renderInlinesTextOnly(inlines: NormalizedInline[]): string {
+  return inlines
+    .map((node) => {
+      switch (node.type) {
+        case "text":
+          return escHtml(node.value);
+        case "code_span":
+          return `<code>${escHtml(node.value)}</code>`;
+        case "strong":
+          return `<strong>${renderInlinesTextOnly(node.children)}</strong>`;
+        case "emphasis":
+          return `<em>${renderInlinesTextOnly(node.children)}</em>`;
+        case "link":
+          return renderInlinesTextOnly(node.label);
+        case "note":
+          return `[${node.number}]`;
+        case "ref":
+          return escHtml(node.target);
+        default:
+          return "";
+      }
+    })
+    .join("");
 }
 
 function renderCallout(block: NCallout, headings: NHeading[]): string {

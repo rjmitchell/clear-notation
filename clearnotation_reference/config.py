@@ -45,4 +45,13 @@ def load_config(
     else:
         reg_data = {}
 
+    # Merge user-defined directives from clearnotation.toml into the registry
+    user_directives = config.get("directive", [])
+    if user_directives:
+        existing = reg_data.setdefault("directive", [])
+        existing_names = {d["name"] for d in existing}
+        for d in user_directives:
+            if d.get("name") and d["name"] not in existing_names:
+                existing.append(d)
+
     return config, reg_data

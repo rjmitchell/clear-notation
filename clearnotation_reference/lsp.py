@@ -135,8 +135,6 @@ def completions(params: CompletionParams) -> CompletionList:
 
     # Case 1: After :: → directive names
     if prefix.rstrip().endswith("::") or re.search(r"::\w*$", prefix):
-        for name, spec in server._reg_data.get("directive", []):
-            pass
         # Provide all directive names from the registry
         for directive in server._reg_data.get("directive", []):
             name = directive["name"]

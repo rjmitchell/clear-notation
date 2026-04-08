@@ -36,9 +36,11 @@ version = "0.1"
 [project]
 root = "."
 
-[[directive]]
-# Built-in directives are loaded automatically.
-# Add custom directives here.
+# Custom directives (uncomment and modify):
+# [[directive]]
+# name = "custom"
+# placement = "block"
+# body_mode = "parsed"
 """
 
 INIT_DOCUMENT = """\

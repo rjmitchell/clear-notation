@@ -102,7 +102,11 @@ export function useSync() {
     setSourceState(text);
     activeGenRef.current = null;
 
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      // Empty text: signal VisualEditor to clear its content
+      setBlockNoteBlocksToLoad([]);
+      return;
+    }
 
     // Convert CLN text to BlockNote blocks via simple line-based parser.
     // This handles headings, paragraphs, lists, code blocks without
