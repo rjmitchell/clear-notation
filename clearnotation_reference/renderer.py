@@ -5,6 +5,13 @@ from __future__ import annotations
 import html
 from typing import Any
 
+try:
+    import latex2mathml.converter as _l2m
+
+    _HAS_LATEX2MATHML = True
+except ImportError:  # pragma: no cover
+    _HAS_LATEX2MATHML = False
+
 from .models import (
     CodeSpan,
     Emphasis,
@@ -70,6 +77,22 @@ def render_html(document: NormalizedDocument, *, css_path: str = "clearnotation.
     return "\n".join(parts)
 
 
+def _render_math(latex: str) -> str:
+    """Render a LaTeX string to MathML via latex2mathml.
+
+    Returns MathML markup when the library is available and the input is
+    non-empty.  Falls back to an escaped ``<pre>`` placeholder otherwise.
+    """
+    text = latex.strip()
+    if _HAS_LATEX2MATHML and text:
+        try:
+            return _l2m.convert(text, display="block")
+        except Exception:
+            # Conversion failure (e.g. truly malformed input) — fall through
+            pass
+    return f'<pre class="math"><code>{_esc(latex)}</code></pre>'
+
+
 def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
     if isinstance(block, NHeading):
         tag = f"h{block.level}"
@@ -129,7 +152,8 @@ def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
 
     if isinstance(block, NMathBlock):
         attrs = f' id="{_esc(block.id)}"' if block.id else ""
-        return f'<pre class="math"{attrs}><code>{_esc(block.text)}</code></pre>'
+        rendered = _render_math(block.text)
+        return f'<div class="math"{attrs}>{rendered}</div>'
 
     if isinstance(block, NTable):
         return _render_table(block)

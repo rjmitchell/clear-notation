@@ -94,9 +94,19 @@ pre code {
 }
 
 /* Math */
-pre.math {
+.math {
   text-align: center;
+  margin: 1em 0;
+  overflow-x: auto;
+}
+
+.math pre.math {
+  /* Fallback when latex2mathml is unavailable */
   font-style: italic;
+}
+
+.math math {
+  font-size: 1.2em;
 }
 
 /* Lists */
