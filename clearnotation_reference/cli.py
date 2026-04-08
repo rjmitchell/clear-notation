@@ -368,6 +368,7 @@ def _cmd_watch(
         print("\nStopping...")
         observer.stop()
         server.shutdown()
+        server.server_close()
     observer.join()
     return 0
 
