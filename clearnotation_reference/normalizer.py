@@ -13,6 +13,7 @@ from .models import (
     BlockNode,
     BlockQuote,
     CodeSpan,
+    Comment,
     Document,
     Emphasis,
     Heading,
@@ -74,6 +75,9 @@ class Normalizer:
     ) -> list[NormalizedBlock]:
         result: list[NormalizedBlock] = []
         for block in blocks:
+            if isinstance(block, Comment):
+                continue
+
             if isinstance(block, Heading):
                 heading_id, pending_anchor = self._heading_id(block, pending_anchor)
                 result.append(NHeading(

@@ -12,6 +12,7 @@ from .models import (
     BlockDirective,
     BlockNode,
     BlockQuote,
+    Comment,
     Document,
     Heading,
     OrderedItem,
@@ -95,6 +96,8 @@ class ReferenceParser:
     def _parse_block(self, lines: list[str], index: int) -> tuple[BlockNode, int]:
         line = lines[index]
         trimmed = line.lstrip(" \t")
+        if trimmed.startswith("//"):
+            return Comment(text=trimmed[2:], source_line=index + 1), index + 1
         if trimmed == "---":
             return ThematicBreak(source_line=index + 1), index + 1
         if match := HEADING_RE.match(line):
@@ -255,6 +258,8 @@ class ReferenceParser:
     def _starts_non_paragraph_block(self, trimmed: str) -> bool:
         if not trimmed:
             return False
+        if trimmed.startswith("//"):
+            return True
         if trimmed == "---":
             return True
         if trimmed.startswith("```") or trimmed.startswith("> ") or trimmed.startswith("::meta{"):

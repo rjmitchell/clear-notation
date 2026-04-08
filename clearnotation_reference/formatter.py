@@ -16,6 +16,7 @@ from .models import (
     BlockNode,
     BlockQuote,
     CodeSpan,
+    Comment,
     Document,
     Emphasis,
     Heading,
@@ -71,6 +72,9 @@ class Formatter:
 
         if isinstance(block, Paragraph):
             return [self._format_inlines(block.children)]
+
+        if isinstance(block, Comment):
+            return [f"//{block.text}"]
 
         if isinstance(block, ThematicBreak):
             return ["---"]
