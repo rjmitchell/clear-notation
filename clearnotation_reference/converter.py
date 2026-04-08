@@ -74,11 +74,9 @@ def _render_inline(children: list[dict[str, Any]], skipped: list[SkippedContent]
             parts.append(f"*{{{inner}}}")
         elif t == "codespan":
             code = tok["raw"]
-            if "`" in code:
-                # Use double-backtick delimiter if content contains backticks
-                parts.append(f"``{code}``")
-            else:
-                parts.append(f"`{code}`")
+            # Escape backslashes and backticks for CLN code spans
+            code = code.replace("\\", "\\\\").replace("`", "\\`")
+            parts.append(f"`{code}`")
         elif t == "link":
             label = _render_inline(tok.get("children", []), skipped)
             url = tok.get("attrs", {}).get("url", "")
@@ -211,7 +209,20 @@ def _render_tokens(
 
         elif t == "block_quote":
             bq_children = tok.get("children", [])
-            inner_lines = _render_tokens(bq_children, skipped, source_lines=source_lines)
+            # CLN blockquotes are flat (inline only) — skip nested blocks
+            bq_blocks = []
+            bq_inline = []
+            for child in bq_children:
+                if child["type"] in ("code", "block_code", "fenced_code"):
+                    raw = child.get("raw", child.get("text", ""))
+                    skipped.append(SkippedContent(
+                        line=0,
+                        reason="code block inside blockquote not supported in CLN",
+                        content=raw.strip()[:80],
+                    ))
+                else:
+                    bq_inline.append(child)
+            inner_lines = _render_tokens(bq_inline, skipped, source_lines=source_lines)
             for line in inner_lines:
                 if line == "":
                     # Don't emit "> " for blank separator lines between
