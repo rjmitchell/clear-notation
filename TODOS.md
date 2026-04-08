@@ -11,10 +11,8 @@ Split-pane editor with BlockNote visual editor (left) + live CLN source pane (ri
 ### ~~Phase 5b: Bidirectional editing~~ DONE
 CodeMirror editable source pane, bidirectional sync protocol (generation counters, 300ms debounce, activeGen flag), error recovery (visual holds last valid parse, error bar in source), per-pane undo stacks (sync updates excluded from history), BNBlock→BlockNote reverse mapping. 315 tests. Plan: `docs/superpowers/plans/2026-04-07-phase5b-bidirectional-editing.md`.
 
-### Phase 5.5: CI/CD
-GitHub Actions: build WASM, run Vitest, run Playwright E2E, build static site, deploy to GitHub Pages on tag push.
-- Effort: M (CC: ~30 min)
-- Depends on: Phase 5a
+### ~~Phase 5.5: CI/CD~~ DONE
+GitHub Actions CI (push/PR to main: TypeScript check, Vitest, Python tests, fixture harness, Vite build) + deploy (tag push: build + GitHub Pages). Workflows: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`.
 
 ### Tree-sitter grammar fixes (3 fixture failures)
 v03-link-and-note.cln, v08-anchor-and-ref.cln, v14-anchor-paragraph.cln fail due to: (1) grammar requires blank lines between all blocks but some fixtures have blocks without separators, (2) standalone notes on their own line not handled. Not blocking editor work.
