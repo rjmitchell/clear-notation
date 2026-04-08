@@ -1,0 +1,35 @@
+::meta{
+title = "Design Document"
+status = "draft"
+}
+
+# Design Document
+
+## Context
+
+Background and motivation.
+
+## Goals
+
+- Goal 1
+- Goal 2
+
+## Design
+
+### Architecture
+
+Describe the high-level architecture.
+
+### Data Model
+
+Describe key data structures.
+
+## Alternatives Considered
+
+### Alternative 1
+
+Why it was rejected.
+
+## Risks
+
+- Risk 1

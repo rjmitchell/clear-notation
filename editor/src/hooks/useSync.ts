@@ -28,5 +28,9 @@ export function useSync() {
     }, 300);
   }, []);
 
-  return { source, syncing, onDocumentChange };
+  const setSourceDirectly = useCallback((text: string) => {
+    setSource(text);
+  }, []);
+
+  return { source, setSource: setSourceDirectly, syncing, onDocumentChange };
 }

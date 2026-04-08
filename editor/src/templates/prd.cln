@@ -1,0 +1,35 @@
+::meta{
+title = "Product Requirements Document"
+status = "draft"
+}
+
+# Product Requirements Document
+
+## Problem Statement
+
+Describe the problem this product/feature solves.
+
+## Goals
+
+- Goal 1
+- Goal 2
+
+## Non-Goals
+
+- Non-goal 1
+
+## Requirements
+
+### Functional Requirements
+
+1. Requirement 1
+2. Requirement 2
+
+### Non-Functional Requirements
+
+1. Performance
+2. Accessibility
+
+## Open Questions
+
+- Question 1
