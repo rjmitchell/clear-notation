@@ -5,10 +5,8 @@
 ### ~~Phase 4.5: JS validator + normalizer + renderer (HTML export)~~ DONE
 Ported to `clearnotation-js/src/`: normalizer (flat-to-tree inline conversion, slug generation, note numbering), renderer (full HTML5 output matching Python), utilities (slugify, splitTableRow, escHtml). 86 tests. Plan: `docs/superpowers/plans/2026-04-07-phase4.5-js-normalizer-renderer.md`.
 
-### Phase 5a: One-directional split-pane editor
-The product. Visual editor left, read-only source pane right. Includes: templates, keyboard shortcuts, dark mode, cheat sheet, Markdown paste conversion, File System Access API, localStorage autosave, WCAG 2.1 AA, welcome state, status bar, draggable divider, source pane diff-highlight animation.
-- Effort: L (CC: ~2 hours)
-- Depends on: Phase 3-4 + Phase 4.5
+### ~~Phase 5a: One-directional split-pane editor~~ DONE
+Split-pane editor with BlockNote visual editor (left) + live CLN source pane (right). Includes: draggable divider, toolbar (file menu, formatting, dark mode, cheat sheet), File System Access API + localStorage autosave, templates (PRD, design doc, meeting notes), welcome state, keyboard shortcuts (Cmd+B/I/E/S), Markdown paste conversion, status bar, WCAG 2.1 AA (skip link, ARIA labels, focus management). 301 tests. Plan: `docs/superpowers/plans/2026-04-07-phase5a-split-pane-editor.md`.
 
 ### Phase 5b: Bidirectional editing
 CodeMirror source pane, sync protocol (generation counter, 300ms debounce, last-edit-wins), error recovery (visual holds last valid parse), per-pane undo stacks.
