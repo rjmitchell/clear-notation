@@ -172,6 +172,29 @@ For parsed and raw directive bodies, a line whose left-trimmed content is exactl
 
 This constraint is deliberate. It keeps directive blocks indentation-insensitive and easy to detect with a single-line closer.
 
+## Comments
+
+Comments use the `//` prefix, recognized at the block level only.
+
+```text
+// This is a comment.
+//This is also valid (no space required).
+//
+
+# Heading after a comment
+```
+
+Rules:
+
+- A comment is a line whose left-trimmed content starts with `//`
+- Comments are recognized between blocks and inside parsed directive bodies (`::callout`, `::figure`)
+- Comments are NOT recognized inside raw directive bodies (`::math`, `::table`, `::source`), fenced code blocks, or `::meta{}` blocks
+- Comments are preserved in the parsed tree but stripped during normalization; they do not appear in rendered output
+- The formatter (`cln fmt`) preserves comments in their original position
+- There is no inline comment syntax; `//` in the middle of a line is ordinary text
+
+The syntax was chosen for familiarity (C, JavaScript, Go, Rust) and because `//` does not collide with any existing CLN block opener. URLs containing `//` only appear inside inline text, links, or attribute values — never as bare block-level lines.
+
 ## Lists and blockquotes
 
 To keep the grammar closed in v0.1:

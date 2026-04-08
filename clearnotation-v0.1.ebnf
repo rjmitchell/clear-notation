@@ -18,7 +18,8 @@ document                = [ bom ], blank_lines, [ meta_block, blank_lines ], [ b
 
 block_sequence          = block, { blank_lines, block }, [ blank_lines ] ;
 
-block                   = heading
+block                   = comment
+                        | heading
                         | thematic_break
                         | fenced_code_block
                         | blockquote
@@ -28,6 +29,9 @@ block                   = heading
                         | block_directive_parsed
                         | block_directive_raw
                         | paragraph ;
+
+comment                 = opt_indent, "//", { comment_char }, NL ;
+comment_char            = ? any Unicode scalar value except NL ? ;
 
 blank_lines             = { blank_line } ;
 blank_line              = opt_indent, NL ;
@@ -249,6 +253,10 @@ plain_table_cell_char   = ? any Unicode scalar value except "\", "|", or NL ? ;
  *   inline boundary: start of the inline sequence or immediately after a
  *   non-alphanumeric character.
  * - Unknown block or inline directives are parse errors.
+ * - Comments ("//") are recognized between blocks and inside parsed directive
+ *   bodies. They are NOT recognized inside raw directive bodies, fenced code
+ *   blocks, or ::meta{} blocks. Comments are preserved in the parsed tree but
+ *   stripped during normalization.
  * - Using a directive in a placement or body form not declared in the trusted
  *   registry is a parse error.
  * - Invalid escape sequences are parse errors.
