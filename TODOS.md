@@ -53,32 +53,22 @@ Added 9 new fixtures: empty raw bodies, whitespace raw body, deep inline nesting
 
 ## P2 — Important but not blocking
 
-### ReDoS audit of inline parser
-Audit regex patterns in `inline_parser.py` for catastrophic backtracking. The inline parser uses regex for `+{`, `*{`, `^{`, `[...->...]`, `::name[...]`. If ClearNotation is ever used in a server context (doc site builder accepting user content), malicious `.cln` files could cause denial-of-service.
-- Effort: S (human: ~4 hours / CC: ~10 min)
-- Depends on: nothing
-- Context: Low risk for reference implementation. Only matters when the parser processes untrusted input.
+### ~~ReDoS audit of inline parser~~ DONE
+All regex patterns audited and verified safe. No catastrophic backtracking found. Timeout tests added.
 
-### Code syntax highlighting in SourceBlock
-Add syntax highlighting to rendered code blocks (currently outputs raw `<code class="language-X">`). Options: server-side Pygments, client-side highlight.js/Prism, or build-time highlighting.
-- Effort: S-M (human: 1-3 days / CC: ~15 min)
-- Depends on: renderer being complete
+### ~~Code syntax highlighting in SourceBlock~~ DONE
+Pygments integration for server-side syntax highlighting. Optional dependency: `pip install clearnotation[highlight]`. Graceful fallback if not installed.
 
 ### `cln watch` live-reload
-File watcher that rebuilds on save and live-reloads the browser. Standard DX for documentation tools.
+File watcher that rebuilds on save and serves with local HTTP server. In progress.
 - Effort: M (human: 3-5 days / CC: ~20 min)
-- Depends on: CLI being stable
 
-### `cln init` scaffolding
-Generate a starter project with `clearnotation.toml`, `docs/` directory, and `index.cln` template.
-- Effort: S (human: ~4 hours / CC: ~10 min)
-- Depends on: CLI being stable
+### ~~`cln init` scaffolding~~ DONE
+`cln init [directory]` creates `clearnotation.toml` + `docs/index.cln` starter project. 4 tests.
 
 ### Tree-sitter WASM playground page
-Interactive syntax playground at /playground where users try ClearNotation syntax and see the parsed tree live. Near-zero marginal cost once the WASM parser exists.
+Interactive syntax playground. In progress.
 - Effort: S (CC: ~15 min)
-- Depends on: Phase 1 WASM parser (DONE)
-- Context: Teaching tool and marketing asset. Great for blog posts and docs.
 
 ### VS Code custom editor provider (v1.1)
 Register a custom editor for .cln files in the VS Code extension. Embed the same BlockNote editor in a VS Code webview. Deferred until browser editor validates with real users.
