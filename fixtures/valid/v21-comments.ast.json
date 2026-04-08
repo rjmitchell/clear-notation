@@ -1,0 +1,46 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "title",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Title"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "A paragraph."
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NCallout",
+      "kind": "info",
+      "title": "Noted",
+      "compact": false,
+      "blocks": [
+        {
+          "type": "NParagraph",
+          "content": [
+            {
+              "type": "Text",
+              "value": "Important text."
+            }
+          ],
+          "id": null
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}
