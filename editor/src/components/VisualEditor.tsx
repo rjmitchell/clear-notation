@@ -1,13 +1,16 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { BlockNoteEditor } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import type { BNBlock, BNInlineContent, BNStyledText, BNLink } from "../converter/types";
+import { bnBlocksToBlockNote } from "../lib/bn-to-blocknote";
 
 interface VisualEditorProps {
   onDocumentChange: (blocks: BNBlock[]) => void;
   editorRef?: React.MutableRefObject<BlockNoteEditor | null>;
   darkMode?: boolean;
+  documentToLoad?: BNBlock[] | null;
+  onDocumentLoaded?: () => void;
 }
 
 /**
@@ -112,10 +115,15 @@ export default function VisualEditor({
   onDocumentChange,
   editorRef,
   darkMode,
+  documentToLoad,
+  onDocumentLoaded,
 }: VisualEditorProps) {
   const editor = useMemo(() => {
     return BlockNoteEditor.create();
   }, []);
+
+  // Guard: skip the next onChange after we programmatically replace blocks
+  const suppressNextChange = useRef(false);
 
   // Expose editor instance to parent via ref
   useEffect(() => {
@@ -124,7 +132,23 @@ export default function VisualEditor({
     }
   }, [editor, editorRef]);
 
+  // Load blocks from source→visual sync
+  useEffect(() => {
+    if (!documentToLoad || !onDocumentLoaded) return;
+
+    const bnBlocks = bnBlocksToBlockNote(documentToLoad);
+    if (bnBlocks.length > 0) {
+      suppressNextChange.current = true;
+      editor.replaceBlocks(editor.document, bnBlocks);
+    }
+    onDocumentLoaded();
+  }, [documentToLoad, onDocumentLoaded, editor]);
+
   const handleChange = useCallback(() => {
+    if (suppressNextChange.current) {
+      suppressNextChange.current = false;
+      return;
+    }
     const doc = editor.document;
     const converted = convertDocument(doc as any[]);
     onDocumentChange(converted);

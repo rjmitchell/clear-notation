@@ -24,7 +24,16 @@ const TEMPLATES: Record<string, string> = {
 };
 
 export default function App() {
-  const { source, setSource, syncing, onDocumentChange } = useSync();
+  const {
+    source,
+    setSource,
+    syncing,
+    parseError,
+    onVisualChange,
+    onSourceChange,
+    documentToLoad,
+    clearDocumentToLoad,
+  } = useSync();
   const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const { darkMode, toggleDarkMode } = useDarkMode();
@@ -39,13 +48,13 @@ export default function App() {
   useMarkdownPaste(mainRef);
 
   const handleChange = useCallback(
-    (blocks: Parameters<typeof onDocumentChange>[0]) => {
-      onDocumentChange(blocks);
+    (blocks: Parameters<typeof onVisualChange>[0]) => {
+      onVisualChange(blocks);
       fileOps.markDirty();
       // Once the user starts editing, dismiss welcome
       if (showWelcome) setShowWelcome(false);
     },
-    [onDocumentChange, fileOps, showWelcome]
+    [onVisualChange, fileOps, showWelcome]
   );
 
   const handleNew = useCallback(() => {
@@ -190,10 +199,19 @@ export default function App() {
                   onDocumentChange={handleChange}
                   editorRef={editorRef}
                   darkMode={darkMode}
+                  documentToLoad={documentToLoad}
+                  onDocumentLoaded={clearDocumentToLoad}
                 />
               </div>
             }
-            right={<SourcePane source={source} syncing={syncing} />}
+            right={
+              <SourcePane
+                source={source}
+                onSourceChange={onSourceChange}
+                syncing={syncing}
+                parseError={parseError}
+              />
+            }
           />
         )}
       </main>
