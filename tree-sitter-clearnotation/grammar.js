@@ -439,7 +439,13 @@ module.exports = grammar({
     escape_sequence: (_) => token(prec(8, /\\[\\{}\[\]`+*^:>\-#|"]/)),
 
     // ─── Plain text (fallback) ───────────────────────────────────────
-    text: (_) => prec(-2, /[^\n`+*^\[:\\]+/),
+    // Matches runs of plain text. Single ":" is allowed (common in prose);
+    // only "::" triggers directive parsing. The alternation matches either
+    // a run of non-special chars, or a lone ":" not followed by ":".
+    text: (_) => prec(-2, repeat1(choice(
+      /[^\n`+*^\[:\\:]+/,
+      /:[^:\n]/,
+    ))),
 
     // ═══════════════════════════════════════════════════════════════════
     // Shared terminals
