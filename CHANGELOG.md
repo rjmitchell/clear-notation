@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.2] - 2026-04-08
+
+### Added
+- `//` comment syntax: block-level comments recognized between blocks and inside parsed directive bodies. Not recognized in raw bodies, fenced code, or meta blocks. Comments are preserved in the parsed tree and formatter round-trip, stripped during normalization. Includes EBNF grammar update, syntax spec section, and 18 new tests.
+- Conformance fixture `v21-comments.cln` with AST snapshot (58 total fixtures).
+- Tree-sitter grammar updated with `comment` node, highlight query, and 4 corpus tests. WASM rebuilt.
+- Expanded PRD editor template from 36 to 124 lines. Now showcases meta (5 attributes), callouts (info + warning), tables with alignment, anchors + refs, source blocks, figures, math, notes, strong, emphasis, inline code, and links.
+
+### Changed
+- Normalizer and validator now explicitly skip `Comment` nodes instead of relying on implicit fall-through.
+- `Comment` model added to `BlockNode` union type and handled in parser, formatter.
+
 ## [0.9.1] - 2026-04-08
 
 ### Added

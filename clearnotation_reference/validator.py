@@ -15,6 +15,7 @@ from .models import (
     BlockNode,
     BlockQuote,
     CodeSpan,
+    Comment,
     Document,
     Emphasis,
     Heading,
@@ -76,6 +77,8 @@ class ReferenceValidator:
         slug_counts: dict[str, int],
     ) -> str | None:
         for block in blocks:
+            if isinstance(block, Comment):
+                continue
             try:
                 if isinstance(block, Heading):
                     pending_anchor = self._assign_heading_id(block, pending_anchor, slug_counts)

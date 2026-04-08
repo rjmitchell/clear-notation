@@ -109,6 +109,12 @@ class OrderedList:
 
 
 @dataclass
+class Comment:
+    text: str
+    source_line: int | None = None
+
+
+@dataclass
 class ThematicBreak:
     source_line: int | None = None
 
@@ -141,6 +147,7 @@ BlockNode = (
     | ThematicBreak
     | SourceBlock
     | BlockDirective
+    | Comment
 )
 
 

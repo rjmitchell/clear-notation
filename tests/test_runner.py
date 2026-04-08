@@ -16,8 +16,8 @@ class FixtureRunnerTests(unittest.TestCase):
         result = run_suite(suite, create_adapter())
 
         self.assertTrue(result.ok)
-        self.assertEqual(53, len(result.results))
-        self.assertEqual(53, result.passed)
+        self.assertEqual(54, len(result.results))
+        self.assertEqual(54, result.passed)
         self.assertEqual(0, result.failed)
 
     def test_subset_selection_runs_only_requested_cases(self) -> None:

@@ -1,0 +1,65 @@
+================
+Simple comment
+================
+
+// This is a comment
+
+# Title
+
+---
+
+(document
+  (comment)
+  (heading
+    (heading_marker)
+    (inline_content
+      (text))))
+
+================
+Comment between blocks
+================
+
+# Title
+
+// A comment
+
+A paragraph.
+
+---
+
+(document
+  (heading
+    (heading_marker)
+    (inline_content
+      (text)))
+  (comment)
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (text)))))
+
+================
+Empty comment
+================
+
+//
+
+---
+
+(document
+  (comment))
+
+================
+Multiple consecutive comments
+================
+
+// one
+// two
+// three
+
+---
+
+(document
+  (comment)
+  (comment)
+  (comment))

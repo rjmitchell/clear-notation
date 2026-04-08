@@ -107,6 +107,10 @@
       "members": [
         {
           "type": "SYMBOL",
+          "name": "comment"
+        },
+        {
+          "type": "SYMBOL",
           "name": "heading"
         },
         {
@@ -142,6 +146,34 @@
           "name": "paragraph"
         }
       ]
+    },
+    "comment": {
+      "type": "PREC",
+      "value": 15,
+      "content": {
+        "type": "TOKEN",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "PATTERN",
+              "value": "[ \\t]*"
+            },
+            {
+              "type": "STRING",
+              "value": "//"
+            },
+            {
+              "type": "PATTERN",
+              "value": "[^\\n]*"
+            },
+            {
+              "type": "STRING",
+              "value": "\n"
+            }
+          ]
+        }
+      }
     },
     "_blank_line": {
       "type": "PATTERN",

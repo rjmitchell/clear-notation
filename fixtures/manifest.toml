@@ -416,6 +416,14 @@ parse = "accept"
 validate = "accept"
 
 [[case]]
+id = "v21"
+title = "Comments between and inside blocks"
+kind = "valid"
+path = "valid/v21-comments.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
 id = "x16"
 title = "Duplicate anchor IDs"
 kind = "validate-invalid"

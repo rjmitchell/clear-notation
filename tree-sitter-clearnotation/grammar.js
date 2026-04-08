@@ -52,6 +52,7 @@ module.exports = grammar({
 
     _block: ($) =>
       choice(
+        $.comment,
         $.heading,
         $.thematic_break,
         $.fenced_code_block,
@@ -62,6 +63,18 @@ module.exports = grammar({
         $.block_directive_self_closing,
         $.paragraph,
       ),
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Comments: // ...
+    // ═══════════════════════════════════════════════════════════════════
+
+    comment: (_) =>
+      prec(15, token(seq(
+        /[ \t]*/,
+        "//",
+        /[^\n]*/,
+        "\n",
+      ))),
 
     _blank_line: (_) => /[ \t]*\n/,
 

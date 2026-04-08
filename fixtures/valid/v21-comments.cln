@@ -1,0 +1,10 @@
+// Document-level comment
+# Title
+
+// Comment between blocks
+A paragraph.
+
+::callout[kind="info", title="Noted"]{
+// Comment inside parsed directive
+Important text.
+}
