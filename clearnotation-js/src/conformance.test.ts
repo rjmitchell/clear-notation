@@ -9,11 +9,14 @@
  * and compare against the expected HTML snapshot.
  */
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync, existsSync } from "fs";
-import { join, basename } from "path";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { renderHtml } from "./renderer";
 import type { NormalizedDocument } from "./types";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const FIXTURES_DIR = join(__dirname, "..", "..", "fixtures", "valid");
 
 /**
@@ -148,7 +151,7 @@ const fixtures: { name: string; cln: string; ast: string; html: string }[] = [];
 
 if (existsSync(FIXTURES_DIR)) {
   const files = readdirSync(FIXTURES_DIR);
-  const clnFiles = files.filter((f) => f.endsWith(".cln") && f.startsWith("v"));
+  const clnFiles = files.filter((f: string) => f.endsWith(".cln") && f.startsWith("v"));
 
   for (const clnFile of clnFiles) {
     const base = clnFile.replace(".cln", "");
