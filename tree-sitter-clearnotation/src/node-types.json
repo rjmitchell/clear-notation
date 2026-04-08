@@ -179,6 +179,11 @@
     }
   },
   {
+    "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "directive_body_content",
     "named": true,
     "fields": {}
@@ -206,6 +211,10 @@
         },
         {
           "type": "bom",
+          "named": true
+        },
+        {
+          "type": "comment",
           "named": true
         },
         {
