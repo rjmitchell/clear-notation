@@ -25,7 +25,7 @@ from importlib.metadata import version as _pkg_version
 try:
     __version__ = _pkg_version("clearnotation")
 except Exception:
-    __version__ = "0.1.0"
+    __version__ = "0.9.0"
 
 _CSS_FILENAME = "clearnotation.css"
 

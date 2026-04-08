@@ -22,7 +22,7 @@ export default function StatusBar({
       <span className="status-bar-spacer" />
       {syncing && <span className="status-syncing">Syncing...</span>}
       <span className="status-wordcount">{wordCount} words</span>
-      <span className="status-version">ClearNotation v0.1</span>
+      <span className="status-version">ClearNotation v0.9</span>
     </footer>
   );
 }

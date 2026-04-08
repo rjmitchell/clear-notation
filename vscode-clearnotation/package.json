@@ -2,7 +2,7 @@
   "name": "clearnotation",
   "displayName": "ClearNotation",
   "description": "Language support for ClearNotation (.cln) files",
-  "version": "0.0.1",
+  "version": "0.9.0",
   "publisher": "clearnotation",
   "engines": {
     "vscode": "^1.85.0"
