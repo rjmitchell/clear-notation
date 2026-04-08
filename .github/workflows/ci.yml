@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check (editor)
+        run: cd editor && npx tsc --noEmit
+
+      - name: TypeScript check (clearnotation-js)
+        run: cd clearnotation-js && npx tsc --noEmit
+
+      - name: Run JS tests (editor + clearnotation-js)
+        run: pnpm --filter clearnotation-js --filter clearnotation-editor test
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python package
+        run: pip install -e .
+
+      - name: Run Python tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Run fixture harness
+        run: python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build editor
+        run: cd editor && pnpm build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editor-dist
+          path: editor/dist/
