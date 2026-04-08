@@ -12,17 +12,10 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
-### Demo corpus selection and dry-run analysis
-Before building the converter, pick the source corpus for the demo and do a dry-run analysis of Markdown content to measure expected conversion coverage. Candidates: Go stdlib tutorials, Python stdlib docs, Rust book, or your own internal docs. Check for nested lists, images, tables, HTML blocks, front matter, and other constructs the converter handles or skips. Target: <20% content loss.
-- Effort: S (CC: ~30 min)
-- Depends on: nothing (do this first)
-- Context: The outside voice in the eng review correctly identified that "well-known open source project" is too vague. Real docs from mature projects often use Markdown features (nested lists, definition lists, HTML blocks) that ClearNotation can't represent. A dry-run reveals this before you build the converter.
-
-
-### Cross-implementation conformance test suite
-Expand the shared JSON escaping test matrix into a full language-agnostic conformance suite (input .cln text -> expected normalized AST -> expected HTML output) that any ClearNotation implementation (Python, JS, future Rust/Go) can run.
-- Effort: M (CC: ~30 min)
-- Depends on: Phase 4.5 JS pipeline (DONE)
+### JS renderer parity gaps (13 fixtures)
+The cross-implementation conformance suite identified 13 fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, list handling, inline escaping output.
+- Effort: M (CC: ~1 hour)
+- Depends on: nothing
 
 ---
 
@@ -46,6 +39,11 @@ Expand the shared JSON escaping test matrix into a full language-agnostic confor
 - **PyPI distribution:** pip install clearnotation
 - **AST snapshot assertions:** JSON sidecar files for all valid fixtures (20 tests)
 - **Expanded fixture coverage:** 57 total conformance cases (9 new edge cases)
+
+### Demo corpus + conformance suite + converter fixes
+- **Demo corpus:** Rust Book (112 files, 7.6% avg loss, 112/112 validate). Analysis: `docs/analysis/demo-corpus-dry-run.md`
+- **Converter fixes:** Backslash escaping in code spans, code blocks inside blockquotes now skipped
+- **Conformance suite:** HTML snapshots for all 21 valid fixtures. JS conformance test loads shared fixtures (7 pass, 13 known parity gaps, 1 skipped). Suite README added.
 
 ### Comment syntax + expanded PRD template
 - **Comment syntax:** `//` block-level comments (EBNF, spec, parser, formatter, tree-sitter, 18 tests, conformance fixture)
