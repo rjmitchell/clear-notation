@@ -46,7 +46,7 @@ module.exports = grammar({
     _block_list: ($) =>
       prec.left(seq(
         $._block,
-        repeat(seq(repeat1($._blank_line), $._block)),
+        repeat(seq(repeat($._blank_line), $._block)),
         repeat($._blank_line),
       )),
 
@@ -394,12 +394,13 @@ module.exports = grammar({
         $.emphasis,
         $.code_span,
         $.escape_sequence,
+        alias(/[ \t]+/, $.link_text),
         $.link_text,
       ),
 
-    link_separator: (_) => " -> ",
+    link_separator: (_) => token(prec(5, " -> ")),
 
-    link_text: (_) => prec(-1, /[^\n\]}`\\+*^: \-]+/),
+    link_text: (_) => prec(-3, /[^\n\]}`\\+*^\[ \t]+/),
 
     link_target: (_) => /[^\]\\ \t\n]+/,
 
