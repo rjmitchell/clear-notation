@@ -14,10 +14,8 @@ CodeMirror editable source pane, bidirectional sync protocol (generation counter
 ### ~~Phase 5.5: CI/CD~~ DONE
 GitHub Actions CI (push/PR to main: TypeScript check, Vitest, Python tests, fixture harness, Vite build) + deploy (tag push: build + GitHub Pages). Workflows: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`.
 
-### Tree-sitter grammar fixes (3 fixture failures)
-v03-link-and-note.cln, v08-anchor-and-ref.cln, v14-anchor-paragraph.cln fail due to: (1) grammar requires blank lines between all blocks but some fixtures have blocks without separators, (2) standalone notes on their own line not handled. Not blocking editor work.
-- Effort: S-M (CC: ~20 min)
-- Depends on: nothing
+### ~~Tree-sitter grammar fixes~~ DONE
+Fixed: (1) blocks no longer require blank line separators (`repeat1` → `repeat`), (2) link labels now support spaces via word-splitting with space alias + high-precedence separator. All 15 valid fixtures now parse cleanly.
 
 ## Completed — Visual Editor Phases
 
