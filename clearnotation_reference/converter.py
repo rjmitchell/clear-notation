@@ -73,7 +73,12 @@ def _render_inline(children: list[dict[str, Any]], skipped: list[SkippedContent]
             inner = _render_inline(tok.get("children", []), skipped)
             parts.append(f"*{{{inner}}}")
         elif t == "codespan":
-            parts.append(f"`{tok['raw']}`")
+            code = tok["raw"]
+            if "`" in code:
+                # Use double-backtick delimiter if content contains backticks
+                parts.append(f"``{code}``")
+            else:
+                parts.append(f"`{code}`")
         elif t == "link":
             label = _render_inline(tok.get("children", []), skipped)
             url = tok.get("attrs", {}).get("url", "")
@@ -311,7 +316,7 @@ def _render_table(
     header_attr = "true" if has_header else "false"
     out.append(f"::table[header={header_attr}]{{")
     for row in rows:
-        out.append(" | ".join(row))
+        out.append(" | ".join(cell.replace("|", "\\|") for cell in row))
     out.append("}")
 
 
@@ -356,10 +361,6 @@ def convert_markdown(
         out_lines.pop()
 
     cln_text = "\n".join(out_lines) + "\n" if out_lines else ""
-
-    # Log skipped content to stderr
-    for s in skipped:
-        print(f"SKIP (line {s.line}): {s.reason}: {s.content[:80]}", file=sys.stderr)
 
     report = ConversionReport(
         total_lines=total_lines,

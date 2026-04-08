@@ -441,7 +441,8 @@ def _cmd_convert(input_path: Path, output: str | None, report: str | None) -> in
             cln_file = (out_dir / rel).with_suffix(".cln")
             cln_file.parent.mkdir(parents=True, exist_ok=True)
             try:
-                r = convert_file(md_file, cln_file, report_path=Path(report) if report else None)
+                rpt = (out_dir / rel).with_suffix(".convert-report.txt") if report else None
+                r = convert_file(md_file, cln_file, report_path=rpt)
                 total_loss += r.loss_percent
                 status = f" ({r.loss_percent:.0f}% loss)" if r.skipped_lines else ""
                 print(f"  {md_file} -> {cln_file}{status}")
@@ -477,7 +478,7 @@ def _cmd_index(input_path: Path, config_path: str | None) -> int:
             print(f"Skipped: {stats.skipped} files (errors)")
         for err in stats.errors:
             print(f"  {err}", file=sys.stderr)
-        return 1 if stats.skipped > 0 and stats.indexed == 0 else 0
+        return 1 if stats.skipped > 0 else 0
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
