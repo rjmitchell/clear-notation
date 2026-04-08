@@ -18,11 +18,6 @@ Before building the converter, pick the source corpus for the demo and do a dry-
 - Depends on: nothing (do this first)
 - Context: The outside voice in the eng review correctly identified that "well-known open source project" is too vague. Real docs from mature projects often use Markdown features (nested lists, definition lists, HTML blocks) that ClearNotation can't represent. A dry-run reveals this before you build the converter.
 
-### CLN comment syntax (spec enhancement)
-ClearNotation has no comment syntax. The parser rejects any line starting with `::` that isn't a known directive (fail-closed). This means generated .cln files can't contain TODO notes, the converter can't embed skip markers, and authors can't leave comments in source. Every other markup language has comments. This gap was discovered during the queryable document platform eng review.
-- Effort: S (CC: ~30 min)
-- Depends on: spec decision on syntax (e.g., `// comment`, `%% comment`, or `:: comment` with parser support)
-- Context: For the demo, converter skip warnings go to stderr instead of inline comments. But this is a spec gap that will keep surfacing as more tools consume .cln files.
 
 ### Cross-implementation conformance test suite
 Expand the shared JSON escaping test matrix into a full language-agnostic conformance suite (input .cln text -> expected normalized AST -> expected HTML output) that any ClearNotation implementation (Python, JS, future Rust/Go) can run.
@@ -51,6 +46,10 @@ Expand the shared JSON escaping test matrix into a full language-agnostic confor
 - **PyPI distribution:** pip install clearnotation
 - **AST snapshot assertions:** JSON sidecar files for all valid fixtures (20 tests)
 - **Expanded fixture coverage:** 57 total conformance cases (9 new edge cases)
+
+### Comment syntax + expanded PRD template
+- **Comment syntax:** `//` block-level comments (EBNF, spec, parser, formatter, tree-sitter, 18 tests, conformance fixture)
+- **PRD template:** Expanded from 36 to ~100 lines; showcases meta, callouts, tables, anchors/refs, source, figure, math, notes, strong, emphasis
 
 ### Quality and DX (P2)
 - **ReDoS audit:** All regex patterns verified safe (20 tests)
