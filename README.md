@@ -31,30 +31,94 @@ Note    | ^{text}
 }
 ```
 
+## Visual Editor
+
+ClearNotation ships a browser-based split-pane editor. Visual editing on the left (Notion-style), ClearNotation source on the right, live bidirectional sync between them.
+
+**Features:** templates (PRD, design doc, meeting notes), dark mode, keyboard shortcuts, syntax cheat sheet, Markdown paste auto-conversion, File System Access API for open/save, localStorage autosave, HTML export, WCAG 2.1 AA accessibility.
+
+**Try it:** Run `cd editor && pnpm dev` or visit the deployed GitHub Pages site after tagging a release.
+
+**Interactive playground:** `/playground.html` lets you type ClearNotation and see the tree-sitter parse tree update live.
+
 ## Install
+
+### Python toolchain (CLI, LSP, renderer)
+
+```bash
+pip install clearnotation              # CLI: cln build, cln check, cln ast, cln fmt, cln init, cln watch
+pip install clearnotation[lsp]         # LSP server for editor integration
+pip install clearnotation[math]        # LaTeX math rendering via latex2mathml
+pip install clearnotation[highlight]   # Syntax highlighting via Pygments
+pip install clearnotation[watch]       # File watcher for cln watch
+```
+
+### Editor (browser)
 
 ```bash
 git clone https://github.com/rjmitchell/clear-notation.git
 cd clear-notation
-pip install -e .
+pnpm install        # install all workspace packages
+cd editor && pnpm dev   # start the visual editor at localhost:5173
 ```
 
 ## Usage
 
 ```bash
-cln build document.cln    # compile .cln to HTML with default stylesheet
-cln check document.cln    # validate without rendering (for CI)
-cln ast document.cln      # dump normalized AST as JSON
+cln build document.cln          # compile .cln to HTML
+cln build docs/                 # compile all .cln files in a directory
+cln check document.cln          # validate without rendering (for CI)
+cln ast document.cln            # dump normalized AST as JSON
+cln fmt document.cln            # format (stdout)
+cln fmt --write document.cln    # format in place
+cln fmt --check document.cln    # check formatting (exit 1 if changes needed)
+cln init                        # scaffold a new project (clearnotation.toml + docs/index.cln)
+cln init my-project             # scaffold in a specific directory
+cln watch docs/                 # watch for changes, rebuild, serve at localhost:8000
 ```
 
 ## What's in the box
 
+### Language and toolchain
 - **Normative EBNF grammar** (`clearnotation-v0.1.ebnf`)
-- **Reference parser, validator, normalizer, and HTML renderer** in Python (stdlib-only)
-- **44 conformance fixtures** with a manifest-driven test harness
-- **Default stylesheet** with light/dark mode, callouts, tables, footnotes, and TOC
-- **Tree-sitter grammar** for editor syntax highlighting
-- **Migration cheat sheet** from Markdown (`docs/migration-from-markdown.cln`)
+- **Reference parser, validator, normalizer, and HTML renderer** in Python
+- **57 conformance fixtures** with a manifest-driven test harness and AST snapshot assertions
+- **Default stylesheet** (`clearnotation.css`) with light/dark mode, callouts, tables, footnotes, TOC
+- **Formatter** (`cln fmt`) with roundtrip-correct formatting
+- **Multi-error diagnostics** for the validator (reports all block-level errors, not just the first)
+- **LaTeX math rendering** via `latex2mathml` (optional, `::math{...}` blocks)
+- **Syntax highlighting** via Pygments for rendered code blocks (optional)
+
+### Browser editor
+- **Visual editor** (BlockNote/React) with live CLN source pane (CodeMirror)
+- **Bidirectional sync** with generation counters, 300ms debounce, error recovery
+- **Templates, dark mode, keyboard shortcuts, cheat sheet, Markdown paste conversion**
+- **File operations** (File System Access API, download fallback, localStorage autosave)
+- **Tree-sitter WASM playground** at `/playground.html`
+
+### Developer tooling
+- **Tree-sitter grammar** for syntax highlighting and incremental parsing
+- **JS normalizer and HTML renderer** (`clearnotation-js/`) for browser-side HTML export
+- **VS Code extension** with LSP diagnostics (in `vscode-clearnotation/`)
+- **GitHub Actions CI/CD** (TypeScript check, Vitest, Python tests, fixture harness, GitHub Pages deploy)
+
+## Architecture
+
+```
+pnpm workspace (repo root)
+├── clearnotation_reference/   Python: parser, validator, normalizer, renderer, CLI, LSP
+├── editor/                    Browser editor: React + BlockNote + CodeMirror + Vite
+│   └── src/
+│       ├── parser/            Tree-sitter WASM parser (Web Worker)
+│       ├── schema/            BlockNote block/inline specs from registry
+│       ├── converter/         CST → BlockNote document model
+│       ├── serializer/        BlockNote → ClearNotation source text
+│       └── components/        React UI (SplitPane, Toolbar, SourcePane, CheatSheet, etc.)
+├── clearnotation-js/          JS normalizer + HTML renderer (browser-side HTML export)
+├── tree-sitter-clearnotation/ Tree-sitter grammar + WASM build
+├── vscode-clearnotation/      VS Code extension
+└── fixtures/                  Conformance test fixtures + escaping matrix
+```
 
 ## Key differences from Markdown
 
@@ -82,18 +146,27 @@ cln ast document.cln      # dump normalized AST as JSON
 ## Running the test suite
 
 ```bash
+# Python tests (128 tests)
+python3 -m unittest discover -s tests -v
+
+# Conformance fixture harness (57 cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml \
   --adapter clearnotation_reference.adapter:create_adapter
-python3 -m unittest discover -s tests -v
+
+# Editor tests (315 tests)
+cd editor && pnpm test
+
+# JS normalizer/renderer tests (86 tests)
+cd clearnotation-js && pnpm test
 ```
 
 ## Spec documents
 
-- `clearnotation-v0.1.ebnf` - normative grammar
-- `clearnotation-v0.1-syntax.md` - syntax decisions
-- `clearnotation-v0.1-config.md` - config contract
-- `clearnotation-v0.1-ast-conformance.md` - AST model and conformance
-- `clearnotation-v0.1-examples.md` - conformance corpus
+- `clearnotation-v0.1.ebnf` — normative grammar
+- `clearnotation-v0.1-syntax.md` — syntax decisions
+- `clearnotation-v0.1-config.md` — config contract
+- `clearnotation-v0.1-ast-conformance.md` — AST model and conformance
+- `clearnotation-v0.1-examples.md` — conformance corpus
 
 ## License
 

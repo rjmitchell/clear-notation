@@ -5,34 +5,48 @@ A docs-first, non-Turing-complete, formally specified markup language for techni
 ## Key commands
 
 ```bash
-# Run fixture harness (44 conformance tests)
+# Run all tests
+python3 -m unittest discover -s tests -v          # 128 Python tests
+cd editor && pnpm test                             # 315 editor tests
+cd clearnotation-js && pnpm test                   # 86 JS normalizer/renderer tests
+
+# Run fixture harness (57 conformance cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter
 
-# Run unit tests
-python3 -m unittest discover -s tests -v
+# CLI
+cln build <file.cln>       # compile .cln to HTML
+cln check <file.cln>       # validate without rendering
+cln ast <file.cln>         # dump normalized AST as JSON
+cln fmt <file.cln>         # format source
+cln init [directory]       # scaffold new project
+cln watch <file|dir>       # watch + rebuild + serve
 
-# Build .cln to HTML
-python3 -m clearnotation_reference.cli build <file.cln>
-
-# Validate without rendering
-python3 -m clearnotation_reference.cli check <file.cln>
-
-# Dump normalized AST as JSON
-python3 -m clearnotation_reference.cli ast <file.cln>
+# Editor
+cd editor && pnpm dev      # start visual editor at localhost:5173
 ```
 
 ## Architecture
 
-Pipeline: `parse → validate → normalize → render → postprocess`
+### Python pipeline
+`parse → validate → normalize → render`
 
-- `clearnotation_reference/parser.py` + `inline_parser.py`: source → parsed tree (generic BlockDirective)
-- `clearnotation_reference/validator.py`: semantic checks (attrs, refs, includes, IDs)
-- `clearnotation_reference/normalizer.py`: parsed tree → typed normalized AST (NHeading, NCallout, NTable, etc.)
-- `clearnotation_reference/renderer.py`: normalized AST → semantic HTML5
-- `clearnotation_reference/cli.py`: CLI wrapper (cln build/check/ast)
-- `clearnotation_reference/diagnostics.py`: error formatting (human/plain/json)
+- `clearnotation_reference/parser.py` + `inline_parser.py`: source → parsed tree
+- `clearnotation_reference/validator.py`: semantic checks with multi-error collection
+- `clearnotation_reference/normalizer.py`: parsed tree → typed normalized AST
+- `clearnotation_reference/renderer.py`: normalized AST → HTML5 (with Pygments highlighting, latex2mathml math)
+- `clearnotation_reference/cli.py`: CLI (build/check/ast/fmt/init/watch)
+- `clearnotation_reference/config.py`: config loading + user directive merging
 
-The parser is parameterized by the directive registry from `clearnotation.toml`. The validator walks read-only for ref collection and structural checks. The normalizer handles all mutations (ID assignment, note numbering, typed node creation). Two-pass design.
+### Browser editor pipeline
+`CLN source ↔ tree-sitter CST ↔ BlockNote document model ↔ visual editor`
+
+- `editor/src/parser/`: tree-sitter WASM in Web Worker
+- `editor/src/schema/`: BlockNote block specs + inline marks from registry
+- `editor/src/converter/`: CST → BlockNote blocks (style stacking, directive re-parsing)
+- `editor/src/serializer/`: BlockNote → CLN text (style-to-tree reconstruction)
+- `editor/src/components/`: React UI (SplitPane, Toolbar, SourcePane, CheatSheet, etc.)
+- `editor/src/hooks/`: bidirectional sync, file ops, dark mode, markdown paste
+- `clearnotation-js/src/`: JS normalizer + renderer for HTML export
 
 ## Design constraints (do not violate)
 
