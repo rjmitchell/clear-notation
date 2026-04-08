@@ -8,10 +8,8 @@ Ported to `clearnotation-js/src/`: normalizer (flat-to-tree inline conversion, s
 ### ~~Phase 5a: One-directional split-pane editor~~ DONE
 Split-pane editor with BlockNote visual editor (left) + live CLN source pane (right). Includes: draggable divider, toolbar (file menu, formatting, dark mode, cheat sheet), File System Access API + localStorage autosave, templates (PRD, design doc, meeting notes), welcome state, keyboard shortcuts (Cmd+B/I/E/S), Markdown paste conversion, status bar, WCAG 2.1 AA (skip link, ARIA labels, focus management). 301 tests. Plan: `docs/superpowers/plans/2026-04-07-phase5a-split-pane-editor.md`.
 
-### Phase 5b: Bidirectional editing
-CodeMirror source pane, sync protocol (generation counter, 300ms debounce, last-edit-wins), error recovery (visual holds last valid parse), per-pane undo stacks.
-- Effort: L (CC: ~2 hours)
-- Depends on: Phase 5a
+### ~~Phase 5b: Bidirectional editing~~ DONE
+CodeMirror editable source pane, bidirectional sync protocol (generation counters, 300ms debounce, activeGen flag), error recovery (visual holds last valid parse, error bar in source), per-pane undo stacks (sync updates excluded from history), BNBlock→BlockNote reverse mapping. 315 tests. Plan: `docs/superpowers/plans/2026-04-07-phase5b-bidirectional-editing.md`.
 
 ### Phase 5.5: CI/CD
 GitHub Actions: build WASM, run Vitest, run Playwright E2E, build static site, deploy to GitHub Pages on tag push.
