@@ -4,10 +4,17 @@ from __future__ import annotations
 
 import unittest
 
+try:
+    import pygments
+    HAS_PYGMENTS = True
+except ImportError:
+    HAS_PYGMENTS = False
+
 from clearnotation_reference.renderer import _render_block
 from clearnotation_reference.models import NSourceBlock
 
 
+@unittest.skipUnless(HAS_PYGMENTS, "pygments not installed")
 class SyntaxHighlightTests(unittest.TestCase):
     """Unit tests for source block syntax highlighting."""
 

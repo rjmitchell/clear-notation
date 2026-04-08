@@ -37,7 +37,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Python package
-        run: pip install -e .
+        run: pip install -e ".[math,highlight,watch]"
 
       - name: Run Python tests
         run: python3 -m unittest discover -s tests -v

@@ -4,10 +4,17 @@ from __future__ import annotations
 
 import unittest
 
+try:
+    import latex2mathml
+    HAS_LATEX2MATHML = True
+except ImportError:
+    HAS_LATEX2MATHML = False
+
 from clearnotation_reference.renderer import _render_math, render_html
 from clearnotation_reference.models import NMathBlock, NormalizedDocument
 
 
+@unittest.skipUnless(HAS_LATEX2MATHML, "latex2mathml not installed")
 class RenderMathTests(unittest.TestCase):
     """Unit tests for the _render_math helper."""
 
@@ -32,6 +39,7 @@ class RenderMathTests(unittest.TestCase):
         self.assertIn("<msup>", result)
 
 
+@unittest.skipUnless(HAS_LATEX2MATHML, "latex2mathml not installed")
 class RenderMathBlockTests(unittest.TestCase):
     """Integration test: NMathBlock renders inside a <div class="math">."""
 

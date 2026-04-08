@@ -123,6 +123,14 @@ class WatchSubcommandTests(unittest.TestCase):
             self.assertIn("watchdog is required", buf.getvalue())
 
 
+try:
+    import watchdog
+    HAS_WATCHDOG = True
+except ImportError:
+    HAS_WATCHDOG = False
+
+
+@unittest.skipUnless(HAS_WATCHDOG, "watchdog not installed")
 class RebuildHandlerTests(unittest.TestCase):
     """Test the file-change rebuild handler in isolation."""
 
