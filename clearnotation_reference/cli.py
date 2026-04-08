@@ -11,7 +11,7 @@ from typing import Any
 
 from .config import load_config
 from .diagnostics import Diagnostic, format_diagnostic
-from .errors import ClearNotationError
+from .errors import ClearNotationError, MultipleValidationFailures
 from .normalizer import Normalizer
 from .parser import ReferenceParser
 from .registry import Registry
@@ -97,6 +97,10 @@ def _build_file(
     try:
         doc = ReferenceParser(registry).parse_document(source, input_path)
         ReferenceValidator(registry).validate(doc, config=config)
+    except MultipleValidationFailures as exc:
+        for err in exc.errors:
+            _print_error(err, source, str(input_path), fmt)
+        return 1
     except ClearNotationError as exc:
         _print_error(exc, source, str(input_path), fmt)
         return 1
@@ -157,6 +161,10 @@ def _cmd_check(input_path: Path, config_path: str | None, fmt: str) -> int:
         try:
             doc = ReferenceParser(registry).parse_document(source, f)
             ReferenceValidator(registry).validate(doc, config=config)
+        except MultipleValidationFailures as exc:
+            for err in exc.errors:
+                _print_error(err, source, str(f), fmt)
+            errors += 1
         except ClearNotationError as exc:
             _print_error(exc, source, str(f), fmt)
             errors += 1
@@ -171,6 +179,10 @@ def _cmd_ast(input_path: Path, config_path: str | None, fmt: str) -> int:
     try:
         doc = ReferenceParser(registry).parse_document(source, input_path)
         ReferenceValidator(registry).validate(doc, config=config)
+    except MultipleValidationFailures as exc:
+        for err in exc.errors:
+            _print_error(err, source, str(input_path), fmt)
+        return 1
     except ClearNotationError as exc:
         _print_error(exc, source, str(input_path), fmt)
         return 1

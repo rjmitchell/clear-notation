@@ -7,7 +7,7 @@ import re
 import unicodedata
 from typing import Any, cast
 
-from .errors import ValidationFailure
+from .errors import DiagnosticCollection, ValidationFailure
 
 from .inline_parser import InlineParser
 from .models import (
@@ -39,6 +39,7 @@ class ReferenceValidator:
         self.ids: dict[str, BlockNode] = {}
         self.refs: list[str] = []
         self.note_counter = 1
+        self.diagnostics = DiagnosticCollection()
 
     def validate(self, document: Document, *, config: dict[str, Any]) -> None:
         config_base = self._discover_config_base(document.path)
@@ -55,13 +56,14 @@ class ReferenceValidator:
             slug_counts=slug_counts,
         )
         if pending_anchor is not None:
-            raise ValidationFailure(
+            self.diagnostics.add(ValidationFailure(
                 "anchor_without_addressable_block",
                 "An anchor must be followed by an addressable block",
-            )
+            ))
         for target in self.refs:
             if target not in self.ids:
-                raise ValidationFailure("unresolved_ref", f"Unresolved ref target: {target}")
+                self.diagnostics.add(ValidationFailure("unresolved_ref", f"Unresolved ref target: {target}"))
+        self.diagnostics.raise_if_errors()
 
     def _validate_blocks(
         self,
@@ -74,43 +76,48 @@ class ReferenceValidator:
         slug_counts: dict[str, int],
     ) -> str | None:
         for block in blocks:
-            if isinstance(block, Heading):
-                pending_anchor = self._assign_heading_id(block, pending_anchor, slug_counts)
-                self._visit_inlines(block.children)
-                continue
-            if isinstance(block, Paragraph):
-                pending_anchor = self._assign_optional_id(block, pending_anchor)
-                self._visit_inlines(block.children)
-                continue
-            if isinstance(block, BlockQuote):
-                pending_anchor = self._assign_optional_id(block, pending_anchor)
-                for line in block.lines:
-                    self._visit_inlines(line)
-                continue
-            if isinstance(block, UnorderedList):
-                pending_anchor = self._assign_optional_id(block, pending_anchor)
-                for item in block.items:
-                    self._visit_inlines(item)
-                continue
-            if isinstance(block, OrderedList):
-                pending_anchor = self._assign_optional_id(block, pending_anchor)
-                for item in block.items:
-                    self._visit_inlines(item.children)
-                continue
-            if isinstance(block, SourceBlock):
-                pending_anchor = self._assign_optional_id(block, pending_anchor)
-                continue
-            if isinstance(block, ThematicBreak):
-                continue
-            if isinstance(block, BlockDirective):
-                pending_anchor = self._validate_directive(
-                    block,
-                    document_path=document_path,
-                    project_root=project_root,
-                    include_roots=include_roots,
-                    pending_anchor=pending_anchor,
-                    slug_counts=slug_counts,
-                )
+            try:
+                if isinstance(block, Heading):
+                    pending_anchor = self._assign_heading_id(block, pending_anchor, slug_counts)
+                    self._visit_inlines(block.children)
+                    continue
+                if isinstance(block, Paragraph):
+                    pending_anchor = self._assign_optional_id(block, pending_anchor)
+                    self._visit_inlines(block.children)
+                    continue
+                if isinstance(block, BlockQuote):
+                    pending_anchor = self._assign_optional_id(block, pending_anchor)
+                    for line in block.lines:
+                        self._visit_inlines(line)
+                    continue
+                if isinstance(block, UnorderedList):
+                    pending_anchor = self._assign_optional_id(block, pending_anchor)
+                    for item in block.items:
+                        self._visit_inlines(item)
+                    continue
+                if isinstance(block, OrderedList):
+                    pending_anchor = self._assign_optional_id(block, pending_anchor)
+                    for item in block.items:
+                        self._visit_inlines(item.children)
+                    continue
+                if isinstance(block, SourceBlock):
+                    pending_anchor = self._assign_optional_id(block, pending_anchor)
+                    continue
+                if isinstance(block, ThematicBreak):
+                    continue
+                if isinstance(block, BlockDirective):
+                    pending_anchor = self._validate_directive(
+                        block,
+                        document_path=document_path,
+                        project_root=project_root,
+                        include_roots=include_roots,
+                        pending_anchor=pending_anchor,
+                        slug_counts=slug_counts,
+                    )
+            except ValidationFailure as exc:
+                self.diagnostics.add(exc)
+                # Reset pending_anchor: the erroring block consumed it
+                pending_anchor = None
         return pending_anchor
 
     def _validate_directive(
