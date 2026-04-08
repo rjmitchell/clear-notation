@@ -1,0 +1,95 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Note",
+          "number": 1,
+          "children": [
+            {
+              "type": "Text",
+              "value": "A note with "
+            },
+            {
+              "type": "Strong",
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "strong "
+                },
+                {
+                  "type": "CodeSpan",
+                  "value": "code"
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "value": " and "
+            },
+            {
+              "type": "Link",
+              "label": [
+                {
+                  "type": "Text",
+                  "value": "a link"
+                }
+              ],
+              "target": "/url"
+            },
+            {
+              "type": "Text",
+              "value": "."
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": [
+    {
+      "type": "Note",
+      "number": 1,
+      "children": [
+        {
+          "type": "Text",
+          "value": "A note with "
+        },
+        {
+          "type": "Strong",
+          "children": [
+            {
+              "type": "Text",
+              "value": "strong "
+            },
+            {
+              "type": "CodeSpan",
+              "value": "code"
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "value": " and "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "a link"
+            }
+          ],
+          "target": "/url"
+        },
+        {
+          "type": "Text",
+          "value": "."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "api",
+      "content": [
+        {
+          "type": "Text",
+          "value": "API"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Strong",
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "API"
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "value": " reference"
+            }
+          ],
+          "target": "/api"
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Note",
+          "number": 1,
+          "children": [
+            {
+              "type": "Text",
+              "value": "See "
+            },
+            {
+              "type": "Link",
+              "label": [
+                {
+                  "type": "Text",
+                  "value": "the guide"
+                }
+              ],
+              "target": "/guide"
+            },
+            {
+              "type": "Text",
+              "value": " before deployment."
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": [
+    {
+      "type": "Note",
+      "number": 1,
+      "children": [
+        {
+          "type": "Text",
+          "value": "See "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "the guide"
+            }
+          ],
+          "target": "/guide"
+        },
+        {
+          "type": "Text",
+          "value": " before deployment."
+        }
+      ]
+    }
+  ]
+}

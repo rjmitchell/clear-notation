@@ -1,0 +1,107 @@
+{
+  "meta": {
+    "title": "ClearNotation",
+    "draft": true,
+    "authors": [
+      "Three Raccoons in a Trenchcoat",
+      "Core Team"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "intro",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Intro"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "ClearNotation uses "
+        },
+        {
+          "type": "Strong",
+          "children": [
+            {
+              "type": "Text",
+              "value": "strong"
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "value": ", "
+        },
+        {
+          "type": "Emphasis",
+          "children": [
+            {
+              "type": "Text",
+              "value": "emphasis"
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "value": ", "
+        },
+        {
+          "type": "CodeSpan",
+          "value": "code"
+        },
+        {
+          "type": "Text",
+          "value": ", "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "links"
+            }
+          ],
+          "target": "/docs/intro"
+        },
+        {
+          "type": "Text",
+          "value": ", and "
+        },
+        {
+          "type": "Note",
+          "number": 1,
+          "children": [
+            {
+              "type": "Text",
+              "value": "inline notes"
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "value": "."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": [
+    {
+      "type": "Note",
+      "number": 1,
+      "children": [
+        {
+          "type": "Text",
+          "value": "inline notes"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "clearnotation",
+      "content": [
+        {
+          "type": "Text",
+          "value": "ClearNotation"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "A docs-first markup language."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

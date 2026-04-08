@@ -1,0 +1,95 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "rules",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Rules"
+        }
+      ]
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        [
+          {
+            "type": "Text",
+            "value": "One syntax per concept"
+          }
+        ],
+        [
+          {
+            "type": "Text",
+            "value": "No inline HTML"
+          }
+        ],
+        [
+          {
+            "type": "Text",
+            "value": "Fail closed"
+          }
+        ]
+      ],
+      "id": null
+    },
+    {
+      "type": "NOrderedList",
+      "items": [
+        {
+          "type": "NOrderedItem",
+          "ordinal": 1,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Parse"
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 2,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Validate"
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 3,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Render"
+            }
+          ]
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NBlockQuote",
+      "lines": [
+        [
+          {
+            "type": "Text",
+            "value": "Clear syntax helps tools."
+          }
+        ],
+        [
+          {
+            "type": "Text",
+            "value": "Clear constraints help authors."
+          }
+        ]
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

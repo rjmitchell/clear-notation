@@ -1,0 +1,59 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "escapes",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Escapes"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Strong",
+          "children": [
+            {
+              "type": "Text",
+              "value": "Write [ literally inside strong text."
+            }
+          ]
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Note",
+          "number": 1,
+          "children": [
+            {
+              "type": "Text",
+              "value": "Use ^{ when you mean the literal opener, not a nested note."
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": [
+    {
+      "type": "Note",
+      "number": 1,
+      "children": [
+        {
+          "type": "Text",
+          "value": "Use ^{ when you mean the literal opener, not a nested note."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NFigure",
+      "src": "images/architecture.svg",
+      "blocks": [
+        {
+          "type": "NParagraph",
+          "content": [
+            {
+              "type": "Text",
+              "value": "System overview with "
+            },
+            {
+              "type": "Strong",
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "caption"
+                }
+              ]
+            },
+            {
+              "type": "Text",
+              "value": " text."
+            }
+          ],
+          "id": null
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

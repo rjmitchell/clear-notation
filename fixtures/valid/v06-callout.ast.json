@@ -1,0 +1,25 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NCallout",
+      "kind": "warning",
+      "title": "Status",
+      "compact": false,
+      "blocks": [
+        {
+          "type": "NParagraph",
+          "content": [
+            {
+              "type": "Text",
+              "value": "Read the grammar before extending the syntax."
+            }
+          ],
+          "id": null
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

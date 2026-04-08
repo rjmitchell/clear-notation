@@ -1,0 +1,23 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "example",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Example"
+        }
+      ]
+    },
+    {
+      "type": "NSourceBlock",
+      "language": "text",
+      "text": "name = \"ClearNotation\"",
+      "id": null
+    }
+  ],
+  "notes": []
+}

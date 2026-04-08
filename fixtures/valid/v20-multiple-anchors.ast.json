@@ -1,0 +1,54 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "first",
+      "content": [
+        {
+          "type": "Text",
+          "value": "First Section"
+        }
+      ]
+    },
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "second",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Second Section"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "See "
+        },
+        {
+          "type": "NRef",
+          "target": "first"
+        },
+        {
+          "type": "Text",
+          "value": " and "
+        },
+        {
+          "type": "NRef",
+          "target": "second"
+        },
+        {
+          "type": "Text",
+          "value": "."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

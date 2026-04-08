@@ -1,0 +1,39 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "heading",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Heading"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Paragraph immediately after heading."
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        [
+          {
+            "type": "Text",
+            "value": "List item right after paragraph"
+          }
+        ]
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

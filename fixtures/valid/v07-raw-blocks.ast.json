@@ -1,0 +1,91 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NMathBlock",
+      "text": "\\int_0^1 x^2 dx",
+      "id": null
+    },
+    {
+      "type": "NTable",
+      "header": true,
+      "align": [
+        "left",
+        "right"
+      ],
+      "rows": [
+        {
+          "type": "NTableRow",
+          "cells": [
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Name"
+                }
+              ]
+            },
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Value"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "NTableRow",
+          "cells": [
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Mode"
+                }
+              ]
+            },
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Deterministic"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "NTableRow",
+          "cells": [
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Notes"
+                }
+              ]
+            },
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Inline only"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

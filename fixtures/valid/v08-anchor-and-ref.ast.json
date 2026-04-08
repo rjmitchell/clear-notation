@@ -1,0 +1,35 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "grammar",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Grammar"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "See "
+        },
+        {
+          "type": "NRef",
+          "target": "grammar"
+        },
+        {
+          "type": "Text",
+          "value": " for the canonical syntax."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

@@ -1,0 +1,55 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "A paragraph with "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "a link"
+            }
+          ],
+          "target": "/docs"
+        },
+        {
+          "type": "Text",
+          "value": " and "
+        },
+        {
+          "type": "Note",
+          "number": 1,
+          "children": [
+            {
+              "type": "Text",
+              "value": "a note"
+            }
+          ]
+        },
+        {
+          "type": "Text",
+          "value": "."
+        }
+      ],
+      "id": "intro-para"
+    }
+  ],
+  "notes": [
+    {
+      "type": "Note",
+      "number": 1,
+      "children": [
+        {
+          "type": "Text",
+          "value": "a note"
+        }
+      ]
+    }
+  ]
+}

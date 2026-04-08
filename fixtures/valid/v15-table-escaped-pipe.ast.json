@@ -1,0 +1,63 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NTable",
+      "header": true,
+      "align": [
+        "left",
+        "center"
+      ],
+      "rows": [
+        {
+          "type": "NTableRow",
+          "cells": [
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Name"
+                }
+              ]
+            },
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Notes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "NTableRow",
+          "cells": [
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "A | B"
+                }
+              ]
+            },
+            {
+              "type": "NTableCell",
+              "content": [
+                {
+                  "type": "CodeSpan",
+                  "value": "literal"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}
