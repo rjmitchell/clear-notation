@@ -160,6 +160,17 @@ def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
 
     if isinstance(block, NSourceBlock):
         attrs = f' id="{_esc(block.id)}"' if block.id else ""
+        try:
+            from pygments import highlight as pyg_highlight
+            from pygments.lexers import get_lexer_by_name, ClassNotFound
+            from pygments.formatters import HtmlFormatter
+
+            lexer = get_lexer_by_name(block.language, stripall=True)
+            formatter = HtmlFormatter(nowrap=True, classprefix="hl-")
+            highlighted = pyg_highlight(block.text, lexer, formatter)
+            return f'<pre{attrs}><code class="language-{_esc(block.language)}">{highlighted}</code></pre>'
+        except (ImportError, ClassNotFound):
+            pass
         return f'<pre{attrs}><code class="language-{_esc(block.language)}">{_esc(block.text)}</code></pre>'
 
     if isinstance(block, NExtensionBlock):

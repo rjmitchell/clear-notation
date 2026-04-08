@@ -203,6 +203,36 @@ figcaption {
 .toc a { text-decoration: none; }
 .toc a:hover { text-decoration: underline; }
 
+/* Syntax highlighting (Pygments) */
+.hl-k { color: #8b5cf6; }  /* keyword */
+.hl-kd { color: #8b5cf6; } /* keyword declaration */
+.hl-kn { color: #8b5cf6; } /* keyword namespace */
+.hl-kp { color: #8b5cf6; } /* keyword pseudo */
+.hl-kr { color: #8b5cf6; } /* keyword reserved */
+.hl-kt { color: #8b5cf6; } /* keyword type */
+.hl-n { color: inherit; }  /* name */
+.hl-s, .hl-s1, .hl-s2 { color: #22c55e; } /* string */
+.hl-sa, .hl-sb, .hl-sc, .hl-sd, .hl-se, .hl-sh, .hl-si, .hl-sr, .hl-ss, .hl-sx { color: #22c55e; } /* string variants */
+.hl-c, .hl-c1, .hl-cm, .hl-cp, .hl-cs, .hl-ch { color: #6b7280; font-style: italic; } /* comment */
+.hl-mi, .hl-mf, .hl-mb, .hl-mh, .hl-mo, .hl-il { color: #f59e0b; } /* number */
+.hl-o { color: inherit; }  /* operator */
+.hl-ow { color: #8b5cf6; } /* operator word */
+.hl-p { color: inherit; }  /* punctuation */
+.hl-nb { color: #3b82f6; } /* builtin name */
+.hl-nf, .hl-fm { color: #3b82f6; } /* function name */
+.hl-nc { color: #3b82f6; } /* class name */
+.hl-nd { color: #3b82f6; } /* decorator */
+.hl-ni { color: #3b82f6; } /* entity name */
+.hl-bp { color: #3b82f6; } /* builtin pseudo */
+
+@media (prefers-color-scheme: dark) {
+  .hl-k, .hl-kd, .hl-kn, .hl-kp, .hl-kr, .hl-kt, .hl-ow { color: #a78bfa; }
+  .hl-s, .hl-s1, .hl-s2, .hl-sa, .hl-sb, .hl-sc, .hl-sd, .hl-se, .hl-sh, .hl-si, .hl-sr, .hl-ss, .hl-sx { color: #4ade80; }
+  .hl-c, .hl-c1, .hl-cm, .hl-cp, .hl-cs, .hl-ch { color: #9ca3af; }
+  .hl-mi, .hl-mf, .hl-mb, .hl-mh, .hl-mo, .hl-il { color: #fbbf24; }
+  .hl-nb, .hl-nf, .hl-fm, .hl-nc, .hl-nd, .hl-ni, .hl-bp { color: #93c5fd; }
+}
+
 /* Footnotes */
 .footnotes-sep { margin-top: 3em; }
 

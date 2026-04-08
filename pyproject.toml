@@ -23,6 +23,8 @@ classifiers = [
 [project.optional-dependencies]
 lsp = ["pygls>=1.0"]
 math = ["latex2mathml>=3.77"]
+highlight = ["pygments>=2.17"]
+watch = ["watchdog>=4.0"]
 
 [project.urls]
 Homepage = "https://github.com/rjmitchell/clear-notation"
