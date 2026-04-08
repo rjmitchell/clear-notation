@@ -51,6 +51,7 @@ pip install clearnotation[lsp]         # LSP server for editor integration
 pip install clearnotation[math]        # LaTeX math rendering via latex2mathml
 pip install clearnotation[highlight]   # Syntax highlighting via Pygments
 pip install clearnotation[watch]       # File watcher for cln watch
+pip install clearnotation[convert]     # Markdown-to-CLN converter via mistune
 ```
 
 ### Editor (browser)
@@ -75,6 +76,15 @@ cln fmt --check document.cln    # check formatting (exit 1 if changes needed)
 cln init                        # scaffold a new project (clearnotation.toml + docs/index.cln)
 cln init my-project             # scaffold in a specific directory
 cln watch docs/                 # watch for changes, rebuild, serve at localhost:8000
+
+# Document platform tools
+cln convert docs.md             # convert Markdown to CLN
+cln convert docs/ -o out/       # convert directory of Markdown files
+cln index docs/                 # index .cln files into SQLite (.cln-index.db)
+cln query docs/ --stats         # corpus stats: directive histogram, broken references
+cln query docs/ --directive callout  # find docs using a specific directive
+cln query docs/ --title "API"   # find docs by title (substring match)
+cln lint docs/ --schema schema.toml  # validate corpus against a TOML schema
 ```
 
 ## What's in the box

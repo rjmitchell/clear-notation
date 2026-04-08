@@ -1,4 +1,4 @@
-"""CLI entry point for ClearNotation: cln build, cln check, cln ast, cln init, cln watch."""
+"""CLI entry point for ClearNotation: cln build, cln check, cln ast, cln init, cln watch, cln convert, cln index, cln query, cln lint."""
 
 from __future__ import annotations
 
@@ -105,6 +105,28 @@ def main(argv: list[str] | None = None) -> int:
     watch_p.add_argument("--config", help="Path to clearnotation.toml")
     watch_p.add_argument("--format", choices=["human", "plain", "json"], default=None)
 
+    convert_p = sub.add_parser("convert", help="Convert Markdown files to CLN")
+    convert_p.add_argument("input", help="Markdown file or directory to convert")
+    convert_p.add_argument("--output", "-o", help="Output path (file or directory)")
+    convert_p.add_argument("--report", help="Write conversion report to this file")
+
+    index_p = sub.add_parser("index", help="Index .cln files into a queryable database")
+    index_p.add_argument("input", nargs="?", default=".", help="Directory to index (default: .)")
+    index_p.add_argument("--config", help="Path to clearnotation.toml")
+
+    query_p = sub.add_parser("query", help="Query the CLN index")
+    query_p.add_argument("--directive", help="Filter by directive name")
+    query_p.add_argument("--references", help="Filter by reference target")
+    query_p.add_argument("--title", help="Filter by document title (substring)")
+    query_p.add_argument("--attribute", help="Filter by attribute key=value")
+    query_p.add_argument("--stats", action="store_true", help="Show corpus statistics")
+    query_p.add_argument("input", nargs="?", default=".", help="Project root (default: .)")
+
+    lint_p = sub.add_parser("lint", help="Validate CLN corpus against a schema")
+    lint_p.add_argument("input", help="Directory to lint")
+    lint_p.add_argument("--schema", required=True, help="Path to schema TOML file")
+    lint_p.add_argument("--config", help="Path to clearnotation.toml")
+
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
@@ -125,6 +147,14 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_fmt(Path(args.input), args.write, args.check, args.config)
         if args.command == "watch":
             return _cmd_watch(Path(args.input), args.output, args.port, args.config, fmt)
+        if args.command == "convert":
+            return _cmd_convert(Path(args.input), args.output, getattr(args, "report", None))
+        if args.command == "index":
+            return _cmd_index(Path(args.input), getattr(args, "config", None))
+        if args.command == "query":
+            return _cmd_query(Path(args.input), args)
+        if args.command == "lint":
+            return _cmd_lint(Path(args.input), args.schema, getattr(args, "config", None))
     except (OSError, UnicodeDecodeError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -151,6 +181,23 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _parse_and_normalize(
+    input_path: Path,
+    config_path: str | None = None,
+) -> tuple["NormalizedDocument", "Registry", "Document"]:
+    """Parse, validate, and normalize a .cln file. Returns (normalized_doc, registry, parsed_doc).
+
+    Raises ClearNotationError or MultipleValidationFailures on failure.
+    """
+    config, reg_data = load_config(input_path, config_path)
+    registry = Registry.from_toml(reg_data)
+    source = input_path.read_text(encoding="utf-8")
+    doc = ReferenceParser(registry).parse_document(source, input_path)
+    ReferenceValidator(registry).validate(doc, config=config)
+    ndoc = Normalizer(registry).normalize(doc)
+    return ndoc, registry, doc
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)
@@ -163,22 +210,18 @@ def _build_file(
     config_path: str | None,
     fmt: str,
 ) -> int:
-    config, reg_data = load_config(input_path, config_path)
-    registry = Registry.from_toml(reg_data)
-    source = input_path.read_text(encoding="utf-8")
-
     try:
-        doc = ReferenceParser(registry).parse_document(source, input_path)
-        ReferenceValidator(registry).validate(doc, config=config)
+        ndoc, registry, doc = _parse_and_normalize(input_path, config_path)
     except MultipleValidationFailures as exc:
+        source = input_path.read_text(encoding="utf-8")
         for err in exc.errors:
             _print_error(err, source, str(input_path), fmt)
         return 1
     except ClearNotationError as exc:
+        source = input_path.read_text(encoding="utf-8")
         _print_error(exc, source, str(input_path), fmt)
         return 1
 
-    ndoc = Normalizer(registry).normalize(doc)
     if output_path is None:
         output_path = input_path.with_suffix(".html")
 
@@ -186,7 +229,6 @@ def _build_file(
     html = render_html(ndoc, css_path=css_rel)
     output_path.write_text(html, encoding="utf-8")
 
-    # Copy CSS next to output
     css_dest = output_path.parent / _CSS_FILENAME
     if not css_dest.exists():
         css_src = Path(__file__).parent / _CSS_FILENAME
@@ -373,6 +415,116 @@ def _cmd_watch(
         server.server_close()
     observer.join()
     return 0
+
+
+def _cmd_convert(input_path: Path, output: str | None, report: str | None) -> int:
+    try:
+        from .converter import convert_file
+    except ImportError:
+        print(
+            "error: mistune is required for Markdown conversion.\n"
+            "Install it with: pip install clearnotation[convert]",
+            file=sys.stderr,
+        )
+        return 1
+
+    if input_path.is_dir():
+        md_files = sorted(input_path.rglob("*.md"))
+        if not md_files:
+            print(f"No .md files found in {input_path}", file=sys.stderr)
+            return 1
+        out_dir = Path(output) if output else input_path
+        errors = 0
+        total_loss = 0.0
+        for md_file in md_files:
+            rel = md_file.relative_to(input_path)
+            cln_file = (out_dir / rel).with_suffix(".cln")
+            cln_file.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                rpt = (out_dir / rel).with_suffix(".convert-report.txt") if report else None
+                r = convert_file(md_file, cln_file, report_path=rpt)
+                total_loss += r.loss_percent
+                status = f" ({r.loss_percent:.0f}% loss)" if r.skipped_lines else ""
+                print(f"  {md_file} -> {cln_file}{status}")
+            except Exception as exc:
+                print(f"  error: {md_file}: {exc}", file=sys.stderr)
+                errors += 1
+        avg_loss = total_loss / len(md_files) if md_files else 0
+        print(f"\nConverted {len(md_files) - errors}/{len(md_files)} files (avg {avg_loss:.1f}% content loss)")
+        return 1 if errors > 0 else 0
+    else:
+        out_path = Path(output) if output else input_path.with_suffix(".cln")
+        rpt_path = Path(report) if report else None
+        try:
+            r = convert_file(input_path, out_path, report_path=rpt_path)
+            status = f" ({r.loss_percent:.0f}% loss)" if r.skipped_lines else ""
+            print(f"{input_path} -> {out_path}{status}")
+            for s in r.skipped:
+                print(f"  warning: line {s.line}: {s.reason}", file=sys.stderr)
+            return 0
+        except Exception as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+
+
+def _cmd_index(input_path: Path, config_path: str | None) -> int:
+    from .indexer import index_directory
+    try:
+        stats = index_directory(input_path, config_path=config_path)
+        print(f"Indexed: {stats.indexed} files")
+        if stats.unchanged:
+            print(f"Unchanged: {stats.unchanged} files")
+        if stats.skipped:
+            print(f"Skipped: {stats.skipped} files (errors)")
+        for err in stats.errors:
+            print(f"  {err}", file=sys.stderr)
+        return 1 if stats.skipped > 0 else 0
+    except OSError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+
+def _cmd_query(input_path: Path, args: argparse.Namespace) -> int:
+    from .query import (
+        query_index, corpus_stats, check_and_warn_staleness,
+        format_results, format_stats,
+    )
+
+    if check_and_warn_staleness(input_path):
+        print("warning: index may be stale. Run 'cln index' to refresh.", file=sys.stderr)
+
+    try:
+        if args.stats:
+            stats = corpus_stats(input_path)
+            print(format_stats(stats))
+            return 0
+
+        results = query_index(
+            input_path,
+            directive=args.directive,
+            references=args.references,
+            title=args.title,
+            attribute=args.attribute,
+        )
+        print(format_results(results))
+        return 0
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+
+def _cmd_lint(input_path: Path, schema: str, config_path: str | None) -> int:
+    from .linter import lint_corpus, format_issues
+    try:
+        issues = lint_corpus(input_path, Path(schema), config_path=config_path)
+        if issues:
+            print(format_issues(issues))
+            return 1
+        print("No lint issues found.")
+        return 0
+    except (ValueError, FileNotFoundError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 def _ast_to_dict(obj: Any) -> Any:

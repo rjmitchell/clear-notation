@@ -20,6 +20,10 @@ cln ast <file.cln>         # dump normalized AST as JSON
 cln fmt <file.cln>         # format source
 cln init [directory]       # scaffold new project
 cln watch <file|dir>       # watch + rebuild + serve
+cln convert <file.md|dir>  # convert Markdown to CLN (requires pip install clearnotation[convert])
+cln index [directory]      # index .cln files into SQLite (.cln-index.db)
+cln query [directory]      # query the index (--directive, --references, --title, --stats)
+cln lint <dir> --schema <toml>  # validate corpus against a TOML schema
 
 # Editor
 cd editor && pnpm dev      # start visual editor at localhost:5173

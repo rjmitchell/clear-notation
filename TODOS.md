@@ -12,6 +12,18 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
+### Demo corpus selection and dry-run analysis
+Before building the converter, pick the source corpus for the demo and do a dry-run analysis of Markdown content to measure expected conversion coverage. Candidates: Go stdlib tutorials, Python stdlib docs, Rust book, or your own internal docs. Check for nested lists, images, tables, HTML blocks, front matter, and other constructs the converter handles or skips. Target: <20% content loss.
+- Effort: S (CC: ~30 min)
+- Depends on: nothing (do this first)
+- Context: The outside voice in the eng review correctly identified that "well-known open source project" is too vague. Real docs from mature projects often use Markdown features (nested lists, definition lists, HTML blocks) that ClearNotation can't represent. A dry-run reveals this before you build the converter.
+
+### CLN comment syntax (spec enhancement)
+ClearNotation has no comment syntax. The parser rejects any line starting with `::` that isn't a known directive (fail-closed). This means generated .cln files can't contain TODO notes, the converter can't embed skip markers, and authors can't leave comments in source. Every other markup language has comments. This gap was discovered during the queryable document platform eng review.
+- Effort: S (CC: ~30 min)
+- Depends on: spec decision on syntax (e.g., `// comment`, `%% comment`, or `:: comment` with parser support)
+- Context: For the demo, converter skip warnings go to stderr instead of inline comments. But this is a spec gap that will keep surfacing as more tools consume .cln files.
+
 ### Cross-implementation conformance test suite
 Expand the shared JSON escaping test matrix into a full language-agnostic conformance suite (input .cln text -> expected normalized AST -> expected HTML output) that any ClearNotation implementation (Python, JS, future Rust/Go) can run.
 - Effort: M (CC: ~30 min)
