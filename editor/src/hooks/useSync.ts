@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import type { BNBlock } from "../converter/types";
 import { serializeDocument } from "../serializer";
 import { parseSourceToBlocks } from "../lib/parse-source";
+import { clnTextToBlockNoteBlocks } from "../lib/simple-cln-loader";
 
 /**
  * Bidirectional sync hook.
@@ -20,6 +21,8 @@ export function useSync() {
   const [syncing, setSyncing] = useState(false);
   const [parseError, setParseError] = useState(false);
   const [documentToLoad, setDocumentToLoad] = useState<BNBlock[] | null>(null);
+  /** BlockNote-format blocks for direct loading (from simple CLN loader, no conversion needed). */
+  const [blockNoteBlocksToLoad, setBlockNoteBlocksToLoad] = useState<any[] | null>(null);
 
   // Generation counters to detect and skip self-triggered updates
   const visualGenRef = useRef(0);
@@ -91,11 +94,23 @@ export function useSync() {
   }, []);
 
   /**
-   * Set source directly without triggering sync (for file open / template).
+   * Set source directly and load into visual editor (for file open / template / restore).
+   * Uses a lightweight line-based converter (no tree-sitter WASM needed).
    */
   const setSource = useCallback((text: string) => {
     setSourceState(text);
     activeGenRef.current = null;
+
+    if (!text.trim()) return;
+
+    // Convert CLN text to BlockNote blocks via simple line-based parser.
+    // This handles headings, paragraphs, lists, code blocks without
+    // needing the tree-sitter WASM worker. Directives are skipped.
+    const bnBlocks = clnTextToBlockNoteBlocks(text);
+    if (bnBlocks.length > 0) {
+      setBlockNoteBlocksToLoad(bnBlocks);
+      setParseError(false);
+    }
   }, []);
 
   /**
@@ -103,6 +118,7 @@ export function useSync() {
    */
   const clearDocumentToLoad = useCallback(() => {
     setDocumentToLoad(null);
+    setBlockNoteBlocksToLoad(null);
   }, []);
 
   return {
@@ -113,6 +129,7 @@ export function useSync() {
     onVisualChange,
     onSourceChange,
     documentToLoad,
+    blockNoteBlocksToLoad,
     clearDocumentToLoad,
   };
 }

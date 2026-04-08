@@ -10,6 +10,8 @@ interface VisualEditorProps {
   editorRef?: React.MutableRefObject<BlockNoteEditor | null>;
   darkMode?: boolean;
   documentToLoad?: BNBlock[] | null;
+  /** BlockNote-format blocks for direct loading (no conversion needed). */
+  blockNoteBlocksToLoad?: any[] | null;
   onDocumentLoaded?: () => void;
 }
 
@@ -116,6 +118,7 @@ export default function VisualEditor({
   editorRef,
   darkMode,
   documentToLoad,
+  blockNoteBlocksToLoad,
   onDocumentLoaded,
 }: VisualEditorProps) {
   const editor = useMemo(() => {
@@ -132,7 +135,7 @@ export default function VisualEditor({
     }
   }, [editor, editorRef]);
 
-  // Load blocks from source→visual sync
+  // Load blocks from source→visual sync (BNBlock[] needs conversion)
   useEffect(() => {
     if (!documentToLoad || !onDocumentLoaded) return;
 
@@ -143,6 +146,17 @@ export default function VisualEditor({
     }
     onDocumentLoaded();
   }, [documentToLoad, onDocumentLoaded, editor]);
+
+  // Load blocks from simple CLN loader (already in BlockNote format, no conversion)
+  useEffect(() => {
+    if (!blockNoteBlocksToLoad || !onDocumentLoaded) return;
+
+    if (blockNoteBlocksToLoad.length > 0) {
+      suppressNextChange.current = true;
+      editor.replaceBlocks(editor.document, blockNoteBlocksToLoad);
+    }
+    onDocumentLoaded();
+  }, [blockNoteBlocksToLoad, onDocumentLoaded, editor]);
 
   const handleChange = useCallback(() => {
     if (suppressNextChange.current) {

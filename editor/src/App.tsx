@@ -33,6 +33,7 @@ export default function App() {
     onSourceChange,
     documentToLoad,
     clearDocumentToLoad,
+    blockNoteBlocksToLoad,
   } = useSync();
   const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -200,6 +201,7 @@ export default function App() {
                   editorRef={editorRef}
                   darkMode={darkMode}
                   documentToLoad={documentToLoad}
+                  blockNoteBlocksToLoad={blockNoteBlocksToLoad}
                   onDocumentLoaded={clearDocumentToLoad}
                 />
               </div>
