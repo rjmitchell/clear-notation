@@ -89,6 +89,7 @@ export default function Toolbar({
         <button
           className="toolbar-btn"
           onClick={toggleMenu}
+          aria-label="File menu"
           aria-haspopup="true"
           aria-expanded={menuOpen}
         >

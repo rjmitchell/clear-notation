@@ -1,47 +1,86 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { BlockNoteEditor } from "@blocknote/core";
 import "./app.css";
 import SplitPane from "./components/SplitPane";
 import VisualEditor from "./components/VisualEditor";
 import SourcePane from "./components/SourcePane";
 import Toolbar from "./components/Toolbar";
+import WelcomeOverlay from "./components/WelcomeOverlay";
+import CheatSheet from "./components/CheatSheet";
+import StatusBar from "./components/StatusBar";
 import { useSync } from "./hooks/useSync";
 import { useFileOps } from "./hooks/useFileOps";
 import { useDarkMode } from "./hooks/useDarkMode";
+import { useMarkdownPaste } from "./hooks/useMarkdownPaste";
+
+import prdTemplate from "./templates/prd.cln?raw";
+import designDocTemplate from "./templates/design-doc.cln?raw";
+import meetingNotesTemplate from "./templates/meeting-notes.cln?raw";
+
+const TEMPLATES: Record<string, string> = {
+  prd: prdTemplate,
+  "design-doc": designDocTemplate,
+  "meeting-notes": meetingNotesTemplate,
+};
 
 export default function App() {
-  const { source, syncing, onDocumentChange } = useSync();
+  const { source, setSource, syncing, onDocumentChange } = useSync();
   const [cheatSheetOpen, setCheatSheetOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const { darkMode, toggleDarkMode } = useDarkMode();
   const editorRef = useRef<BlockNoteEditor | null>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
 
   const fileOps = useFileOps({
     getCurrentSource: () => source,
   });
 
+  // Wire markdown paste on the main editor container
+  useMarkdownPaste(mainRef);
+
   const handleChange = useCallback(
     (blocks: Parameters<typeof onDocumentChange>[0]) => {
       onDocumentChange(blocks);
       fileOps.markDirty();
+      // Once the user starts editing, dismiss welcome
+      if (showWelcome) setShowWelcome(false);
     },
-    [onDocumentChange, fileOps]
+    [onDocumentChange, fileOps, showWelcome]
   );
 
   const handleNew = useCallback(() => {
     fileOps.newFile();
-  }, [fileOps]);
+    setSource("");
+    setShowWelcome(false);
+  }, [fileOps, setSource]);
 
-  const handleNewFromTemplate = useCallback((_template: string) => {
-    // Template loading will be wired in Task 7
-  }, []);
+  const handleNewFromTemplate = useCallback(
+    (templateId: string) => {
+      const text = TEMPLATES[templateId];
+      if (text) {
+        fileOps.newFile();
+        setSource(text);
+        setShowWelcome(false);
+      }
+    },
+    [fileOps, setSource]
+  );
 
   const handleOpen = useCallback(async () => {
     const text = await fileOps.openFile();
     if (text !== null) {
-      // Loading text into editor will be wired when round-trip parsing is ready
-      console.log("Opened file, length:", text.length);
+      setSource(text);
+      setShowWelcome(false);
     }
-  }, [fileOps]);
+  }, [fileOps, setSource]);
+
+  const handleRestore = useCallback(() => {
+    const saved = fileOps.loadAutosave();
+    if (saved) {
+      setSource(saved);
+      setShowWelcome(false);
+    }
+  }, [fileOps, setSource]);
 
   const handleSave = useCallback(() => {
     fileOps.saveFile(source);
@@ -70,7 +109,6 @@ export default function App() {
   }, []);
 
   const handleInsertLink = useCallback(() => {
-    // Link insertion requires a URL dialog; stub for now
     const url = prompt("Enter URL:");
     if (url && editorRef.current) {
       editorRef.current.createLink(url);
@@ -93,20 +131,31 @@ export default function App() {
         e.preventDefault();
         handleToggleCode();
       }
-      // Cmd+B and Cmd+I are handled natively by BlockNote,
-      // but the toolbar buttons also call toggleStyles for consistency
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleSave, handleExportHtml, handleToggleCode]);
 
-  const statusLabel = fileOps.fileName
-    ? `${fileOps.fileName}${fileOps.isDirty ? " *" : ""}`
-    : `Untitled${fileOps.isDirty ? " *" : ""}`;
+  const wordCount = useMemo(() => {
+    return source.split(/\s+/).filter((w) => w).length;
+  }, [source]);
+
+  // Check if autosave exists for restore button
+  const hasAutosave = useMemo(() => {
+    try {
+      return localStorage.getItem("cn-autosave") !== null;
+    } catch {
+      return false;
+    }
+  }, []);
 
   return (
     <div className="app-shell">
+      <a href="#main-editor" className="skip-link">
+        Skip to editor
+      </a>
+
       <header className="toolbar">
         <Toolbar
           onNew={handleNew}
@@ -125,23 +174,41 @@ export default function App() {
         />
       </header>
 
-      <main className="main-content">
-        <SplitPane
-          left={
-            <VisualEditor
-              onDocumentChange={handleChange}
-              editorRef={editorRef}
-              darkMode={darkMode}
-            />
-          }
-          right={<SourcePane source={source} syncing={syncing} />}
-        />
+      <main className="main-content" ref={mainRef}>
+        {showWelcome && !source ? (
+          <WelcomeOverlay
+            onNew={handleNew}
+            onOpen={handleOpen}
+            onRestore={hasAutosave ? handleRestore : null}
+            onTemplate={handleNewFromTemplate}
+          />
+        ) : (
+          <SplitPane
+            left={
+              <div id="main-editor">
+                <VisualEditor
+                  onDocumentChange={handleChange}
+                  editorRef={editorRef}
+                  darkMode={darkMode}
+                />
+              </div>
+            }
+            right={<SourcePane source={source} syncing={syncing} />}
+          />
+        )}
       </main>
 
-      <footer className="status-bar">
-        <span>{statusLabel}</span>
-        <span>ClearNotation v0.1</span>
-      </footer>
+      <CheatSheet
+        open={cheatSheetOpen}
+        onClose={() => setCheatSheetOpen(false)}
+      />
+
+      <StatusBar
+        fileName={fileOps.fileName}
+        isDirty={fileOps.isDirty}
+        syncing={syncing}
+        wordCount={wordCount}
+      />
     </div>
   );
 }
