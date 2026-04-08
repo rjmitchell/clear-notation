@@ -9,6 +9,7 @@ out/
 
 # Build artifacts from cln build
 *.html
+!editor/public/playground.html
 clearnotation.css
 !clearnotation_reference/clearnotation.css
 
