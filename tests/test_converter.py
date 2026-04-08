@@ -350,6 +350,65 @@ def hello():
         self.assertNotIn("<!-- ", cln)
 
 
+class TestEscapeSpecialChars(unittest.TestCase):
+    """Verify that CLN special characters in prose text are properly escaped."""
+
+    def _assert_parses(self, cln_text: str) -> None:
+        import tempfile
+        from clearnotation_reference.config import load_config
+        from clearnotation_reference.parser import ReferenceParser
+        from clearnotation_reference.registry import Registry
+        from clearnotation_reference.validator import ReferenceValidator
+
+        with tempfile.NamedTemporaryFile(suffix=".cln", mode="w", delete=False) as f:
+            f.write(cln_text)
+            f.flush()
+            p = Path(f.name)
+        try:
+            _, reg_data = load_config(p)
+            registry = Registry.from_toml(reg_data)
+            doc = ReferenceParser(registry).parse_document(cln_text, p)
+            ReferenceValidator(registry).validate(doc, config={"spec": "0.1"})
+        finally:
+            p.unlink()
+
+    def test_brackets_escaped_in_prose(self) -> None:
+        """Square brackets in plain text (not links) must be escaped as \[ and \]."""
+        md = "Use [brackets] in your config."
+        result = convert_markdown(md)
+        self.assertIn("\\[brackets\\]", result)
+        # Must not produce an unescaped bare [brackets] that would look like a link
+        # (the escaped form is the only occurrence)
+        self.assertNotIn("[brackets]", result)
+
+    def test_brackets_escaped_parses(self) -> None:
+        """Output with escaped brackets must parse cleanly through CLN."""
+        cln = convert_markdown("Use [brackets] in your config.")
+        self._assert_parses(cln)
+
+    def test_double_colon_escaped_in_prose(self) -> None:
+        """Double-colon (::) in plain text must be escaped as \\::."""
+        md = "The pattern is key::value notation."
+        result = convert_markdown(md)
+        self.assertIn("\\::", result)
+
+    def test_double_colon_escaped_parses(self) -> None:
+        """Output with escaped :: must parse cleanly through CLN."""
+        cln = convert_markdown("The pattern is key::value notation.")
+        self._assert_parses(cln)
+
+    def test_plus_brace_escaped_in_prose(self) -> None:
+        """+{ in plain text must be escaped as \\+{."""
+        md = "Try writing +{something} literally."
+        result = convert_markdown(md)
+        self.assertIn("\\+{", result)
+
+    def test_plus_brace_escaped_parses(self) -> None:
+        """Output with escaped +{ must parse cleanly through CLN."""
+        cln = convert_markdown("Try writing +{something} literally.")
+        self._assert_parses(cln)
+
+
 class TestConvertFile(unittest.TestCase):
     def test_convert_file_roundtrip(self) -> None:
         import tempfile
