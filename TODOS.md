@@ -39,11 +39,8 @@ Validator collects block-level errors via `DiagnosticCollection` and reports all
 ### ~~`cln fmt` formatter~~ DONE
 Shipped as part of the v0.1 toolchain. Roundtrip-correct formatter operating on the parsed tree (pre-validation). Includes `cln fmt`, `cln fmt --write`, `cln fmt --check`.
 
-### KaTeX server-side math rendering
-Integrate KaTeX (or a Python math renderer) for `::math{...}` blocks. v0.1 renders math as `<pre class="math">` placeholder. Real math rendering produces HTML/MathML at build time with no client-side JS.
-- Effort: M (human: 3-5 days / CC: ~20 min)
-- Depends on: renderer being complete
-- Context: Table stakes for scientific/technical documentation. KaTeX is faster than MathJax and supports server-side rendering. Alternative: find a pure-Python LaTeX-to-HTML library to avoid Node.js dependency.
+### ~~KaTeX server-side math rendering~~ DONE
+Integrated `latex2mathml` for `::math{...}` blocks. Renders LaTeX to MathML at build time (no client-side JS). Graceful fallback if not installed. Optional dependency: `pip install clearnotation[math]`.
 
 ### ~~PyPI distribution~~ DONE
 Shipped as part of the v0.1 toolchain. `pip install clearnotation` for CLI, `pip install clearnotation[lsp]` for LSP server. GitHub Actions CI for publishing on tag push.
