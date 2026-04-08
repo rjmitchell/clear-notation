@@ -269,40 +269,52 @@ body {
    Source Pane
    ═══════════════════════════════════════════════════════════════════ */
 .source-pane {
-  background: var(--cn-code-bg);
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+  overflow: hidden;
+}
+
+.source-pane .source-pane-editor {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
 }
 
-.source-pane pre {
+.source-pane .cm-editor {
+  height: 100%;
   font-family: var(--cn-font-mono);
   font-size: 13px;
+  background: var(--cn-code-bg);
+}
+
+.source-pane .cm-editor .cm-content {
+  padding: 16px;
   line-height: 1.6;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  color: var(--cn-fg);
-  margin: 0;
 }
 
-.source-pane .line {
-  display: block;
-  padding: 0 4px;
-  border-radius: 2px;
+.source-pane .cm-editor .cm-gutters {
+  background: var(--cn-code-bg);
+  border-right: 1px solid var(--cn-border);
+  color: var(--cn-muted);
 }
 
-.source-pane .line-changed {
-  background: color-mix(in srgb, var(--cn-accent) 10%, transparent);
-  animation: line-fade 600ms ease-out forwards;
+.source-pane .cm-editor.cm-focused {
+  outline: none;
 }
 
-@keyframes line-fade {
-  from {
-    background: color-mix(in srgb, var(--cn-accent) 10%, transparent);
-  }
-  to {
-    background: transparent;
-  }
+.source-pane .source-error-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--cn-warning) 12%, var(--cn-bg));
+  color: var(--cn-warning);
+  font-family: var(--cn-font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  border-bottom: 1px solid color-mix(in srgb, var(--cn-warning) 25%, transparent);
+  flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
