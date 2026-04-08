@@ -59,16 +59,14 @@ All regex patterns audited and verified safe. No catastrophic backtracking found
 ### ~~Code syntax highlighting in SourceBlock~~ DONE
 Pygments integration for server-side syntax highlighting. Optional dependency: `pip install clearnotation[highlight]`. Graceful fallback if not installed.
 
-### `cln watch` live-reload
-File watcher that rebuilds on save and serves with local HTTP server. In progress.
-- Effort: M (human: 3-5 days / CC: ~20 min)
+### ~~`cln watch` live-reload~~ DONE
+`cln watch <file|dir>` with watchdog file watcher, local HTTP server, auto-rebuild on `.cln` changes. Optional dependency: `pip install clearnotation[watch]`.
 
 ### ~~`cln init` scaffolding~~ DONE
-`cln init [directory]` creates `clearnotation.toml` + `docs/index.cln` starter project. 4 tests.
+`cln init [directory]` creates `clearnotation.toml` + `docs/index.cln` starter project. 6 tests.
 
-### Tree-sitter WASM playground page
-Interactive syntax playground. In progress.
-- Effort: S (CC: ~15 min)
+### ~~Tree-sitter WASM playground page~~ DONE
+Interactive playground at `/playground.html` — type ClearNotation, see CST update live. Self-contained HTML, dark mode, draggable divider, error highlighting.
 
 ### VS Code custom editor provider (v1.1)
 Register a custom editor for .cln files in the VS Code extension. Embed the same BlockNote editor in a VS Code webview. Deferred until browser editor validates with real users.
