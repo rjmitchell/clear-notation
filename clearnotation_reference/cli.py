@@ -1,11 +1,13 @@
-"""CLI entry point for ClearNotation: cln build, cln check, cln ast."""
+"""CLI entry point for ClearNotation: cln build, cln check, cln ast, cln init, cln watch."""
 
 from __future__ import annotations
 
 import argparse
+import http.server
 import json
 import shutil
 import sys
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -26,6 +28,42 @@ except Exception:
     __version__ = "0.1.0"
 
 _CSS_FILENAME = "clearnotation.css"
+
+INIT_CONFIG = """\
+[spec]
+version = "0.1"
+
+[project]
+root = "."
+
+[[directive]]
+# Built-in directives are loaded automatically.
+# Add custom directives here.
+"""
+
+INIT_DOCUMENT = """\
+::meta{
+title = "My Project"
+}
+
+# Welcome to My Project
+
+This is a ClearNotation document. Edit this file to get started.
+
+## Getting Started
+
+- Run `cln build docs/index.cln` to generate HTML
+- Run `cln check docs/index.cln` to validate
+- Run `cln fmt docs/index.cln` to format
+
+## Features
+
+ClearNotation supports +{strong text}, *{emphasized text}, `inline code`, and [links -> https://clearnotation.dev].
+
+::callout[kind="info", title="Tip"]{
+Use the `::callout` directive for callouts, tips, and warnings.
+}
+"""
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -55,6 +93,16 @@ def main(argv: list[str] | None = None) -> int:
     fmt_p.add_argument("--check", action="store_true", help="Exit 1 if file would change (for CI)")
     fmt_p.add_argument("--config", help="Path to clearnotation.toml")
 
+    init_p = sub.add_parser("init", help="Create a new ClearNotation project")
+    init_p.add_argument("directory", nargs="?", default=".", help="Target directory (default: current)")
+
+    watch_p = sub.add_parser("watch", help="Watch files and rebuild on change")
+    watch_p.add_argument("input", help="Source .cln file or directory")
+    watch_p.add_argument("--output", "-o", default="dist", help="Output directory")
+    watch_p.add_argument("--port", "-p", type=int, default=8000, help="Server port")
+    watch_p.add_argument("--config", help="Path to clearnotation.toml")
+    watch_p.add_argument("--format", choices=["human", "plain", "json"], default=None)
+
     args = parser.parse_args(argv)
     if args.command is None:
         parser.print_help()
@@ -63,6 +111,8 @@ def main(argv: list[str] | None = None) -> int:
     fmt = getattr(args, "format", None) or ("human" if sys.stderr.isatty() else "plain")
 
     try:
+        if args.command == "init":
+            return _cmd_init(args)
         if args.command == "build":
             return _cmd_build(Path(args.input), args.output, args.config, fmt)
         if args.command == "check":
@@ -71,10 +121,31 @@ def main(argv: list[str] | None = None) -> int:
             return _cmd_ast(Path(args.input), args.config, fmt)
         if args.command == "fmt":
             return _cmd_fmt(Path(args.input), args.write, args.check, args.config)
+        if args.command == "watch":
+            return _cmd_watch(Path(args.input), args.output, args.port, args.config, fmt)
     except (OSError, UnicodeDecodeError, PermissionError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
+    return 0
+
+
+def _cmd_init(args: argparse.Namespace) -> int:
+    """Scaffold a new ClearNotation project."""
+    target = Path(args.directory or ".")
+    if (target / "clearnotation.toml").exists():
+        print(f"clearnotation.toml already exists in {target}", file=sys.stderr)
+        return 1
+
+    target.mkdir(parents=True, exist_ok=True)
+    (target / "clearnotation.toml").write_text(INIT_CONFIG)
+    docs = target / "docs"
+    docs.mkdir(exist_ok=True)
+    (docs / "index.cln").write_text(INIT_DOCUMENT)
+    print(f"Created ClearNotation project in {target}")
+    print(f"  clearnotation.toml")
+    print(f"  docs/index.cln")
+    print(f"\nNext: cln build docs/index.cln")
     return 0
 
 
@@ -214,6 +285,90 @@ def _cmd_fmt(input_path: Path, write: bool, check: bool, config_path: str | None
         return 0
 
     sys.stdout.write(formatted)
+    return 0
+
+
+def _cmd_watch(
+    input_path: Path,
+    output: str,
+    port: int,
+    config_path: str | None,
+    fmt: str,
+) -> int:
+    try:
+        from watchdog.observers import Observer
+        from watchdog.events import FileSystemEventHandler
+    except ImportError:
+        print(
+            "error: watchdog is required for cln watch.\n"
+            "Install it with: pip install clearnotation[watch]",
+            file=sys.stderr,
+        )
+        return 1
+
+    out_dir = Path(output)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Initial build
+    if input_path.is_dir():
+        result = _build_directory(input_path, output, config_path, fmt)
+    else:
+        out_file = (out_dir / input_path.name).with_suffix(".html")
+        result = _build_file(input_path, out_file, config_path, fmt)
+
+    if result != 0:
+        print("warning: initial build had errors", file=sys.stderr)
+
+    print(f"Built to {out_dir}/")
+
+    # Start HTTP server in a daemon thread
+    handler_class = http.server.SimpleHTTPRequestHandler
+    server = http.server.HTTPServer(
+        ("", port),
+        lambda *a, **kw: handler_class(*a, directory=str(out_dir.resolve()), **kw),
+    )
+    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    print(f"Serving at http://localhost:{port}")
+
+    # Determine watch directory
+    watch_dir = str(input_path if input_path.is_dir() else input_path.parent)
+
+    class _RebuildHandler(FileSystemEventHandler):
+        """Rebuild .cln files when they change on disk."""
+
+        def on_modified(self, event):  # type: ignore[override]
+            if event.is_directory:
+                return
+            if not event.src_path.endswith(".cln"):
+                return
+            changed = Path(event.src_path)
+            print(f"Changed: {changed}")
+            try:
+                if input_path.is_dir():
+                    rel = changed.relative_to(input_path)
+                    dest = (out_dir / rel).with_suffix(".html")
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                else:
+                    dest = (out_dir / changed.name).with_suffix(".html")
+                _build_file(changed, dest, config_path, fmt)
+                print(f"Rebuilt {changed}")
+            except Exception as exc:
+                print(f"Build error: {exc}", file=sys.stderr)
+
+    observer = Observer()
+    observer.schedule(_RebuildHandler(), watch_dir, recursive=True)
+    observer.start()
+    print(f"Watching {watch_dir} for changes...")
+    print("Press Ctrl+C to stop")
+
+    try:
+        observer.join()
+    except KeyboardInterrupt:
+        print("\nStopping...")
+        observer.stop()
+        server.shutdown()
+    observer.join()
     return 0
 
 
