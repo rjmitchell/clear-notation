@@ -5,9 +5,13 @@ Exercises: Markdown → convert_file → index_directory → query_index / lint_
 
 from __future__ import annotations
 
+import importlib
 import tempfile
 import unittest
 from pathlib import Path
+
+if not importlib.util.find_spec("mistune"):
+    raise unittest.SkipTest("mistune not installed (optional dependency)")
 
 from clearnotation_reference.converter import convert_file
 from clearnotation_reference.indexer import index_directory

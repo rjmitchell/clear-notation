@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import importlib
 import unittest
 from pathlib import Path
+
+if not importlib.util.find_spec("mistune"):
+    raise unittest.SkipTest("mistune not installed (optional dependency)")
 
 from clearnotation_reference.converter import (
     ConversionReport,

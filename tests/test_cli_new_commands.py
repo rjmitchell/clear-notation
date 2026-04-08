@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import io
 import tempfile
 import unittest
 from pathlib import Path
 
 from clearnotation_reference.cli import main
+
+_has_mistune = importlib.util.find_spec("mistune") is not None
 
 
 SAMPLE_CLN = "# Hello\n\nA paragraph.\n"
@@ -27,6 +30,7 @@ def _quiet(argv: list[str]) -> int:
         return main(argv)
 
 
+@unittest.skipUnless(_has_mistune, "mistune not installed (optional dependency)")
 class TestConvertSubcommand(unittest.TestCase):
     def test_convert_single_file_exit_0(self) -> None:
         """cln convert on a single .md file exits 0 and creates a .cln file."""
