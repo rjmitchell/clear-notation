@@ -174,6 +174,7 @@ export default function VisualEditor({
         editor={editor}
         onChange={handleChange}
         theme={darkMode ? "dark" : "light"}
+        formattingToolbar={false}
       />
     </div>
   );

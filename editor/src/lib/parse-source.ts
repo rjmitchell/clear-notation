@@ -16,7 +16,12 @@ let initPromise: Promise<void> | null = null;
 async function ensureParser(): Promise<ClearNotationParser> {
   if (!parser) {
     parser = new ClearNotationParser();
-    initPromise = parser.init("/tree-sitter-clearnotation.wasm");
+    initPromise = parser.init("/tree-sitter-clearnotation.wasm").catch((err) => {
+      console.error("[parse-source] Parser init failed:", err);
+      parser = null;
+      initPromise = null;
+      throw err;
+    });
   }
   await initPromise;
   return parser;
@@ -36,8 +41,10 @@ export async function parseSourceToBlocks(
 
   // Fail-closed: if the tree has any errors, refuse to convert
   if (result.tree.hasError) {
+    console.warn("[parse-source] Parse tree has errors, skipping conversion");
     return null;
   }
 
-  return convertDocument(result.tree);
+  const blocks = await convertDocument(result.tree);
+  return blocks;
 }

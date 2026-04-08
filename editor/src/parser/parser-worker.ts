@@ -50,7 +50,13 @@ async function handleInit(wasmUrl: string): Promise<void> {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const TreeSitter = (await import("web-tree-sitter")).default as any;
-    await TreeSitter.init();
+    await TreeSitter.init({
+      locateFile: (path: string) => {
+        // Serve tree-sitter engine WASM from the public directory
+        if (path.endsWith(".wasm")) return "/tree-sitter.wasm";
+        return path;
+      },
+    });
 
     parser = new TreeSitter();
 

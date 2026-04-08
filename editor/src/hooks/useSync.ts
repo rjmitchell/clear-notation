@@ -85,7 +85,8 @@ export function useSync() {
           setParseError(false);
           setDocumentToLoad(blocks);
         }
-      } catch {
+      } catch (err) {
+        console.error("[useSync] source→visual parse failed:", err);
         setParseError(true);
       }
       setSyncing(false);
