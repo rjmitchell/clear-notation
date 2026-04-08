@@ -374,3 +374,78 @@ path = "validate-invalid/x15-anchor-inside-callout-without-target.cln"
 parse = "accept"
 validate = "reject"
 error_kind = "anchor_without_addressable_block"
+
+[[case]]
+id = "v16"
+title = "Empty raw directive bodies"
+kind = "valid"
+path = "valid/v16-empty-raw-bodies.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v17"
+title = "Whitespace-only raw directive body"
+kind = "valid"
+path = "valid/v17-whitespace-raw-body.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v18"
+title = "Deep inline nesting in note"
+kind = "valid"
+path = "valid/v18-deep-inline-nesting.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v19"
+title = "Adjacent blocks without blank line separators"
+kind = "valid"
+path = "valid/v19-adjacent-blocks.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v20"
+title = "Multiple anchors targeting different blocks"
+kind = "valid"
+path = "valid/v20-multiple-anchors.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "x16"
+title = "Duplicate anchor IDs"
+kind = "validate-invalid"
+path = "validate-invalid/x16-duplicate-anchor-id.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "duplicate_id"
+
+[[case]]
+id = "x17"
+title = "Ref to nonexistent anchor"
+kind = "validate-invalid"
+path = "validate-invalid/x17-unresolved-ref.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "unresolved_ref"
+
+[[case]]
+id = "p15"
+title = "Unknown block directive with body"
+kind = "parse-invalid"
+path = "parse-invalid/p15-unknown-directive.cln"
+parse = "reject"
+error_kind = "unknown_block_directive"
+
+[[case]]
+id = "x18"
+title = "Callout missing required kind attribute"
+kind = "validate-invalid"
+path = "validate-invalid/x18-callout-missing-kind.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"

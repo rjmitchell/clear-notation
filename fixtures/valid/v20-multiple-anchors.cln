@@ -1,0 +1,7 @@
+::anchor[id="first"]
+# First Section
+
+::anchor[id="second"]
+# Second Section
+
+See ::ref[target="first"] and ::ref[target="second"].

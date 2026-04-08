@@ -19,9 +19,9 @@ class FixtureLoaderTests(unittest.TestCase):
             REPO_ROOT / "reference/builtin-registry.toml",
             suite.builtin_registry,
         )
-        self.assertEqual(44, len(suite.cases))
+        self.assertEqual(53, len(suite.cases))
         self.assertEqual("v01", suite.cases[0].id)
-        self.assertEqual("x15", suite.cases[-1].id)
+        self.assertEqual("x18", suite.cases[-1].id)
 
 
 if __name__ == "__main__":
