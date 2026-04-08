@@ -151,6 +151,23 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _parse_and_normalize(
+    input_path: Path,
+    config_path: str | None = None,
+) -> tuple["NormalizedDocument", "Registry", "Document"]:
+    """Parse, validate, and normalize a .cln file. Returns (normalized_doc, registry, parsed_doc).
+
+    Raises ClearNotationError or MultipleValidationFailures on failure.
+    """
+    config, reg_data = load_config(input_path, config_path)
+    registry = Registry.from_toml(reg_data)
+    source = input_path.read_text(encoding="utf-8")
+    doc = ReferenceParser(registry).parse_document(source, input_path)
+    ReferenceValidator(registry).validate(doc, config=config)
+    ndoc = Normalizer(registry).normalize(doc)
+    return ndoc, registry, doc
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)
@@ -163,22 +180,18 @@ def _build_file(
     config_path: str | None,
     fmt: str,
 ) -> int:
-    config, reg_data = load_config(input_path, config_path)
-    registry = Registry.from_toml(reg_data)
-    source = input_path.read_text(encoding="utf-8")
-
     try:
-        doc = ReferenceParser(registry).parse_document(source, input_path)
-        ReferenceValidator(registry).validate(doc, config=config)
+        ndoc, registry, doc = _parse_and_normalize(input_path, config_path)
     except MultipleValidationFailures as exc:
+        source = input_path.read_text(encoding="utf-8")
         for err in exc.errors:
             _print_error(err, source, str(input_path), fmt)
         return 1
     except ClearNotationError as exc:
+        source = input_path.read_text(encoding="utf-8")
         _print_error(exc, source, str(input_path), fmt)
         return 1
 
-    ndoc = Normalizer(registry).normalize(doc)
     if output_path is None:
         output_path = input_path.with_suffix(".html")
 
@@ -186,7 +199,6 @@ def _build_file(
     html = render_html(ndoc, css_path=css_rel)
     output_path.write_text(html, encoding="utf-8")
 
-    # Copy CSS next to output
     css_dest = output_path.parent / _CSS_FILENAME
     if not css_dest.exists():
         css_src = Path(__file__).parent / _CSS_FILENAME
