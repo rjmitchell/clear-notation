@@ -53,6 +53,7 @@ body {
 .nav {
   border-bottom: 1px solid var(--cn-border);
   padding: 0 24px;
+  background: #5f8c6b;
 }
 
 .nav-inner {
@@ -68,7 +69,7 @@ body {
   font-family: "Geist Mono", monospace;
   font-weight: 600;
   font-size: 15px;
-  color: var(--cn-fg);
+  color: #ffffff;
   text-decoration: none;
   letter-spacing: 0;
 }
@@ -84,13 +85,13 @@ body {
   font-family: "Geist Sans", sans-serif;
   font-size: 14px;
   font-weight: 500;
-  color: var(--cn-muted);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: color 100ms ease-out;
 }
 
 .nav-links a:hover {
-  color: var(--cn-fg);
+  color: #ffffff;
 }
 
 /* ── Hero ─────────────────────────────────────────────────── */
