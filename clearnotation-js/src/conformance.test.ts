@@ -29,10 +29,10 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
   const typeMap: Record<string, string> = {
     NHeading: "heading",
     NParagraph: "paragraph",
-    NThematicBreak: "thematic-break",
+    NThematicBreak: "thematic_break",
     NBlockQuote: "blockquote",
-    NUnorderedList: "unordered-list",
-    NOrderedList: "ordered-list",
+    NUnorderedList: "unordered_list",
+    NOrderedList: "ordered_list",
     NToc: "toc",
     NCallout: "callout",
     NFigure: "figure",
@@ -43,7 +43,7 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
 
   const inlineTypeMap: Record<string, string> = {
     Text: "text",
-    CodeSpan: "code",
+    CodeSpan: "code_span",
     Strong: "strong",
     Emphasis: "emphasis",
     Link: "link",
@@ -53,7 +53,7 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
   function convertInline(node: any): any {
     const t = inlineTypeMap[node.type] || node.type;
     if (t === "text") return { type: t, value: node.value };
-    if (t === "code") return { type: t, value: node.value };
+    if (t === "code_span") return { type: t, value: node.value };
     if (t === "strong") return { type: t, children: (node.children || []).map(convertInline) };
     if (t === "emphasis") return { type: t, children: (node.children || []).map(convertInline) };
     if (t === "link") return { type: t, label: (node.label || []).map(convertInline), target: node.target };
@@ -70,19 +70,27 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
     if (t === "paragraph") {
       return { type: t, content: (block.content || []).map(convertInline), id: block.id || undefined };
     }
-    if (t === "thematic-break") return { type: t };
+    if (t === "thematic_break") return { type: t };
     if (t === "blockquote") {
       return { type: t, lines: (block.lines || []).map((l: any[]) => l.map(convertInline)), id: block.id || undefined };
     }
-    if (t === "unordered-list") {
-      return { type: t, items: (block.items || []).map((i: any[]) => i.map(convertInline)), id: block.id || undefined };
+    if (t === "unordered_list") {
+      return {
+        type: t,
+        items: (block.items || []).map((i: any) => ({
+          content: (i.content || []).map(convertInline),
+          blocks: (i.blocks || []).map(convertBlock),
+        })),
+        id: block.id || undefined,
+      };
     }
-    if (t === "ordered-list") {
+    if (t === "ordered_list") {
       return {
         type: t,
         items: (block.items || []).map((i: any) => ({
           ordinal: i.ordinal,
           content: (i.content || []).map(convertInline),
+          blocks: (i.blocks || []).map(convertBlock),
         })),
         id: block.id || undefined,
       };
@@ -175,17 +183,6 @@ describe("Cross-implementation conformance (AST → HTML)", () => {
     "v09-include",                     // Include resolution not implemented in JS
     "v23-include-inlined",             // Include resolution not implemented in JS
     "v29-include-with-heading-dedup",  // Include resolution not implemented in JS
-    // NListItem AST format not supported by JS converter/renderer (v1.0 model change)
-    "v04-lists-and-blockquote",
-    "v19-adjacent-blocks",
-    "v22-inline-comments",
-    "v24-nested-lists",
-    "v25-multi-paragraph-items",
-    "v26-three-level-nested-list",
-    "v27-mixed-nested-list-types",
-    "v28-multi-paragraph-ordered",
-    "v30-nested-list-with-inline-styles",
-    "v31-callout-with-nested-list",
   ]);
 
   // Known parity gaps between JS and Python renderers.
@@ -198,9 +195,7 @@ describe("Cross-implementation conformance (AST → HTML)", () => {
     "v10-escaped-openers",       // Inline escaping output differences
     "v13-source-directive",      // Source block rendering differences
     "v14-anchor-paragraph",      // Anchor ID rendering differences
-    "v15-table-escaped-pipe",    // Table cell escaping differences
     "v18-deep-inline-nesting",   // Nested inline rendering
-    "v32-inline-comment-edge-cases",    // List/inline rendering differences
   ]);
 
   for (const fixture of fixtures) {
