@@ -3,8 +3,8 @@
 :root {
   --cn-bg: #fefdf5;
   --cn-fg: #111;
-  --cn-accent: #111;
-  --cn-accent-hover: #333;
+  --cn-accent: #5f8c6b;
+  --cn-accent-hover: #4a7356;
   --cn-surface: #f5f5f0;
   --cn-border: #d6d3d1;
   --cn-muted: #78716c;
@@ -99,6 +99,7 @@ body {
   padding: 80px 24px 64px;
   text-align: center;
   border-bottom: 1px solid var(--cn-border);
+  background: linear-gradient(180deg, var(--cn-bg) 0%, #f3f0e8 100%);
 }
 
 .hero-inner {
@@ -176,6 +177,7 @@ body {
   background: var(--cn-accent);
   color: #ffffff;
   border-color: var(--cn-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .btn-primary:hover {
@@ -245,6 +247,11 @@ body {
   border: 1px solid var(--cn-border);
   border-radius: var(--cn-radius-md);
   overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.comparison-col:first-child {
+  border-left: 3px solid var(--cn-accent);
 }
 
 .comparison-header {
@@ -298,7 +305,7 @@ code.comparison-code {
   white-space: pre;
 }
 
-.token-key     { color: #111; }
+.token-key     { color: #5f8c6b; }
 .token-string  { color: #92400e; }
 .token-comment { color: #a8a29e; font-style: italic; }
 .token-punct   { color: #78716c; }
@@ -316,6 +323,7 @@ code.comparison-code {
   border-radius: var(--cn-radius-md);
   padding: 24px;
   background: var(--cn-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .install-card-icon {
@@ -420,10 +428,11 @@ code.comparison-code {
 }
 
 .stat-card {
-  background: var(--cn-surface);
+  background: var(--cn-bg);
   border: 1px solid var(--cn-border);
   border-radius: 6px;
   padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 .stat-label {
@@ -484,7 +493,7 @@ code.comparison-code {
   color: #fefdf5;
 }
 
-.stat-bar-fill.primary { background: #111; }
+.stat-bar-fill.primary { background: #5f8c6b; }
 .stat-bar-fill.muted   { background: #a8a29e; }
 
 .stat-tally {
@@ -541,7 +550,7 @@ code.comparison-code {
   font-size: 9px;
 }
 
-.stat-impl-pill.primary { background: #111; color: #fefdf5; }
+.stat-impl-pill.primary { background: #5f8c6b; color: #fefdf5; }
 .stat-impl-pill.muted   { background: #d6d3d1; color: #57534e; }
 
 .stat-impl-footer {
