@@ -17,25 +17,25 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         with:
           version: 9
-
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: pnpm
-
       - run: pnpm install --frozen-lockfile
-
       - name: Build editor
         run: cd editor && pnpm build
-
+      - name: Assemble site
+        run: |
+          mkdir -p _site/editor
+          cp landing/index.html _site/
+          cp landing/style.css _site/
+          cp -r editor/dist/* _site/editor/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: editor/dist/
-
+          path: _site/
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
