@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.0.0] - 2026-04-08
+
+### Added
+- Inline comments: `// comment` at end of any line (after whitespace). Stripped during parsing, not preserved in AST.
+- Include inlining: `::include` now recursively resolves and inlines target content during normalization. Circular detection and depth cap (10 levels). Target meta is discarded. Heading slugs deduplicated across the merged document. Note numbering continues across includes.
+- Nested lists: indentation-based sub-items (2-space for unordered, marker-width for ordered). Mixed nesting (ordered in unordered and vice versa) supported.
+- Multi-paragraph list items: blank line + indented continuation text creates additional paragraphs within a list item.
+- `ListItem` and `NListItem` model types with `content` and `blocks` fields.
+- 70 conformance fixtures (up from 55 in v0.9.2).
+- Tree-sitter edge case regression tests (4 new corpus tests).
+
+### Changed
+- `UnorderedList.items` is now `list[ListItem]` (was `list[list[InlineNode]]`).
+- `OrderedItem` gains a `blocks` field for nested content.
+- Include errors show full include chain in diagnostics.
+- Tabs in list nesting position produce a parse error (fail-closed).
+- All `normalize()` call sites now pass `source_path` and `config` for include resolution.
+
+### Spec
+- `clearnotation-v1.0.ebnf`: normative grammar (supersedes v0.1).
+- `clearnotation-v1.0-syntax.md`: all syntax decisions frozen.
+- `clearnotation-v1.0-ast-conformance.md`: complete AST model with nested lists and include inlining.
+
+### NOT in v1.0
+- Nested blockquotes
+- Definition lists
+- JS/Python rendering parity (JS is best-effort)
+- Tree-sitter grammar expansion for new features (editor stays on v0.1 grammar, bug fixes only)
+
 ## [0.9.2] - 2026-04-08
 
 ### Added

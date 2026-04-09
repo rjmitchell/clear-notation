@@ -169,7 +169,7 @@ class TestInlineCommentParsing(unittest.TestCase):
         from clearnotation_reference.models import UnorderedList
         self.assertIsInstance(doc.blocks[0], UnorderedList)
         first_item_text = "".join(
-            n.value for n in doc.blocks[0].items[0] if isinstance(n, Text)
+            n.value for n in doc.blocks[0].items[0].children if isinstance(n, Text)
         )
         self.assertEqual("First item", first_item_text)
 

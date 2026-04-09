@@ -1,0 +1,6 @@
+# Styled Nested Lists
+
+- +{Bold parent}
+  - *{Italic child}
+  - `code child`
+- [Link item -> https://example.com]

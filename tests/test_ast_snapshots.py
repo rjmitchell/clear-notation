@@ -17,6 +17,7 @@ from clearnotation_reference.models import (
     NormalizedBlock,
     Note,
     NHeading,
+    NListItem,
     NParagraph,
     NThematicBreak,
     NBlockQuote,
@@ -66,6 +67,14 @@ def serialize_inline(node: NormalizedInline) -> dict:
     raise TypeError(f"Unknown inline node type: {type(node).__name__}")
 
 
+def _serialize_list_item(item: NListItem) -> dict:
+    """Serialize an NListItem — flat items omit the blocks key for backwards compat."""
+    result: dict = {"content": [serialize_inline(c) for c in item.content]}
+    if item.blocks:
+        result["blocks"] = [serialize_block(b) for b in item.blocks]
+    return result
+
+
 def serialize_block(node: NormalizedBlock) -> dict:
     if isinstance(node, NHeading):
         return {
@@ -91,7 +100,7 @@ def serialize_block(node: NormalizedBlock) -> dict:
     if isinstance(node, NUnorderedList):
         return {
             "type": "NUnorderedList",
-            "items": [[serialize_inline(c) for c in item] for item in node.items],
+            "items": [_serialize_list_item(item) for item in node.items],
             "id": node.id,
         }
     if isinstance(node, NOrderedList):
@@ -102,6 +111,7 @@ def serialize_block(node: NormalizedBlock) -> dict:
                     "type": "NOrderedItem",
                     "ordinal": item.ordinal,
                     "content": [serialize_inline(c) for c in item.content],
+                    **({"blocks": [serialize_block(b) for b in item.blocks]} if item.blocks else {}),
                 }
                 for item in node.items
             ],
@@ -191,7 +201,7 @@ def _normalize_fixture(cln_path: Path) -> NormalizedDocument:
     source = cln_path.read_text()
     doc = ReferenceParser(registry).parse_document(source, cln_path)
     ReferenceValidator(registry).validate(doc, config=config)
-    return Normalizer(registry).normalize(doc)
+    return Normalizer(registry).normalize(doc, source_path=cln_path, config=config)
 
 
 class ASTSnapshotTests(unittest.TestCase):

@@ -1,0 +1,7 @@
+# Comment Edge Cases
+
+URL in prose: [site -> https://example.com] // after link
+
+Code span with slashes `http://localhost` // after code
+
+Text with http://example.com is not a comment.

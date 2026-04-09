@@ -1,0 +1,141 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "nested-lists",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Nested Lists"
+        }
+      ]
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Top-level item"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NUnorderedList",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Nested item one"
+                    }
+                  ]
+                },
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Nested item two"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Another top-level"
+            }
+          ]
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NOrderedList",
+      "items": [
+        {
+          "type": "NOrderedItem",
+          "ordinal": 1,
+          "content": [
+            {
+              "type": "Text",
+              "value": "First step"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NUnorderedList",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Detail A"
+                    }
+                  ]
+                },
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Detail B"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 2,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Second step"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NOrderedList",
+              "items": [
+                {
+                  "type": "NOrderedItem",
+                  "ordinal": 1,
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Sub-step one"
+                    }
+                  ]
+                },
+                {
+                  "type": "NOrderedItem",
+                  "ordinal": 2,
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Sub-step two"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

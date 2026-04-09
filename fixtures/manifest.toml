@@ -432,6 +432,131 @@ parse = "accept"
 validate = "accept"
 
 [[case]]
+id = "v23"
+title = "Include inlining with recursive content"
+kind = "valid"
+path = "valid/v23-include-inlined.cln"
+parse = "accept"
+validate = "accept"
+requires = ["valid/partials/chapter.cln"]
+
+[[case]]
+id = "v24"
+title = "Nested lists with mixed types"
+kind = "valid"
+path = "valid/v24-nested-lists.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v25"
+title = "Multi-paragraph list items"
+kind = "valid"
+path = "valid/v25-multi-paragraph-items.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v26"
+title = "Three-level nested unordered list"
+kind = "valid"
+path = "valid/v26-three-level-nested-list.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v27"
+title = "Mixed nested list types (ordered in unordered)"
+kind = "valid"
+path = "valid/v27-mixed-nested-list-types.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v28"
+title = "Multi-paragraph ordered list items"
+kind = "valid"
+path = "valid/v28-multi-paragraph-ordered.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v29"
+title = "Include with heading slug deduplication"
+kind = "valid"
+path = "valid/v29-include-with-heading-dedup.cln"
+parse = "accept"
+validate = "accept"
+requires = ["valid/partials/intro.cln"]
+
+[[case]]
+id = "v30"
+title = "Nested list with inline styles"
+kind = "valid"
+path = "valid/v30-nested-list-with-inline-styles.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v31"
+title = "Callout with nested list inside"
+kind = "valid"
+path = "valid/v31-callout-with-nested-list.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v32"
+title = "Inline comment edge cases"
+kind = "valid"
+path = "valid/v32-inline-comment-edge-cases.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "p16"
+title = "Tab in list indentation"
+kind = "parse-invalid"
+path = "parse-invalid/p16-tab-in-list-indent.cln"
+parse = "reject"
+error_kind = "invalid_list_indent"
+
+[[case]]
+id = "p17"
+title = "Tab in ordered list indentation"
+kind = "parse-invalid"
+path = "parse-invalid/p17-ordered-list-tab-indent.cln"
+parse = "reject"
+error_kind = "invalid_list_indent"
+
+[[case]]
+id = "x19"
+title = "Table row cell count mismatch"
+kind = "validate-invalid"
+path = "validate-invalid/x19-table-row-mismatch.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
+id = "x20"
+title = "Include with absolute path"
+kind = "validate-invalid"
+path = "validate-invalid/x20-include-absolute-path.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "include_path_outside_root"
+
+[[case]]
+id = "x21"
+title = "Ref missing required target attribute"
+kind = "validate-invalid"
+path = "validate-invalid/x21-missing-ref-target-attr.cln"
+parse = "accept"
+validate = "reject"
+error_kind = "attribute_type_mismatch"
+
+[[case]]
 id = "x16"
 title = "Duplicate anchor IDs"
 kind = "validate-invalid"

@@ -1,0 +1,38 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "main-document",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Main Document"
+        }
+      ]
+    },
+    {
+      "type": "NHeading",
+      "level": 2,
+      "id": "chapter-one",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Chapter One"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "This is the first chapter, included from a partial."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

@@ -12,12 +12,11 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
-### Include-aware file watching (post-v1.0)
+### Include-aware file watching
 `cln watch` doesn't track include dependencies. If main.cln includes chapter1.cln and chapter1.cln changes, main.cln won't rebuild. Fix: build an include dependency graph during the initial build, then watch all referenced files.
 - Effort: S (CC: ~15 min)
 - Priority: P2
-- Depends on: include inlining (v1.0)
-- Context: Discovered during CEO review of v1.0 plan. Real usability gap for multi-file projects.
+- Context: Include inlining now ships in v1.0. This is the remaining usability gap for multi-file projects.
 
 ### JS renderer parity gaps (13 fixtures)
 The cross-implementation conformance suite identified 13 fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, list handling, inline escaping output.
@@ -55,6 +54,14 @@ The cross-implementation conformance suite identified 13 fixtures where the JS r
 ### Comment syntax + expanded PRD template
 - **Comment syntax:** `//` block-level comments (EBNF, spec, parser, formatter, tree-sitter, 18 tests, conformance fixture)
 - **PRD template:** Expanded from 36 to ~100 lines; showcases meta, callouts, tables, anchors/refs, source, figure, math, notes, strong, emphasis
+
+### v1.0 spec freeze
+- **Inline comments:** `// comment` at end of line, stripped during parsing
+- **Include inlining:** recursive resolution with circular detection and depth cap (10)
+- **Nested lists:** indentation-based nesting, multi-paragraph items, tab-in-indent errors
+- **Tree-sitter edge cases:** regression tests for `}:`, colon-in-prose, multiple styled spans
+- **Spec documents:** v1.0 EBNF, syntax, AST conformance frozen
+- **Conformance:** 70 fixtures (30 valid, 17 parse-invalid, 23 validate-invalid)
 
 ### Quality and DX (P2)
 - **ReDoS audit:** All regex patterns verified safe (20 tests)

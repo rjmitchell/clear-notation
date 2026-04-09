@@ -11,6 +11,27 @@
           "value": "Main"
         }
       ]
+    },
+    {
+      "type": "NHeading",
+      "level": 2,
+      "id": "included",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Included"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "This file exists so the valid include fixture can pass validation."
+        }
+      ],
+      "id": null
     }
   ],
   "notes": []

@@ -89,8 +89,16 @@ class BlockQuote:
 
 
 @dataclass
+class ListItem:
+    """A single item in a list. May contain inline content and nested blocks."""
+    children: list[InlineNode]
+    blocks: list["BlockNode"] = field(default_factory=list)
+    source_line: int | None = None
+
+
+@dataclass
 class UnorderedList:
-    items: list[list[InlineNode]]
+    items: list[ListItem]
     id: str | None = None
     source_line: int | None = None
 
@@ -99,6 +107,8 @@ class UnorderedList:
 class OrderedItem:
     ordinal: int
     children: list[InlineNode]
+    blocks: list["BlockNode"] = field(default_factory=list)
+    source_line: int | None = None
 
 
 @dataclass
@@ -195,8 +205,15 @@ class NBlockQuote:
 
 
 @dataclass
+class NListItem:
+    """Normalized list item with inline content and optional nested blocks."""
+    content: list[NormalizedInline]
+    blocks: list["NormalizedBlock"] = field(default_factory=list)
+
+
+@dataclass
 class NUnorderedList:
-    items: list[list[NormalizedInline]]
+    items: list[NListItem]
     id: str | None = None
 
 
@@ -204,6 +221,7 @@ class NUnorderedList:
 class NOrderedItem:
     ordinal: int
     content: list[NormalizedInline]
+    blocks: list["NormalizedBlock"] = field(default_factory=list)
 
 
 @dataclass

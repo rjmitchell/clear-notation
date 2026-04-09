@@ -25,12 +25,14 @@
     {
       "type": "NUnorderedList",
       "items": [
-        [
-          {
-            "type": "Text",
-            "value": "List item right after paragraph"
-          }
-        ]
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "List item right after paragraph"
+            }
+          ]
+        }
       ],
       "id": null
     }

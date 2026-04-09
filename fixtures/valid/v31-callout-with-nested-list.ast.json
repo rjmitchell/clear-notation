@@ -1,0 +1,64 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NCallout",
+      "kind": "info",
+      "title": null,
+      "compact": false,
+      "blocks": [
+        {
+          "type": "NHeading",
+          "level": 1,
+          "id": "tip",
+          "content": [
+            {
+              "type": "Text",
+              "value": "Tip"
+            }
+          ]
+        },
+        {
+          "type": "NUnorderedList",
+          "items": [
+            {
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Step one"
+                }
+              ],
+              "blocks": [
+                {
+                  "type": "NUnorderedList",
+                  "items": [
+                    {
+                      "content": [
+                        {
+                          "type": "Text",
+                          "value": "Sub-step A"
+                        }
+                      ]
+                    }
+                  ],
+                  "id": null
+                }
+              ]
+            },
+            {
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Step two"
+                }
+              ]
+            }
+          ],
+          "id": null
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

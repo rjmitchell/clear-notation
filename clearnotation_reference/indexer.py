@@ -179,7 +179,7 @@ def _index_file(
     validator.validate(parsed_doc, config=config)
 
     normalizer = Normalizer(registry)
-    normalized_doc = normalizer.normalize(parsed_doc)
+    normalized_doc = normalizer.normalize(parsed_doc, source_path=cln_path, config=config)
 
     title = _extract_title(parsed_doc)
     directives = _extract_directives(parsed_doc.blocks)
@@ -270,10 +270,14 @@ def _walk_normalized_block_for_refs(
             inlines.append(line)
     elif isinstance(block, NUnorderedList):
         for item in block.items:
-            inlines.append(item)
+            inlines.append(item.content)
+            for sub in item.blocks:
+                _walk_normalized_block_for_refs(sub, result)
     elif isinstance(block, NOrderedList):
         for item in block.items:
             inlines.append(item.content)
+            for sub in item.blocks:
+                _walk_normalized_block_for_refs(sub, result)
     elif isinstance(block, NCallout):
         for sub in block.blocks:
             _walk_normalized_block_for_refs(sub, result)

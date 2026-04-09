@@ -1,0 +1,79 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "three-level-nesting",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Three-Level Nesting"
+        }
+      ]
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Level one"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NUnorderedList",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Level two"
+                    }
+                  ],
+                  "blocks": [
+                    {
+                      "type": "NUnorderedList",
+                      "items": [
+                        {
+                          "content": [
+                            {
+                              "type": "Text",
+                              "value": "Level three"
+                            }
+                          ]
+                        }
+                      ],
+                      "id": null
+                    }
+                  ]
+                },
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Back to two"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Back to one"
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}
