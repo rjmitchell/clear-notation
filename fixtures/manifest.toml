@@ -424,6 +424,14 @@ parse = "accept"
 validate = "accept"
 
 [[case]]
+id = "v22"
+title = "Inline comments at end of line"
+kind = "valid"
+path = "valid/v22-inline-comments.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
 id = "x16"
 title = "Duplicate anchor IDs"
 kind = "validate-invalid"

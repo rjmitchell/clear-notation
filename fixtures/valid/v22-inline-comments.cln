@@ -1,0 +1,17 @@
+# Inline Comments // heading comment
+
+Paragraph text with trailing comment. // author note
+
+- First item // todo: expand
+- Second item
+
+> Quoted line // attribution
+
+1. Step one // optional step
+2. Step two
+
+URL in text: [example -> https://example.com] // link comment
+
+Code span with slashes: `http://localhost` // this is stripped
+
+Double slash without space http://example.com stays.

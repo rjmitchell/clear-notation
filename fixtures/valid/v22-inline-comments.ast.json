@@ -1,0 +1,127 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "inline-comments",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Inline Comments"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Paragraph text with trailing comment."
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        [
+          {
+            "type": "Text",
+            "value": "First item"
+          }
+        ],
+        [
+          {
+            "type": "Text",
+            "value": "Second item"
+          }
+        ]
+      ],
+      "id": null
+    },
+    {
+      "type": "NBlockQuote",
+      "lines": [
+        [
+          {
+            "type": "Text",
+            "value": "Quoted line"
+          }
+        ]
+      ],
+      "id": null
+    },
+    {
+      "type": "NOrderedList",
+      "items": [
+        {
+          "type": "NOrderedItem",
+          "ordinal": 1,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Step one"
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 2,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Step two"
+            }
+          ]
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "URL in text: "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "example"
+            }
+          ],
+          "target": "https://example.com"
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Code span with slashes: "
+        },
+        {
+          "type": "CodeSpan",
+          "value": "http://localhost"
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Double slash without space http://example.com stays."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}
