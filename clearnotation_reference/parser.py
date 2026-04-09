@@ -252,6 +252,7 @@ class ReferenceParser:
         return Paragraph(children=children, source_line=start_line), index
 
     def _parse_inline_line(self, text: str, *, line: int | None = None) -> list:
+        text = self._strip_inline_comment(text)
         parser = InlineParser(text, self.registry, line=line)
         return parser.parse()
 
@@ -287,6 +288,42 @@ class ReferenceParser:
         if match is None:
             return None
         return match.group(0)
+
+    @staticmethod
+    def _strip_inline_comment(text: str) -> str:
+        """Strip a trailing ``// comment`` from *text*.
+
+        An inline comment starts with ``//`` preceded by at least one space or
+        tab, and must NOT be inside a code span (backticks).  Escaped backticks
+        (``\\```) do not toggle the code-span state.
+
+        Returns *text* up to (but not including) the whitespace before the ``//``,
+        with trailing whitespace stripped.  If no inline comment is found the
+        original string is returned unchanged.
+        """
+        in_code = False
+        i = 0
+        length = len(text)
+        while i < length:
+            ch = text[i]
+            if ch == '\\' and in_code and i + 1 < length and text[i + 1] in ('\\', '`'):
+                # Skip escaped backslash or backtick inside code span
+                i += 2
+                continue
+            if ch == '\\' and not in_code and i + 1 < length:
+                # Skip any escape in non-code context
+                i += 2
+                continue
+            if ch == '`':
+                in_code = not in_code
+                i += 1
+                continue
+            if not in_code and ch == '/' and i + 1 < length and text[i + 1] == '/':
+                # Check that the // is preceded by at least one space or tab
+                if i > 0 and text[i - 1] in (' ', '\t'):
+                    return text[:i - 1].rstrip()
+            i += 1
+        return text
 
     @staticmethod
     def _is_blank(line: str) -> bool:

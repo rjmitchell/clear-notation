@@ -174,7 +174,11 @@ This constraint is deliberate. It keeps directive blocks indentation-insensitive
 
 ## Comments
 
-Comments use the `//` prefix, recognized at the block level only.
+Comments use the `//` prefix. ClearNotation supports both block-level and inline comments.
+
+### Block comments
+
+Block comments are lines whose left-trimmed content starts with `//`.
 
 ```text
 // This is a comment.
@@ -190,8 +194,26 @@ Rules:
 - Comments are recognized between blocks and inside parsed directive bodies (`::callout`, `::figure`)
 - Comments are NOT recognized inside raw directive bodies (`::math`, `::table`, `::source`), fenced code blocks, or `::meta{}` blocks
 - Comments are preserved in the parsed tree but stripped during normalization; they do not appear in rendered output
-- The formatter (`cln fmt`) preserves comments in their original position
-- There is no inline comment syntax; `//` in the middle of a line is ordinary text
+- The formatter (`cln fmt`) preserves block comments in their original position
+
+### Inline comments
+
+Inline comments appear at the end of any inline-bearing line (heading, paragraph, list item, blockquote). They start with `//` preceded by at least one space or tab.
+
+```text
+# Introduction // section heading comment
+Some paragraph text. // author note
+- List item // todo: expand this
+> Quoted text // attribution note
+```
+
+Rules:
+
+- An inline comment starts with `//` preceded by at least one space or tab character
+- The `//` must not be inside a code span (backticks)
+- `//` without a preceding space or tab is ordinary text (e.g., `http://example.com`)
+- Inline comments are stripped during parsing and do not appear in the parsed tree or normalized AST
+- The formatter does NOT preserve inline comments (they are author-convenience, not structural)
 
 The syntax was chosen for familiarity (C, JavaScript, Go, Rust) and because `//` does not collide with any existing CLN block opener. URLs containing `//` only appear inside inline text, links, or attribute values — never as bare block-level lines.
 
