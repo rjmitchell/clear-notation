@@ -18,43 +18,58 @@ title = "Example Document"
 ClearNotation uses +{strong text}, *{emphasized text}, `code spans`,
 [links -> https://example.com], and ^{inline footnotes that render as endnotes}.
 
+- Nested lists work  // inline comments too
+  - Two-space indent per level
+  - Multi-paragraph items via blank line + indent
+
+1. Ordered lists preserve authored numbers
+   - Mixed nesting (ordered + unordered)
+
 ::callout[kind="tip", title="One syntax per concept"]{
 No `*` vs `**` ambiguity. No flavor differences. No inline HTML.
 }
 
-::table[header=true, align=["left", "right"]]{
-Feature | Syntax
-Strong  | +{text}
-Emphasis | *{text}
-Link    | [label -> url]
-Note    | ^{text}
-}
+::include[src="partials/intro.cln"]
 ```
 
-## Visual Editor
+## Try it
 
-ClearNotation ships a browser-based split-pane editor. Visual editing on the left (Notion-style), ClearNotation source on the right, live bidirectional sync between them.
+**[Live editor](https://rjmitchell.github.io/clear-notation/editor/)** — visual editing on the left, ClearNotation source on the right, live bidirectional sync.
 
 **Features:** templates (PRD, design doc, meeting notes), dark mode, keyboard shortcuts, syntax cheat sheet, Markdown paste auto-conversion, File System Access API for open/save, localStorage autosave, HTML export, WCAG 2.1 AA accessibility.
 
-**Try it:** Run `cd editor && pnpm dev` or visit the deployed GitHub Pages site after tagging a release.
+**Local dev:** `cd editor && pnpm dev` starts the editor at localhost:5173.
 
 **Interactive playground:** `/playground.html` lets you type ClearNotation and see the tree-sitter parse tree update live.
 
 ## Install
 
+### VS Code
+
+Search "ClearNotation" in the extensions marketplace, or:
+
+```
+ext install clearnotation.clearnotation
+```
+
 ### Python toolchain (CLI, LSP, renderer)
 
 ```bash
 pip install clearnotation              # CLI: cln build, cln check, cln ast, cln fmt, cln init, cln watch
-pip install clearnotation[lsp]         # LSP server for editor integration
+pip install clearnotation[convert]     # Markdown-to-CLN converter via mistune
 pip install clearnotation[math]        # LaTeX math rendering via latex2mathml
 pip install clearnotation[highlight]   # Syntax highlighting via Pygments
 pip install clearnotation[watch]       # File watcher for cln watch
-pip install clearnotation[convert]     # Markdown-to-CLN converter via mistune
+pip install clearnotation[lsp]         # LSP server for editor integration
 ```
 
-### Editor (browser)
+### JavaScript (normalizer + renderer)
+
+```bash
+npm install clearnotation-js
+```
+
+### Editor (local dev)
 
 ```bash
 git clone https://github.com/rjmitchell/clear-notation.git
@@ -141,6 +156,9 @@ pnpm workspace (repo root)
 | Table | pipe tables | `::table[header=true]{ ... }` |
 | Callout | blockquote hacks | `::callout[kind="warning"]{ ... }` |
 | Image | `![alt](src)` | `::figure[src="path"]{ caption }` |
+| Nested lists | indentation (fragile) | 2-space indent, mixed types |
+| Include | not built-in | `::include[src="path.cln"]` |
+| Comments | not built-in | `// block` and `text // inline` |
 | Code fence | language optional | language required |
 | Inline HTML | allowed | always escaped |
 
@@ -156,17 +174,17 @@ pnpm workspace (repo root)
 ## Running the test suite
 
 ```bash
-# Python tests (128 tests)
+# Python tests (336 tests)
 python3 -m unittest discover -s tests -v
 
-# Conformance fixture harness (57 cases)
+# Conformance fixture harness (70 cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml \
   --adapter clearnotation_reference.adapter:create_adapter
 
-# Editor tests (315 tests)
+# Editor tests (316 tests)
 cd editor && pnpm test
 
-# JS normalizer/renderer tests (86 tests)
+# JS normalizer/renderer tests (106 tests)
 cd clearnotation-js && pnpm test
 ```
 
