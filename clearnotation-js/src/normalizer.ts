@@ -53,6 +53,7 @@ import type {
   NParagraph,
   NThematicBreak,
   NBlockQuote,
+  NListItem,
   NUnorderedList,
   NOrderedList,
   NOrderedItem,
@@ -183,9 +184,13 @@ function normalizeBlocks(
       case "clnUnorderedList": {
         const blockId = pendingAnchor;
         pendingAnchor = undefined;
+        const listItem: NListItem = {
+          content: normalizeInlines(blk.content, state),
+          blocks: normalizeBlocks(blk.children, state, undefined),
+        };
         const ul: NUnorderedList = {
           type: "unordered_list",
-          items: [normalizeInlines(blk.content, state)],
+          items: [listItem],
         };
         if (blockId !== undefined) ul.id = blockId;
         result.push(ul);
@@ -202,6 +207,7 @@ function normalizeBlocks(
             {
               ordinal,
               content: normalizeInlines(blk.content, state),
+              blocks: normalizeBlocks(blk.children, state, undefined),
             },
           ],
         };
