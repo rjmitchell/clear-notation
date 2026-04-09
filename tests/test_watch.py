@@ -150,6 +150,33 @@ class RebuildHandlerTests(unittest.TestCase):
         self.assertFalse(event.is_directory)
 
 
+class FilesToRebuildTests(unittest.TestCase):
+    def test_standalone_file(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        result = files_to_rebuild(Path("/project/solo.cln"), {})
+        self.assertEqual(result, {Path("/project/solo.cln")})
+
+    def test_single_includer(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        included_by = {Path("/project/chapter.cln"): {Path("/project/main.cln")}}
+        result = files_to_rebuild(Path("/project/chapter.cln"), included_by)
+        self.assertEqual(result, {Path("/project/chapter.cln"), Path("/project/main.cln")})
+
+    def test_transitive_includes(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        a, b, c = Path("/project/a.cln"), Path("/project/b.cln"), Path("/project/c.cln")
+        included_by = {c: {b}, b: {a}}
+        result = files_to_rebuild(c, included_by)
+        self.assertEqual(result, {a, b, c})
+
+    def test_diamond_dependency(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        a, b, c, d = Path("/p/a.cln"), Path("/p/b.cln"), Path("/p/c.cln"), Path("/p/d.cln")
+        included_by = {d: {b, c}, b: {a}, c: {a}}
+        result = files_to_rebuild(d, included_by)
+        self.assertEqual(result, {a, b, c, d})
+
+
 class ExtractIncludesTests(unittest.TestCase):
     """Tests for include dependency extraction."""
 

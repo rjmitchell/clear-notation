@@ -224,6 +224,22 @@ def _walk_includes(
             _walk_includes(block.blocks, source_path, result)
 
 
+def files_to_rebuild(
+    changed: Path,
+    included_by: dict[Path, set[Path]],
+) -> set[Path]:
+    """Walk up the include tree to find all files that need rebuilding."""
+    result = {changed}
+    queue = [changed]
+    while queue:
+        f = queue.pop()
+        for parent in included_by.get(f, set()):
+            if parent not in result:
+                result.add(parent)
+                queue.append(parent)
+    return result
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)
