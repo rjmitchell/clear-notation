@@ -1,33 +1,20 @@
 /* ClearNotation Landing Page — Design System */
 
 :root {
-  --cn-bg: #ffffff;
-  --cn-fg: #1a1a1a;
-  --cn-accent: #2563eb;
-  --cn-accent-hover: #1d4ed8;
-  --cn-surface: #f9fafb;
-  --cn-border: #e5e7eb;
-  --cn-muted: #6b7280;
-  --cn-code-bg: #f3f4f6;
+  --cn-bg: #fefdf5;
+  --cn-fg: #111;
+  --cn-accent: #111;
+  --cn-accent-hover: #333;
+  --cn-surface: #f5f5f0;
+  --cn-border: #d6d3d1;
+  --cn-muted: #78716c;
+  --cn-code-bg: #f5f5f0;
 
   --cn-radius-sm: 4px;
   --cn-radius-md: 8px;
   --cn-radius-lg: 12px;
 
   --cn-max-width: 1024px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cn-bg: #111827;
-    --cn-fg: #f3f4f6;
-    --cn-accent: #60a5fa;
-    --cn-accent-hover: #3b82f6;
-    --cn-surface: #1f2937;
-    --cn-border: #374151;
-    --cn-muted: #9ca3af;
-    --cn-code-bg: #1f2937;
-  }
 }
 
 *, *::before, *::after {
@@ -78,12 +65,12 @@ body {
 }
 
 .nav-logo {
-  font-family: "Geist Sans", sans-serif;
+  font-family: "Geist Mono", monospace;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--cn-fg);
   text-decoration: none;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 .nav-links {
@@ -219,12 +206,12 @@ body {
 }
 
 .section-label {
-  font-family: "Geist Sans", sans-serif;
-  font-size: 12px;
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
   font-weight: 500;
-  color: var(--cn-accent);
+  color: var(--cn-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
 
@@ -308,10 +295,10 @@ code.comparison-code {
   white-space: pre;
 }
 
-.token-key     { color: var(--cn-accent); }
-.token-string  { color: #22c55e; }
-.token-comment { color: var(--cn-muted); font-style: italic; }
-.token-punct   { color: var(--cn-muted); }
+.token-key     { color: #111; }
+.token-string  { color: #92400e; }
+.token-comment { color: #a8a29e; font-style: italic; }
+.token-punct   { color: #78716c; }
 
 /* ── Install Cards ───────────────────────────────────────── */
 
@@ -421,6 +408,146 @@ code.comparison-code {
   line-height: 1.6;
 }
 
+/* -- Stats Row ─────────────────────────────────────────── */
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--cn-surface);
+  border: 1px solid var(--cn-border);
+  border-radius: 6px;
+  padding: 24px;
+}
+
+.stat-label {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
+  color: var(--cn-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-headline {
+  font-family: "Geist Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cn-fg);
+  margin-bottom: 16px;
+}
+
+.stat-desc {
+  font-size: 12px;
+  color: #57534e;
+  line-height: 1.5;
+  margin-top: 16px;
+}
+
+.stat-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.stat-bar-label {
+  font-family: "Geist Mono", monospace;
+  font-size: 11px;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.stat-bar-track {
+  flex: 1;
+  background: #e7e5e4;
+  border-radius: 2px;
+  height: 22px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  color: #fefdf5;
+}
+
+.stat-bar-fill.primary { background: #111; }
+.stat-bar-fill.muted   { background: #a8a29e; }
+
+.stat-tally {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.stat-tally-num {
+  font-family: "Geist Mono", monospace;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-tally-caption {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.stat-tally-divider {
+  width: 1px;
+  background: var(--cn-border);
+}
+
+.stat-impl-grid {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-impl-col {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-impl-col-label {
+  font-family: "Geist Mono", monospace;
+  font-size: 10px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.stat-impl-pills {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+}
+
+.stat-impl-pill {
+  padding: 5px 4px;
+  border-radius: 2px;
+  font-family: "Geist Mono", monospace;
+  font-size: 9px;
+}
+
+.stat-impl-pill.primary { background: #111; color: #fefdf5; }
+.stat-impl-pill.muted   { background: #d6d3d1; color: #57534e; }
+
+.stat-impl-footer {
+  font-family: "Geist Mono", monospace;
+  font-size: 9px;
+  color: var(--cn-muted);
+  margin-top: 4px;
+}
+
 /* ── Footer ──────────────────────────────────────────────── */
 
 footer {
@@ -485,6 +612,10 @@ footer {
   .features-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr;
   }
 
   .nav-links {
