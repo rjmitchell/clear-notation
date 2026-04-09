@@ -214,6 +214,28 @@ describe("convertBlock — ordered list", () => {
     const result = await convertBlock(list);
     expect(result[0].props.startNumber).toBe(5);
   });
+
+  it("converts ordered list items with strong text", async () => {
+    const list = node("ordered_list", "1. +{Performance} -- details", [
+      node("ordered_list_item", "1. +{Performance} -- details", [
+        node("ordered_list_marker", "1. "),
+        node("inline_content", "+{Performance} -- details", [
+          node("strong", "+{Performance}", [
+            node("strong_open", "+{"),
+            node("styled_text", "Performance"),
+            node("styled_close", "}"),
+          ]),
+          node("text", " -- details"),
+        ]),
+      ]),
+    ]);
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].content).toEqual([
+      { type: "text", text: "Performance", styles: { clnStrong: true } },
+      { type: "text", text: " -- details", styles: {} },
+    ]);
+  });
 });
 
 describe("convertBlock — blockquote", () => {
