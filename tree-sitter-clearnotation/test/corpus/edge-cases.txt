@@ -1,0 +1,72 @@
+================
+Close-brace followed by colon
+================
+
++{bold}: text after colon.
+
+---
+
+(document
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (strong
+          (strong_open)
+          (styled_text)
+          (styled_close))
+        (text)))))
+
+================
+Emphasis followed by colon
+================
+
+*{emphasis}: more text.
+
+---
+
+(document
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (emphasis
+          (emphasis_open)
+          (styled_text)
+          (styled_close))
+        (text)))))
+
+================
+Colon in prose (single)
+================
+
+Step one: do the thing.
+
+---
+
+(document
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (text)))))
+
+================
+Multiple styled spans in a line
+================
+
++{strong} and *{emphasis} together.
+
+---
+
+(document
+  (paragraph
+    (paragraph_line
+      (inline_content
+        (strong
+          (strong_open)
+          (styled_text)
+          (styled_close))
+        (text)
+        (emphasis
+          (emphasis_open)
+          (styled_text)
+          (styled_close))
+        (text)))))
