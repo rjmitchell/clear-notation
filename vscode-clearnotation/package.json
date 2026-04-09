@@ -1,9 +1,23 @@
 {
   "name": "clearnotation",
   "displayName": "ClearNotation",
-  "description": "Language support for ClearNotation (.cln) files",
-  "version": "0.9.0",
+  "description": "Syntax highlighting for ClearNotation (.cln) technical documentation files",
+  "version": "1.0.0",
   "publisher": "clearnotation",
+  "icon": "icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rjmitchell/clear-notation"
+  },
+  "homepage": "https://github.com/rjmitchell/clear-notation",
+  "keywords": [
+    "clearnotation",
+    "cln",
+    "documentation",
+    "markup",
+    "technical writing"
+  ],
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -45,9 +59,9 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.0",
-    "@vscode/vsce": "^2.22.0"
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
   }
 }
