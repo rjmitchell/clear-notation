@@ -77,6 +77,12 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 - **Graph refresh:** dependencies update after each rebuild (handles added/removed includes)
 - **Integration:** graph built during initial `cln watch` build, used by rebuild handler
 
+### Landing page redesign
+- **Paper+ink theme:** warm white background, sage green accent, Geist Mono nav
+- **Stats row:** conformance (100% vs ~51%), syntax forms (1 vs 3-5), implementations (unified vs fragmented)
+- **Copy rewrite:** plain English, no AI-isms, updated fixture count (70)
+- **Bug fixes:** dead footer link, column height mismatch, VS Code install command
+
 ### Hosted editor Phase 1: Foundation
 - **Landing page:** Static HTML/CSS at GitHub Pages root with CLN vs Markdown comparison, install cards, "Try the editor" CTA
 - **Editor URL:** Moved from / to /editor/ subpath
