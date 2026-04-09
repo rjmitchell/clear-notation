@@ -138,6 +138,87 @@ Authorization: Bearer &lt;token&gt;
     </div>
   </section>
 
+  <!-- Stats -->
+  <section class="section">
+    <div class="container">
+      <p class="section-label">By the numbers</p>
+      <h2 class="section-title">What formal specification gets you</h2>
+
+      <div class="stats-row">
+        <!-- Conformance -->
+        <div class="stat-card">
+          <div class="stat-label">Conformance</div>
+          <div class="stat-headline">Every edge case is specified</div>
+          <div>
+            <div class="stat-bar">
+              <span class="stat-bar-label" style="color: var(--cn-fg);">CLN</span>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill primary" style="width: 100%;">100%</div>
+              </div>
+            </div>
+            <div class="stat-bar">
+              <span class="stat-bar-label" style="color: var(--cn-muted);">MD</span>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill muted" style="width: 51%;">~51%</div>
+              </div>
+            </div>
+          </div>
+          <p class="stat-desc">70 test fixtures cover every valid, parse-invalid, and validate-invalid case. CommonMark specifies roughly half its examples; the rest vary by parser.</p>
+        </div>
+
+        <!-- Syntax forms -->
+        <div class="stat-card">
+          <div class="stat-label">Syntax forms</div>
+          <div class="stat-headline">No ambiguity, no style debates</div>
+          <div class="stat-tally">
+            <div>
+              <div class="stat-tally-num" style="color: var(--cn-fg);">1</div>
+              <div class="stat-tally-caption" style="color: var(--cn-fg); font-weight: 600;">way to write it</div>
+              <div class="stat-tally-caption" style="color: var(--cn-muted);">in CLN</div>
+            </div>
+            <div class="stat-tally-divider"></div>
+            <div>
+              <div class="stat-tally-num" style="color: #a8a29e;">3-5</div>
+              <div class="stat-tally-caption" style="color: var(--cn-muted);">ways to write it</div>
+              <div class="stat-tally-caption" style="color: var(--cn-muted);">in Markdown</div>
+            </div>
+          </div>
+          <p class="stat-desc">Bold is <code style="font-family: 'Geist Mono', monospace; font-size: 11px;">+{text}</code>. Links are <code style="font-family: 'Geist Mono', monospace; font-size: 11px;">[label -> url]</code>. One form per concept means every doc reads the same way.</p>
+        </div>
+
+        <!-- Implementations -->
+        <div class="stat-card">
+          <div class="stat-label">Implementations</div>
+          <div class="stat-headline">Same output, every tool</div>
+          <div class="stat-impl-grid">
+            <div class="stat-impl-col">
+              <div class="stat-impl-col-label" style="color: var(--cn-fg);">CLN</div>
+              <div class="stat-impl-pills">
+                <div class="stat-impl-pill primary">Python</div>
+                <div class="stat-impl-pill primary">JS</div>
+                <div class="stat-impl-pill primary">tree-sitter</div>
+                <div class="stat-impl-pill primary">VS Code</div>
+              </div>
+              <div class="stat-impl-footer" style="color: var(--cn-fg);">1 spec, same output</div>
+            </div>
+            <div style="width: 1px; background: var(--cn-border);"></div>
+            <div class="stat-impl-col">
+              <div class="stat-impl-col-label" style="color: var(--cn-muted);">Markdown</div>
+              <div class="stat-impl-pills">
+                <div class="stat-impl-pill muted">GFM</div>
+                <div class="stat-impl-pill muted">MDX</div>
+                <div class="stat-impl-pill muted">kramdown</div>
+                <div class="stat-impl-pill muted">CommonMk</div>
+              </div>
+              <div class="stat-impl-footer">30+ parsers, different output</div>
+            </div>
+          </div>
+          <p class="stat-desc">Four implementations verified against one conformance suite. Switch tools and your docs still render the same way.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features -->
   <section class="section">
     <div class="container">
