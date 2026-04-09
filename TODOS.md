@@ -12,12 +12,6 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
-### Include-aware file watching
-`cln watch` doesn't track include dependencies. If main.cln includes chapter1.cln and chapter1.cln changes, main.cln won't rebuild. Fix: build an include dependency graph during the initial build, then watch all referenced files.
-- Effort: S (CC: ~15 min)
-- Priority: P2
-- Context: Include inlining now ships in v1.0. This is the remaining usability gap for multi-file projects.
-
 ### Hosted editor Phase 2: Shareable URLs
 Add pako compression + base64url encoding of CLN source in the URL hash. Share button that copies the link. Documents over ~2KB compressed show a warning. Custom domain setup.
 - Effort: M (CC: ~30 min)
@@ -76,6 +70,12 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 - **NListItem model:** list items support nested blocks (multi-paragraph, nested lists)
 - **Type mapping fixes:** conformance converter type discriminants aligned with types.ts
 - **Result:** 116 tests passing, 3 skipped (include-resolution), 7 remaining known gaps (v02/v03/v14/v18 footnotes, v07 MathML, v10 escaping, v13 syntax highlighting)
+
+### Include-aware file watching
+- **Dependency graph:** `IncludeGraph` tracks forward/reverse include maps
+- **Targeted rebuilds:** changing an included file rebuilds all transitive includers
+- **Graph refresh:** dependencies update after each rebuild (handles added/removed includes)
+- **Integration:** graph built during initial `cln watch` build, used by rebuild handler
 
 ### Hosted editor Phase 1: Foundation
 - **Landing page:** Static HTML/CSS at GitHub Pages root with CLN vs Markdown comparison, install cards, "Try the editor" CTA
