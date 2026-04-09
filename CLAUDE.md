@@ -6,11 +6,11 @@ A docs-first, non-Turing-complete, formally specified markup language for techni
 
 ```bash
 # Run all tests
-python3 -m unittest discover -s tests -v          # 128 Python tests
-cd editor && pnpm test                             # 315 editor tests
-cd clearnotation-js && pnpm test                   # 86 JS normalizer/renderer tests
+python3 -m unittest discover -s tests -v          # 336 Python tests
+cd editor && pnpm test                             # 316 editor tests
+cd clearnotation-js && pnpm test                   # 106 JS normalizer/renderer tests
 
-# Run fixture harness (57 conformance cases)
+# Run fixture harness (70 conformance cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter
 
 # CLI
@@ -67,12 +67,11 @@ cd editor && pnpm dev      # start visual editor at localhost:5173
 
 ## Spec documents
 
-- `clearnotation-v0.1.ebnf`: normative grammar
-- `clearnotation-v0.1-syntax.md`: syntax decisions
+- `clearnotation-v1.0.ebnf`: normative grammar (v1.0 frozen)
+- `clearnotation-v1.0-syntax.md`: syntax decisions (v1.0 frozen)
+- `clearnotation-v1.0-ast-conformance.md`: AST model and conformance (v1.0 frozen)
 - `clearnotation-v0.1-config.md`: config contract
-- `clearnotation-v0.1-ast-conformance.md`: AST model and conformance
 - `clearnotation-v0.1-examples.md`: conformance corpus
-- `docs/designs/v01-renderer.md`: implementation plan (CEO + eng reviewed)
 
 ## Design System
 Always read DESIGN.md before making any visual or UI decisions.
