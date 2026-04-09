@@ -207,7 +207,7 @@ describe("renderHtml", () => {
         ]),
       );
       expect(html).toContain(
-        '<pre><code class="language-python">print(&quot;hi&quot;)</code></pre>',
+        '<pre><code class="language-python">print(&quot;hi&quot;)\n</code></pre>',
       );
     });
 
@@ -232,7 +232,7 @@ describe("renderHtml", () => {
         doc([{ type: "math_block", text: "E = mc^2" }]),
       );
       expect(html).toContain(
-        '<pre class="math"><code>E = mc^2</code></pre>',
+        '<div class="math"><pre class="math"><code>E = mc^2</code></pre></div>',
       );
     });
   });

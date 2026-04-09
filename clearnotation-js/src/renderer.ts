@@ -237,12 +237,12 @@ function renderFigure(block: NFigure, headings: NHeading[]): string {
 
 function renderMathBlock(block: NMathBlock): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
-  return `<pre class="math"${attrs}><code>${escHtml(block.text)}</code></pre>`;
+  return `<div class="math"${attrs}><pre class="math"><code>${escHtml(block.text)}</code></pre></div>`;
 }
 
 function renderSourceBlock(block: NSourceBlock): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
-  return `<pre${attrs}><code class="language-${escHtml(block.language)}">${escHtml(block.text)}</code></pre>`;
+  return `<pre${attrs}><code class="language-${escHtml(block.language)}">${escHtml(block.text)}\n</code></pre>`;
 }
 
 function renderTable(table: NTable): string {

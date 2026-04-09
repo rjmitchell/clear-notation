@@ -36,8 +36,8 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
     NToc: "toc",
     NCallout: "callout",
     NFigure: "figure",
-    NMathBlock: "math",
-    NSourceBlock: "source",
+    NMathBlock: "math_block",
+    NSourceBlock: "source_block",
     NTable: "table",
   };
 
@@ -101,8 +101,8 @@ function convertAstToJsFormat(ast: any): NormalizedDocument {
     if (t === "figure") {
       return { type: t, src: block.src, blocks: (block.blocks || []).map(convertBlock), id: block.id || undefined };
     }
-    if (t === "math") return { type: t, text: block.text, id: block.id || undefined };
-    if (t === "source") return { type: t, language: block.language, text: block.text, id: block.id || undefined };
+    if (t === "math_block") return { type: t, text: block.text, id: block.id || undefined };
+    if (t === "source_block") return { type: t, language: block.language, text: block.text, id: block.id || undefined };
     if (t === "table") {
       return {
         type: t,
@@ -194,14 +194,11 @@ describe("Cross-implementation conformance (AST → HTML)", () => {
   const KNOWN_GAPS = new Set([
     "v02-meta-and-inline",       // Footnote HTML structure differs
     "v03-link-and-note",         // Footnote HTML structure differs
-    "v05-fenced-code",           // Code block wrapper differences
     "v07-raw-blocks",            // Math/table rendering differences
     "v10-escaped-openers",       // Inline escaping output differences
     "v13-source-directive",      // Source block rendering differences
     "v14-anchor-paragraph",      // Anchor ID rendering differences
     "v15-table-escaped-pipe",    // Table cell escaping differences
-    "v16-empty-raw-bodies",      // Empty directive rendering
-    "v17-whitespace-raw-body",   // Whitespace handling in raw bodies
     "v18-deep-inline-nesting",   // Nested inline rendering
     "v32-inline-comment-edge-cases",    // List/inline rendering differences
   ]);
