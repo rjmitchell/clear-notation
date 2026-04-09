@@ -12,6 +12,13 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
+### Include-aware file watching (post-v1.0)
+`cln watch` doesn't track include dependencies. If main.cln includes chapter1.cln and chapter1.cln changes, main.cln won't rebuild. Fix: build an include dependency graph during the initial build, then watch all referenced files.
+- Effort: S (CC: ~15 min)
+- Priority: P2
+- Depends on: include inlining (v1.0)
+- Context: Discovered during CEO review of v1.0 plan. Real usability gap for multi-file projects.
+
 ### JS renderer parity gaps (13 fixtures)
 The cross-implementation conformance suite identified 13 fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, list handling, inline escaping output.
 - Effort: M (CC: ~1 hour)
