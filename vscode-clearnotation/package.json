@@ -3,7 +3,7 @@
   "displayName": "ClearNotation",
   "description": "Syntax highlighting for ClearNotation (.cln) technical documentation files",
   "version": "1.0.0",
-  "publisher": "clearnotation",
+  "publisher": "ClearNotation",
   "icon": "icon.png",
   "license": "MIT",
   "repository": {
