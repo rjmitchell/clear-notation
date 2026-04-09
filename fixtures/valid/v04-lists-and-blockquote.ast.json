@@ -15,24 +15,30 @@
     {
       "type": "NUnorderedList",
       "items": [
-        [
-          {
-            "type": "Text",
-            "value": "One syntax per concept"
-          }
-        ],
-        [
-          {
-            "type": "Text",
-            "value": "No inline HTML"
-          }
-        ],
-        [
-          {
-            "type": "Text",
-            "value": "Fail closed"
-          }
-        ]
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "One syntax per concept"
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "No inline HTML"
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Fail closed"
+            }
+          ]
+        }
       ],
       "id": null
     },

@@ -219,14 +219,16 @@ The syntax was chosen for familiarity (C, JavaScript, Go, Rust) and because `//`
 
 ## Lists and blockquotes
 
-To keep the grammar closed in v0.1:
+Lists support indentation-based nesting and multi-paragraph items:
 
-- unordered lists are flat sequences of `- item`
-- ordered lists are flat sequences of `1. item`, `2. item`, and so on, with the authored numbers preserved
+- unordered lists: `- item` with 2-space indent per nesting level
+- ordered lists: `1. item` with indent equal to the marker width (e.g. `1. ` = 3 spaces)
+- nesting: indented `- ` or `N. ` markers start a nested sub-list
+- multi-paragraph items: blank line followed by indented continuation text
+- blank lines between items at the same level terminate the list
+- tabs in list indentation positions produce a parse error (spaces only)
 - blockquotes are flat sequences of `> quoted line`
-- nested lists, nested blockquotes, and multi-paragraph list items are deferred
-
-This is intentionally conservative. It avoids indentation-sensitive subgrammars in the first normative release.
+- nested blockquotes are not supported
 
 ## Table syntax
 

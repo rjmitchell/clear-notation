@@ -15,6 +15,7 @@ from .models import (
     Comment,
     Document,
     Heading,
+    ListItem,
     OrderedItem,
     OrderedList,
     Paragraph,
@@ -155,38 +156,129 @@ class ReferenceParser:
             index += 1
         return BlockQuote(lines=items, source_line=start_line), index
 
-    def _parse_unordered_list(self, lines: list[str], index: int) -> tuple[UnorderedList, int]:
+    def _parse_unordered_list(self, lines: list[str], index: int, *, indent: int = 0) -> tuple[UnorderedList, int]:
         start_line = index + 1
-        items: list[list] = []
+        items: list[ListItem] = []
         while index < len(lines):
-            trimmed = lines[index].lstrip(" \t")
-            if not trimmed.startswith("-"):
+            line = lines[index]
+            if self._is_blank(line):
                 break
+            line_indent = len(line) - len(line.lstrip(" "))
+            if "\t" in line[:line_indent]:
+                raise ParseFailure("invalid_list_indent", "Tabs not allowed in list indentation", line=index + 1)
+            if line_indent < indent:
+                break
+            if line_indent > indent:
+                break  # handled by parent as nested content
+            trimmed = line[indent:]
             if not trimmed.startswith("- "):
                 break
-            items.append(self._parse_inline_line(trimmed[2:], line=index + 1))
+            children = self._parse_inline_line(trimmed[2:], line=index + 1)
+            item_line = index + 1
             index += 1
+            blocks, index = self._parse_list_item_body(lines, index, item_indent=indent + 2)
+            items.append(ListItem(children=children, blocks=blocks, source_line=item_line))
         if not items:
             raise ParseFailure("invalid_block", "Invalid unordered list", line=start_line)
         return UnorderedList(items=items, source_line=start_line), index
 
-    def _parse_ordered_list(self, lines: list[str], index: int) -> tuple[OrderedList, int]:
+    def _parse_ordered_list(self, lines: list[str], index: int, *, indent: int = 0) -> tuple[OrderedList, int]:
         start_line = index + 1
         items: list[OrderedItem] = []
         while index < len(lines):
-            match = ORDERED_RE.match(lines[index])
+            line = lines[index]
+            if self._is_blank(line):
+                break
+            line_indent = len(line) - len(line.lstrip(" "))
+            if "\t" in line[:line_indent]:
+                raise ParseFailure("invalid_list_indent", "Tabs not allowed in list indentation", line=index + 1)
+            if line_indent < indent:
+                break
+            if line_indent > indent:
+                break
+            match = ORDERED_RE.match(line[indent:])
             if match is None:
                 break
             if match.group("space") != " " or not match.group("rest"):
                 raise ParseFailure("missing_required_marker_space", "Ordered list marker must be followed by one space", line=index + 1)
-            items.append(
-                OrderedItem(
-                    ordinal=int(match.group("number")),
-                    children=self._parse_inline_line(match.group("rest"), line=index + 1),
-                )
-            )
+            # Content column: indent + marker length (e.g. "1. " = 3)
+            marker_len = len(match.group("number")) + 2  # digits + ". "
+            children = self._parse_inline_line(match.group("rest"), line=index + 1)
+            item_line = index + 1
             index += 1
+            blocks, index = self._parse_list_item_body(lines, index, item_indent=indent + marker_len)
+            items.append(OrderedItem(ordinal=int(match.group("number")), children=children, blocks=blocks, source_line=item_line))
         return OrderedList(items=items, source_line=start_line), index
+
+    def _parse_list_item_body(self, lines: list[str], index: int, *, item_indent: int) -> tuple[list[BlockNode], int]:
+        """Parse continuation blocks for a list item at the given indent level.
+
+        Handles nested lists (detected by ``- `` or ordered marker at deeper indent)
+        and multi-paragraph continuation (blank line followed by indented text).
+        """
+        blocks: list[BlockNode] = []
+        while index < len(lines):
+            # Blank lines: check if followed by indented continuation
+            if self._is_blank(lines[index]):
+                next_idx = index + 1
+                while next_idx < len(lines) and self._is_blank(lines[next_idx]):
+                    next_idx += 1
+                if next_idx >= len(lines):
+                    break
+                next_line = lines[next_idx]
+                next_leading = next_line[:len(next_line) - len(next_line.lstrip())]
+                if "\t" in next_leading:
+                    raise ParseFailure("invalid_list_indent", "Tabs not allowed in list indentation", line=next_idx + 1)
+                next_indent = len(next_line) - len(next_line.lstrip(" "))
+                if next_indent < item_indent:
+                    break  # dedent after blank = end of item
+                index = next_idx
+                # Fall through to parse the indented content below
+
+            line = lines[index]
+            # Count leading spaces (tabs are forbidden in list indentation)
+            leading_ws = line[:len(line) - len(line.lstrip())]
+            if "\t" in leading_ws:
+                raise ParseFailure("invalid_list_indent", "Tabs not allowed in list indentation", line=index + 1)
+            line_indent = len(line) - len(line.lstrip(" "))
+            if line_indent < item_indent:
+                break  # dedent = end of item body
+
+            dedented = line[item_indent:]
+            # Nested unordered list
+            if dedented.startswith("- "):
+                nested_list, index = self._parse_unordered_list(lines, index, indent=item_indent)
+                blocks.append(nested_list)
+                continue
+            # Nested ordered list
+            if ORDERED_RE.match(dedented):
+                nested_list, index = self._parse_ordered_list(lines, index, indent=item_indent)
+                blocks.append(nested_list)
+                continue
+            # Continuation paragraph: collect lines at this indent
+            para_lines: list[list] = []
+            while index < len(lines):
+                ln = lines[index]
+                if self._is_blank(ln):
+                    break
+                ln_indent = len(ln) - len(ln.lstrip(" "))
+                if ln_indent < item_indent:
+                    break
+                ln_dedented = ln[item_indent:]
+                # Stop if this line starts a nested list
+                if ln_dedented.startswith("- ") or ORDERED_RE.match(ln_dedented):
+                    break
+                para_lines.append(self._parse_inline_line(ln_dedented.strip(), line=index + 1))
+                index += 1
+            if para_lines:
+                children: list = []
+                for pl in para_lines:
+                    if children:
+                        children.append(Text(" "))
+                    children.extend(pl)
+                blocks.append(Paragraph(children=children, source_line=index))
+
+        return blocks, index
 
     def _parse_block_directive(self, lines: list[str], index: int, spec: DirectiveSpec) -> tuple[BlockDirective, int]:
         start_line = index + 1

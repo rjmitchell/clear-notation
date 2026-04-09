@@ -57,10 +57,19 @@ blockquote              = blockquote_line, { blockquote_line } ;
 blockquote_line         = opt_indent, ">", SP, inline_sequence, line_end ;
 
 unordered_list          = unordered_item, { unordered_item } ;
-unordered_item          = opt_indent, "-", SP, inline_sequence, line_end ;
+unordered_item          = indent, "-", SP, inline_sequence, line_end,
+                          [ list_item_body ] ;
+list_item_body          = { list_item_continuation | nested_list } ;
+list_item_continuation  = blank_lines, indent, inline_sequence, line_end ;
+nested_list             = unordered_list | ordered_list ;
 
 ordered_list            = ordered_item, { ordered_item } ;
-ordered_item            = opt_indent, integer_unsigned, ".", SP, inline_sequence, line_end ;
+ordered_item            = indent, integer_unsigned, ".", SP, inline_sequence, line_end,
+                          [ list_item_body ] ;
+
+(* List indentation uses spaces only. Tabs in the leading whitespace of a
+   line inside a list produce a parse error. Nesting depth increases by
+   2 spaces for unordered items and by the marker width for ordered items. *)
 
 block_directive_none    = opt_indent, "::", block_directive_name_none, [ attribute_list ], opt_ws, NL ;
 

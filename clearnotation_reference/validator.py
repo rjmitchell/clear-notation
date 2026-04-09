@@ -96,12 +96,28 @@ class ReferenceValidator:
                 if isinstance(block, UnorderedList):
                     pending_anchor = self._assign_optional_id(block, pending_anchor)
                     for item in block.items:
-                        self._visit_inlines(item)
+                        self._visit_inlines(item.children)
+                        self._validate_blocks(
+                            item.blocks,
+                            document_path=document_path,
+                            project_root=project_root,
+                            include_roots=include_roots,
+                            pending_anchor=None,
+                            slug_counts=slug_counts,
+                        )
                     continue
                 if isinstance(block, OrderedList):
                     pending_anchor = self._assign_optional_id(block, pending_anchor)
                     for item in block.items:
                         self._visit_inlines(item.children)
+                        self._validate_blocks(
+                            item.blocks,
+                            document_path=document_path,
+                            project_root=project_root,
+                            include_roots=include_roots,
+                            pending_anchor=None,
+                            slug_counts=slug_counts,
+                        )
                     continue
                 if isinstance(block, SourceBlock):
                     pending_anchor = self._assign_optional_id(block, pending_anchor)
