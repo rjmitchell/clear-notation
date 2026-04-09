@@ -84,15 +84,21 @@ export interface NBlockQuote {
   id?: string;
 }
 
+export interface NListItem {
+  content: NormalizedInline[];
+  blocks: NormalizedBlock[];
+}
+
 export interface NUnorderedList {
   type: "unordered_list";
-  items: NormalizedInline[][];
+  items: NListItem[];
   id?: string;
 }
 
 export interface NOrderedItem {
   ordinal: number;
   content: NormalizedInline[];
+  blocks: NormalizedBlock[];
 }
 
 export interface NOrderedList {
