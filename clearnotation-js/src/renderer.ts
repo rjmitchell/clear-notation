@@ -105,9 +105,9 @@ function renderBlock(block: NormalizedBlock, headings: NHeading[]): string {
     case "blockquote":
       return renderBlockQuote(block);
     case "unordered_list":
-      return renderUnorderedList(block);
+      return renderUnorderedList(block, headings);
     case "ordered_list":
-      return renderOrderedList(block);
+      return renderOrderedList(block, headings);
     case "toc":
       return renderToc(block, headings);
     case "callout":
@@ -143,20 +143,35 @@ function renderBlockQuote(block: NBlockQuote): string {
   return `<blockquote${attrs}>\n${lines}\n</blockquote>`;
 }
 
-function renderUnorderedList(block: NUnorderedList): string {
+function renderListItem(
+  content: NormalizedInline[],
+  blocks: NormalizedBlock[],
+  headings: NHeading[],
+): string {
+  if (blocks.length === 0) {
+    return `<li>${renderInlines(content)}</li>`;
+  }
+  const parts = [`<p>${renderInlines(content)}</p>`];
+  for (const b of blocks) {
+    parts.push(renderBlock(b, headings));
+  }
+  return `<li>${parts.join("")}</li>`;
+}
+
+function renderUnorderedList(block: NUnorderedList, headings: NHeading[]): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
   const items = block.items
-    .map((item) => `<li>${renderInlines(item)}</li>`)
+    .map((item) => renderListItem(item.content, item.blocks, headings))
     .join("\n");
   return `<ul${attrs}>\n${items}\n</ul>`;
 }
 
-function renderOrderedList(block: NOrderedList): string {
+function renderOrderedList(block: NOrderedList, headings: NHeading[]): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
   const start = block.items.length > 0 ? block.items[0].ordinal : 1;
   const startAttr = start !== 1 ? ` start="${start}"` : "";
   const items = block.items
-    .map((item) => `<li>${renderInlines(item.content)}</li>`)
+    .map((item) => renderListItem(item.content, item.blocks, headings))
     .join("\n");
   return `<ol${attrs}${startAttr}>\n${items}\n</ol>`;
 }
@@ -237,12 +252,12 @@ function renderFigure(block: NFigure, headings: NHeading[]): string {
 
 function renderMathBlock(block: NMathBlock): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
-  return `<pre class="math"${attrs}><code>${escHtml(block.text)}</code></pre>`;
+  return `<div class="math"${attrs}><pre class="math"><code>${escHtml(block.text)}</code></pre></div>`;
 }
 
 function renderSourceBlock(block: NSourceBlock): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
-  return `<pre${attrs}><code class="language-${escHtml(block.language)}">${escHtml(block.text)}</code></pre>`;
+  return `<pre${attrs}><code class="language-${escHtml(block.language)}">${escHtml(block.text)}\n</code></pre>`;
 }
 
 function renderTable(table: NTable): string {

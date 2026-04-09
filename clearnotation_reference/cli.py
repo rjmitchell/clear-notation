@@ -198,6 +198,75 @@ def _parse_and_normalize(
     return ndoc, registry, doc
 
 
+def extract_includes(doc: "Document", source_path: Path) -> set[Path]:
+    """Extract resolved include paths from a parsed document."""
+    from .models import BlockDirective
+
+    result: set[Path] = set()
+    _walk_includes(doc.blocks, source_path, result)
+    return result
+
+
+def _walk_includes(
+    blocks: list,
+    source_path: Path,
+    result: set[Path],
+) -> None:
+    from .models import BlockDirective
+
+    for block in blocks:
+        if isinstance(block, BlockDirective):
+            if block.name == "include":
+                src = block.attrs.get("src")
+                if src:
+                    target = (source_path.parent / src).resolve()
+                    result.add(target)
+            _walk_includes(block.blocks, source_path, result)
+
+
+def files_to_rebuild(
+    changed: Path,
+    included_by: dict[Path, set[Path]],
+) -> set[Path]:
+    """Walk up the include tree to find all files that need rebuilding."""
+    result = {changed}
+    queue = [changed]
+    while queue:
+        f = queue.pop()
+        for parent in included_by.get(f, set()):
+            if parent not in result:
+                result.add(parent)
+                queue.append(parent)
+    return result
+
+
+class IncludeGraph:
+    """Tracks forward and reverse include dependencies for cln watch."""
+
+    def __init__(self) -> None:
+        self._includes: dict[Path, set[Path]] = {}
+        self._included_by: dict[Path, set[Path]] = {}
+
+    def update(self, source: Path, includes: set[Path]) -> None:
+        """Replace the include set for *source*, updating the reverse map."""
+        for old_target in self._includes.get(source, set()):
+            refs = self._included_by.get(old_target)
+            if refs is not None:
+                refs.discard(source)
+                if not refs:
+                    del self._included_by[old_target]
+        if includes:
+            self._includes[source] = set(includes)
+        else:
+            self._includes.pop(source, None)
+        for target in includes:
+            self._included_by.setdefault(target, set()).add(source)
+
+    def files_to_rebuild(self, changed: Path) -> set[Path]:
+        """Return *changed* plus all transitive includers."""
+        return files_to_rebuild(changed, self._included_by)
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)
@@ -209,18 +278,20 @@ def _build_file(
     output_path: Path | None,
     config_path: str | None,
     fmt: str,
-) -> int:
+    *,
+    return_doc: bool = False,
+):
     try:
         ndoc, registry, doc = _parse_and_normalize(input_path, config_path)
     except MultipleValidationFailures as exc:
         source = input_path.read_text(encoding="utf-8")
         for err in exc.errors:
             _print_error(err, source, str(input_path), fmt)
-        return 1
+        return (1, None) if return_doc else 1
     except ClearNotationError as exc:
         source = input_path.read_text(encoding="utf-8")
         _print_error(exc, source, str(input_path), fmt)
-        return 1
+        return (1, None) if return_doc else 1
 
     if output_path is None:
         output_path = input_path.with_suffix(".html")
@@ -235,7 +306,7 @@ def _build_file(
         if css_src.exists():
             shutil.copy2(css_src, css_dest)
 
-    return 0
+    return (0, doc) if return_doc else 0
 
 
 def _build_directory(
@@ -353,12 +424,30 @@ def _cmd_watch(
     out_dir = Path(output)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # Dependency graph for include-aware rebuilds
+    graph = IncludeGraph()
+
     # Initial build
     if input_path.is_dir():
         result = _build_directory(input_path, output, config_path, fmt)
+        # Populate the graph with a lightweight parse of each .cln file
+        for cln_file in sorted(input_path.rglob("*.cln")):
+            try:
+                config, reg_data = load_config(cln_file, config_path)
+                registry = Registry.from_toml(reg_data)
+                source = cln_file.read_text(encoding="utf-8")
+                doc = ReferenceParser(registry).parse_document(source, cln_file)
+                resolved = cln_file.resolve()
+                graph.update(resolved, extract_includes(doc, resolved))
+            except Exception:
+                pass  # skip files that fail to parse
     else:
         out_file = (out_dir / input_path.name).with_suffix(".html")
-        result = _build_file(input_path, out_file, config_path, fmt)
+        rc, doc = _build_file(input_path, out_file, config_path, fmt, return_doc=True)
+        result = rc
+        if doc is not None:
+            resolved = input_path.resolve()
+            graph.update(resolved, extract_includes(doc, resolved))
 
     if result != 0:
         print("warning: initial build had errors", file=sys.stderr)
@@ -386,17 +475,21 @@ def _cmd_watch(
                 return
             if not event.src_path.endswith(".cln"):
                 return
-            changed = Path(event.src_path)
+            changed = Path(event.src_path).resolve()
             print(f"Changed: {changed}")
             try:
-                if input_path.is_dir():
-                    rel = changed.relative_to(input_path)
-                    dest = (out_dir / rel).with_suffix(".html")
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                else:
-                    dest = (out_dir / changed.name).with_suffix(".html")
-                _build_file(changed, dest, config_path, fmt)
-                print(f"Rebuilt {changed}")
+                to_rebuild = graph.files_to_rebuild(changed)
+                for rebuild_path in sorted(to_rebuild):
+                    if input_path.is_dir():
+                        rel = rebuild_path.relative_to(input_path.resolve())
+                        dest = (out_dir / rel).with_suffix(".html")
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                    else:
+                        dest = (out_dir / rebuild_path.name).with_suffix(".html")
+                    rc, doc = _build_file(rebuild_path, dest, config_path, fmt, return_doc=True)
+                    if rc == 0 and doc is not None:
+                        graph.update(rebuild_path, extract_includes(doc, rebuild_path))
+                    print(f"Rebuilt {rebuild_path}")
             except Exception as exc:
                 print(f"Build error: {exc}", file=sys.stderr)
 

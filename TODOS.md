@@ -12,29 +12,6 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Effort: L-XL (human: 2-4 weeks / CC: ~2 hours)
 - Depends on: tree-sitter grammar + stable parser/validator API
 
-### Include-aware file watching
-`cln watch` doesn't track include dependencies. If main.cln includes chapter1.cln and chapter1.cln changes, main.cln won't rebuild. Fix: build an include dependency graph during the initial build, then watch all referenced files.
-- Effort: S (CC: ~15 min)
-- Priority: P2
-- Context: Include inlining now ships in v1.0. This is the remaining usability gap for multi-file projects.
-
-### JS renderer parity gaps (13+ fixtures)
-The cross-implementation conformance suite identified 13+ fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps and skips in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, NListItem format (v1.0 model change), inline escaping output.
-- Effort: M (CC: ~1 hour)
-- Depends on: nothing
-
-### Publish VS Code extension to marketplace
-Extension is ready (README, icon, CHANGELOG, metadata). Needs `VSCE_PAT` secret in GitHub repo, then `git tag vscode-v1.0.0 && git push origin vscode-v1.0.0` triggers publish.
-- Effort: S (manual: ~15 min for token setup)
-- Priority: P1
-- Blocked on: Azure DevOps PAT + marketplace publisher account
-
-### Publish clearnotation-js to npm
-Package is ready (README, files field, publish workflow). Needs `NPM_TOKEN` secret in GitHub repo, then `git tag npm-v1.0.0 && git push origin npm-v1.0.0` triggers publish.
-- Effort: S (manual: ~10 min for token setup)
-- Priority: P1
-- Blocked on: npm access token
-
 ### Hosted editor Phase 2: Shareable URLs
 Add pako compression + base64url encoding of CLN source in the URL hash. Share button that copies the link. Documents over ~2KB compressed show a warning. Custom domain setup.
 - Effort: M (CC: ~30 min)
@@ -83,9 +60,24 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 - **Spec documents:** v1.0 EBNF, syntax, AST conformance frozen
 - **Conformance:** 70 fixtures (30 valid, 17 parse-invalid, 23 validate-invalid)
 
+### Package publishing
+- **VS Code extension:** Published to marketplace as `ClearNotation.clearnotation` (vscode-v1.0.0)
+- **clearnotation-js:** Published to npm as `clearnotation-js@1.0.0` (npm-v1.0.0)
+
+### JS renderer parity (Phase 1)
+- **Math block wrapper:** `<div class="math">` wrapping matches Python reference
+- **Source block trailing newline:** `\n` before `</code></pre>` matches Python
+- **NListItem model:** list items support nested blocks (multi-paragraph, nested lists)
+- **Type mapping fixes:** conformance converter type discriminants aligned with types.ts
+- **Result:** 116 tests passing, 3 skipped (include-resolution), 7 remaining known gaps (v02/v03/v14/v18 footnotes, v07 MathML, v10 escaping, v13 syntax highlighting)
+
+### Include-aware file watching
+- **Dependency graph:** `IncludeGraph` tracks forward/reverse include maps
+- **Targeted rebuilds:** changing an included file rebuilds all transitive includers
+- **Graph refresh:** dependencies update after each rebuild (handles added/removed includes)
+- **Integration:** graph built during initial `cln watch` build, used by rebuild handler
+
 ### Hosted editor Phase 1: Foundation
-- **VS Code extension:** README, icon, CHANGELOG, marketplace metadata (ready to publish, needs VSCE_PAT)
-- **clearnotation-js npm:** README, removed private, files field, publish workflow (ready to publish, needs NPM_TOKEN)
 - **Landing page:** Static HTML/CSS at GitHub Pages root with CLN vs Markdown comparison, install cards, "Try the editor" CTA
 - **Editor URL:** Moved from / to /editor/ subpath
 - **Deploy workflow:** Updated to assemble landing page + editor

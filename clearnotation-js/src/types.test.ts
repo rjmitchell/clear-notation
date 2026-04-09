@@ -110,7 +110,7 @@ describe("Normalized AST types", () => {
   it("NOrderedList holds NOrderedItems", () => {
     const node: NOrderedList = {
       type: "ordered_list",
-      items: [{ ordinal: 1, content: [{ type: "text", value: "first" }] }],
+      items: [{ ordinal: 1, content: [{ type: "text", value: "first" }], blocks: [] }],
     };
     expect(node.items[0].ordinal).toBe(1);
   });

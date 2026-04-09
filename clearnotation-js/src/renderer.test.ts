@@ -152,7 +152,7 @@ describe("renderHtml", () => {
         doc([
           {
             type: "unordered_list",
-            items: [[text("Alpha")], [text("Beta")]],
+            items: [{ content: [text("Alpha")], blocks: [] }, { content: [text("Beta")], blocks: [] }],
           },
         ]),
       );
@@ -169,8 +169,8 @@ describe("renderHtml", () => {
           {
             type: "ordered_list",
             items: [
-              { ordinal: 1, content: [text("First")] },
-              { ordinal: 2, content: [text("Second")] },
+              { ordinal: 1, content: [text("First")], blocks: [] },
+              { ordinal: 2, content: [text("Second")], blocks: [] },
             ],
           },
         ]),
@@ -185,8 +185,8 @@ describe("renderHtml", () => {
           {
             type: "ordered_list",
             items: [
-              { ordinal: 3, content: [text("Third")] },
-              { ordinal: 4, content: [text("Fourth")] },
+              { ordinal: 3, content: [text("Third")], blocks: [] },
+              { ordinal: 4, content: [text("Fourth")], blocks: [] },
             ],
           },
         ]),
@@ -207,7 +207,7 @@ describe("renderHtml", () => {
         ]),
       );
       expect(html).toContain(
-        '<pre><code class="language-python">print(&quot;hi&quot;)</code></pre>',
+        '<pre><code class="language-python">print(&quot;hi&quot;)\n</code></pre>',
       );
     });
 
@@ -232,7 +232,7 @@ describe("renderHtml", () => {
         doc([{ type: "math_block", text: "E = mc^2" }]),
       );
       expect(html).toContain(
-        '<pre class="math"><code>E = mc^2</code></pre>',
+        '<div class="math"><pre class="math"><code>E = mc^2</code></pre></div>',
       );
     });
   });

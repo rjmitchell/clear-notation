@@ -122,6 +122,64 @@ class WatchSubcommandTests(unittest.TestCase):
             self.assertEqual(rc, 1)
             self.assertIn("watchdog is required", buf.getvalue())
 
+    def test_watch_rebuilds_includers_on_included_file_change(self) -> None:
+        """When an included file changes, the including file is rebuilt."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src_dir = Path(tmpdir) / "src"
+            src_dir.mkdir()
+            out_dir = Path(tmpdir) / "dist"
+
+            # Create a minimal project config so includes resolve within src_dir
+            (src_dir / "clearnotation.toml").write_text('[project]\nroot = "."\n')
+
+            # Create main.cln that includes part.cln
+            part = src_dir / "part.cln"
+            part.write_text("This is the included part.\n")
+            main = src_dir / "main.cln"
+            main.write_text(
+                '= Main\n\n::include[src="part.cln"]\n'
+            )
+
+            from clearnotation_reference.cli import (
+                IncludeGraph, extract_includes, _build_file,
+            )
+            from clearnotation_reference.parser import ReferenceParser
+            from clearnotation_reference.config import load_config
+            from clearnotation_reference.registry import Registry
+
+            out_dir.mkdir()
+            graph = IncludeGraph()
+
+            for cln_file in sorted(src_dir.rglob("*.cln")):
+                out_file = (out_dir / cln_file.relative_to(src_dir)).with_suffix(".html")
+                build_result = _build_file(cln_file, out_file, None, "human", return_doc=True)
+                assert isinstance(build_result, tuple)
+                rc, doc = build_result
+                if doc is not None:
+                    graph.update(cln_file.resolve(), extract_includes(doc, cln_file))
+
+            # Verify graph: part.cln is included by main.cln
+            to_rebuild = graph.files_to_rebuild(part.resolve())
+            self.assertIn(main.resolve(), to_rebuild)
+            self.assertIn(part.resolve(), to_rebuild)
+
+            # Record main.html mtime, then rebuild
+            main_html = out_dir / "main.html"
+            self.assertTrue(main_html.exists())
+            old_mtime = main_html.stat().st_mtime
+
+            import time
+            time.sleep(0.05)
+
+            # Rebuild all files that the graph says need it
+            for f in to_rebuild:
+                rel = f.relative_to(src_dir.resolve())
+                dest = (out_dir / rel).with_suffix(".html")
+                _build_file(f, dest, None, "human")
+
+            new_mtime = main_html.stat().st_mtime
+            self.assertGreater(new_mtime, old_mtime)
+
 
 try:
     import watchdog
@@ -148,6 +206,104 @@ class RebuildHandlerTests(unittest.TestCase):
         event = FileModifiedEvent("/tmp/test.cln")
         self.assertTrue(event.src_path.endswith(".cln"))
         self.assertFalse(event.is_directory)
+
+
+class IncludeGraphTests(unittest.TestCase):
+    def test_empty_graph(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        self.assertEqual(graph.files_to_rebuild(Path("/p/a.cln")), {Path("/p/a.cln")})
+
+    def test_update_and_query(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        main, chapter = Path("/project/main.cln"), Path("/project/chapter.cln")
+        graph.update(main, {chapter})
+        self.assertEqual(graph.files_to_rebuild(chapter), {main, chapter})
+
+    def test_update_removes_stale_deps(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        main, old, new = Path("/project/main.cln"), Path("/project/old.cln"), Path("/project/new.cln")
+        graph.update(main, {old})
+        self.assertEqual(graph.files_to_rebuild(old), {main, old})
+        graph.update(main, {new})
+        self.assertEqual(graph.files_to_rebuild(old), {old})
+        self.assertEqual(graph.files_to_rebuild(new), {main, new})
+
+    def test_transitive_rebuild(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        a, b, c = Path("/p/a.cln"), Path("/p/b.cln"), Path("/p/c.cln")
+        graph.update(a, {b})
+        graph.update(b, {c})
+        self.assertEqual(graph.files_to_rebuild(c), {a, b, c})
+
+
+class FilesToRebuildTests(unittest.TestCase):
+    def test_standalone_file(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        result = files_to_rebuild(Path("/project/solo.cln"), {})
+        self.assertEqual(result, {Path("/project/solo.cln")})
+
+    def test_single_includer(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        included_by = {Path("/project/chapter.cln"): {Path("/project/main.cln")}}
+        result = files_to_rebuild(Path("/project/chapter.cln"), included_by)
+        self.assertEqual(result, {Path("/project/chapter.cln"), Path("/project/main.cln")})
+
+    def test_transitive_includes(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        a, b, c = Path("/project/a.cln"), Path("/project/b.cln"), Path("/project/c.cln")
+        included_by = {c: {b}, b: {a}}
+        result = files_to_rebuild(c, included_by)
+        self.assertEqual(result, {a, b, c})
+
+    def test_diamond_dependency(self) -> None:
+        from clearnotation_reference.cli import files_to_rebuild
+        a, b, c, d = Path("/p/a.cln"), Path("/p/b.cln"), Path("/p/c.cln"), Path("/p/d.cln")
+        included_by = {d: {b, c}, b: {a}, c: {a}}
+        result = files_to_rebuild(d, included_by)
+        self.assertEqual(result, {a, b, c, d})
+
+
+class ExtractIncludesTests(unittest.TestCase):
+    """Tests for include dependency extraction."""
+
+    def test_no_includes(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, Heading
+        doc = Document(path=Path("/tmp/test.cln"), meta={}, blocks=[Heading(level=1, children=[], id=None, source_line=1)])
+        result = extract_includes(doc, Path("/tmp/test.cln"))
+        self.assertEqual(result, set())
+
+    def test_single_include(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[
+            BlockDirective(name="include", attrs={"src": "chapter1.cln"}, body_mode="none"),
+        ])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/chapter1.cln").resolve()})
+
+    def test_nested_directive_with_include(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        inner = BlockDirective(name="include", attrs={"src": "part.cln"}, body_mode="none")
+        outer = BlockDirective(name="callout", attrs={"kind": "note"}, body_mode="blocks", blocks=[inner])
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[outer])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/part.cln").resolve()})
+
+    def test_multiple_includes(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[
+            BlockDirective(name="include", attrs={"src": "a.cln"}, body_mode="none"),
+            BlockDirective(name="include", attrs={"src": "b.cln"}, body_mode="none"),
+        ])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/a.cln").resolve(), Path("/project/b.cln").resolve()})
 
 
 def _find_free_port() -> int:
