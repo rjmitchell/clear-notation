@@ -194,7 +194,7 @@ def _parse_and_normalize(
     source = input_path.read_text(encoding="utf-8")
     doc = ReferenceParser(registry).parse_document(source, input_path)
     ReferenceValidator(registry).validate(doc, config=config)
-    ndoc = Normalizer(registry).normalize(doc)
+    ndoc = Normalizer(registry).normalize(doc, source_path=input_path, config=config)
     return ndoc, registry, doc
 
 
@@ -302,7 +302,7 @@ def _cmd_ast(input_path: Path, config_path: str | None, fmt: str) -> int:
         _print_error(exc, source, str(input_path), fmt)
         return 1
 
-    ndoc = Normalizer(registry).normalize(doc)
+    ndoc = Normalizer(registry).normalize(doc, source_path=input_path, config=config)
     print(json.dumps(_ast_to_dict(ndoc), indent=2))
     return 0
 

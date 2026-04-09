@@ -432,6 +432,15 @@ parse = "accept"
 validate = "accept"
 
 [[case]]
+id = "v23"
+title = "Include inlining with recursive content"
+kind = "valid"
+path = "valid/v23-include-inlined.cln"
+parse = "accept"
+validate = "accept"
+requires = ["valid/partials/chapter.cln"]
+
+[[case]]
 id = "x16"
 title = "Duplicate anchor IDs"
 kind = "validate-invalid"

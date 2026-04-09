@@ -59,8 +59,24 @@ class Normalizer:
         self.note_counter = 1
         self.notes: list[Note] = []
         self.slug_counts: dict[str, int] = {}
+        self._source_path: Path | None = None
+        self._config: dict[str, Any] | None = None
+        self._include_stack: frozenset[Path] = frozenset()
+        self._include_depth: int = 0
 
-    def normalize(self, document: Document) -> NormalizedDocument:
+    def normalize(
+        self,
+        document: Document,
+        *,
+        source_path: Path | None = None,
+        config: dict[str, Any] | None = None,
+        _include_stack: frozenset[Path] | None = None,
+        _include_depth: int = 0,
+    ) -> NormalizedDocument:
+        self._source_path = source_path or document.path
+        self._config = config
+        self._include_stack = _include_stack if _include_stack is not None else frozenset()
+        self._include_depth = _include_depth
         blocks = self._normalize_blocks(document.blocks, pending_anchor=None)
         return NormalizedDocument(
             meta=dict(document.meta),
@@ -139,6 +155,12 @@ class Normalizer:
                 continue
 
             if isinstance(block, BlockDirective):
+                if block.name == "include" and self._source_path is not None and self._config is not None:
+                    inlined, pending_anchor = self._inline_include(
+                        block, pending_anchor,
+                    )
+                    result.extend(inlined)
+                    continue
                 normalized, pending_anchor = self._normalize_directive(
                     block, pending_anchor,
                 )
@@ -158,9 +180,9 @@ class Normalizer:
             return None, anchor_id
 
         if block.name == "include":
-            # Include resolution is validated; in v0.1 we don't inline the content
-            # during normalization (the validator already checked the path exists).
-            # A future version will recursively parse and inline.
+            # When source_path/config are available, inlining is handled in
+            # _normalize_blocks via _inline_include.  This fallback keeps the
+            # v0.1 behaviour for callers that don't provide those arguments.
             return None, pending_anchor
 
         if block.name == "toc":
@@ -212,6 +234,64 @@ class Normalizer:
             blocks=self._normalize_blocks(block.blocks, pending_anchor=None),
             id=block_id,
         ), pending_anchor
+
+    def _inline_include(
+        self,
+        block: BlockDirective,
+        pending_anchor: str | None,
+    ) -> tuple[list[NormalizedBlock], str | None]:
+        """Resolve an ``::include`` directive by recursively normalizing the target."""
+        from .parser import ReferenceParser
+        from .validator import ReferenceValidator
+        from .config import load_config
+
+        src = cast(str, block.attrs.get("src"))
+        assert self._source_path is not None
+        target = (self._source_path.parent / src).resolve()
+
+        # Circular detection: check if target is already in the include chain
+        if target in self._include_stack:
+            chain = " -> ".join(str(p.name) for p in self._include_stack)
+            raise ValidationFailure(
+                "circular_include",
+                f"Circular include detected: {chain} -> {target.name}",
+                line=block.source_line,
+            )
+
+        # Depth check
+        if self._include_depth >= 10:
+            raise ValidationFailure(
+                "include_depth_exceeded",
+                f"Include depth exceeds maximum of 10 levels",
+                line=block.source_line,
+            )
+
+        # Read, parse, validate the target file
+        source_text = target.read_text(encoding="utf-8")
+        parser = ReferenceParser(self.registry)
+        doc = parser.parse_document(source_text, target)
+
+        config, _ = load_config(target)
+        validator = ReferenceValidator(self.registry)
+        validator.validate(doc, config=config)
+
+        # Normalize recursively with shared slug/note state
+        child = Normalizer(self.registry)
+        child.slug_counts = self.slug_counts
+        child.note_counter = self.note_counter
+        child_doc = child.normalize(
+            doc,
+            source_path=target,
+            config=self._config,
+            _include_stack=self._include_stack | {target},
+            _include_depth=self._include_depth + 1,
+        )
+
+        # Absorb shared state back
+        self.note_counter = child.note_counter
+        self.notes.extend(child_doc.notes)
+
+        return child_doc.blocks, pending_anchor
 
     def _normalize_table(
         self,

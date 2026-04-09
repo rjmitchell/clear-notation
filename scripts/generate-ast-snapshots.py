@@ -212,7 +212,7 @@ def main() -> None:
             validator.validate(doc, config=config)
 
             normalizer = Normalizer(registry)
-            ndoc = normalizer.normalize(doc)
+            ndoc = normalizer.normalize(doc, source_path=cln_path, config=config)
 
             data = serialize_document(ndoc)
             out_path = cln_path.with_suffix(".ast.json")

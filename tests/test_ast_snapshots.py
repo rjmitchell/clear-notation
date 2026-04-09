@@ -191,7 +191,7 @@ def _normalize_fixture(cln_path: Path) -> NormalizedDocument:
     source = cln_path.read_text()
     doc = ReferenceParser(registry).parse_document(source, cln_path)
     ReferenceValidator(registry).validate(doc, config=config)
-    return Normalizer(registry).normalize(doc)
+    return Normalizer(registry).normalize(doc, source_path=cln_path, config=config)
 
 
 class ASTSnapshotTests(unittest.TestCase):

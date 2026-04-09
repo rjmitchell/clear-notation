@@ -179,7 +179,7 @@ def _index_file(
     validator.validate(parsed_doc, config=config)
 
     normalizer = Normalizer(registry)
-    normalized_doc = normalizer.normalize(parsed_doc)
+    normalized_doc = normalizer.normalize(parsed_doc, source_path=cln_path, config=config)
 
     title = _extract_title(parsed_doc)
     directives = _extract_directives(parsed_doc.blocks)

@@ -4,22 +4,22 @@
     {
       "type": "NHeading",
       "level": 1,
-      "id": "main",
+      "id": "main-document",
       "content": [
         {
           "type": "Text",
-          "value": "Main"
+          "value": "Main Document"
         }
       ]
     },
     {
       "type": "NHeading",
       "level": 2,
-      "id": "included",
+      "id": "chapter-one",
       "content": [
         {
           "type": "Text",
-          "value": "Included"
+          "value": "Chapter One"
         }
       ]
     },
@@ -28,7 +28,7 @@
       "content": [
         {
           "type": "Text",
-          "value": "This file exists so the valid include fixture can pass validation."
+          "value": "This is the first chapter, included from a partial."
         }
       ],
       "id": null
