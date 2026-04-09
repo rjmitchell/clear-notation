@@ -25,18 +25,22 @@
     {
       "type": "NUnorderedList",
       "items": [
-        [
-          {
-            "type": "Text",
-            "value": "First item"
-          }
-        ],
-        [
-          {
-            "type": "Text",
-            "value": "Second item"
-          }
-        ]
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "First item"
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Text",
+              "value": "Second item"
+            }
+          ]
+        }
       ],
       "id": null
     },

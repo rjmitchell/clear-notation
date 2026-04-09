@@ -20,11 +20,13 @@ from .models import (
     InlineDirective,
     InlineNode,
     Link,
+    ListItem,
     NBlockQuote,
     NCallout,
     NExtensionBlock,
     NFigure,
     NHeading,
+    NListItem,
     NMathBlock,
     NOrderedItem,
     NOrderedList,
@@ -126,7 +128,13 @@ class Normalizer:
             if isinstance(block, UnorderedList):
                 block_id, pending_anchor = self._consume_anchor(pending_anchor)
                 result.append(NUnorderedList(
-                    items=[self._normalize_inlines(item) for item in block.items],
+                    items=[
+                        NListItem(
+                            content=self._normalize_inlines(item.children),
+                            blocks=self._normalize_blocks(item.blocks, pending_anchor=None),
+                        )
+                        for item in block.items
+                    ],
                     id=block_id,
                 ))
                 continue
@@ -138,6 +146,7 @@ class Normalizer:
                         NOrderedItem(
                             ordinal=item.ordinal,
                             content=self._normalize_inlines(item.children),
+                            blocks=self._normalize_blocks(item.blocks, pending_anchor=None),
                         )
                         for item in block.items
                     ],

@@ -23,6 +23,7 @@ from .models import (
     InlineDirective,
     InlineNode,
     Link,
+    ListItem,
     Note,
     OrderedItem,
     OrderedList,
@@ -83,13 +84,10 @@ class Formatter:
             return [f"> {self._format_inlines(line)}" for line in block.lines]
 
         if isinstance(block, UnorderedList):
-            return [f"- {self._format_inlines(item)}" for item in block.items]
+            return self._format_unordered_list(block)
 
         if isinstance(block, OrderedList):
-            return [
-                f"{item.ordinal}. {self._format_inlines(item.children)}"
-                for item in block.items
-            ]
+            return self._format_ordered_list(block)
 
         if isinstance(block, SourceBlock):
             lines = [f"```{block.language}"]
@@ -101,6 +99,36 @@ class Formatter:
             return self._format_directive(block)
 
         return []
+
+    def _format_unordered_list(self, block: UnorderedList, *, prefix: str = "") -> list[str]:
+        lines: list[str] = []
+        for item in block.items:
+            lines.append(f"{prefix}- {self._format_inlines(item.children)}")
+            lines.extend(self._format_list_item_body(item.blocks, indent=prefix + "  "))
+        return lines
+
+    def _format_ordered_list(self, block: OrderedList, *, prefix: str = "") -> list[str]:
+        lines: list[str] = []
+        for item in block.items:
+            marker = f"{item.ordinal}. "
+            lines.append(f"{prefix}{marker}{self._format_inlines(item.children)}")
+            lines.extend(self._format_list_item_body(item.blocks, indent=prefix + " " * len(marker)))
+        return lines
+
+    def _format_list_item_body(self, blocks: list[BlockNode], *, indent: str) -> list[str]:
+        lines: list[str] = []
+        for i, block in enumerate(blocks):
+            if isinstance(block, UnorderedList):
+                lines.extend(self._format_unordered_list(block, prefix=indent))
+            elif isinstance(block, OrderedList):
+                lines.extend(self._format_ordered_list(block, prefix=indent))
+            elif isinstance(block, Paragraph):
+                lines.append("")
+                lines.append(f"{indent}{self._format_inlines(block.children)}")
+            else:
+                for sub_line in self._format_block(block):
+                    lines.append(f"{indent}{sub_line}" if sub_line else "")
+        return lines
 
     def _format_directive(self, block: BlockDirective) -> list[str]:
         header = f"::{block.name}"

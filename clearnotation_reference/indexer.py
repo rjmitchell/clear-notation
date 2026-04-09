@@ -270,10 +270,14 @@ def _walk_normalized_block_for_refs(
             inlines.append(line)
     elif isinstance(block, NUnorderedList):
         for item in block.items:
-            inlines.append(item)
+            inlines.append(item.content)
+            for sub in item.blocks:
+                _walk_normalized_block_for_refs(sub, result)
     elif isinstance(block, NOrderedList):
         for item in block.items:
             inlines.append(item.content)
+            for sub in item.blocks:
+                _walk_normalized_block_for_refs(sub, result)
     elif isinstance(block, NCallout):
         for sub in block.blocks:
             _walk_normalized_block_for_refs(sub, result)

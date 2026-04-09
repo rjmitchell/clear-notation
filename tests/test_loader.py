@@ -19,7 +19,7 @@ class FixtureLoaderTests(unittest.TestCase):
             REPO_ROOT / "reference/builtin-registry.toml",
             suite.builtin_registry,
         )
-        self.assertEqual(56, len(suite.cases))
+        self.assertEqual(59, len(suite.cases))
         self.assertEqual("v01", suite.cases[0].id)
         self.assertEqual("x18", suite.cases[-1].id)
 

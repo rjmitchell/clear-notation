@@ -441,6 +441,30 @@ validate = "accept"
 requires = ["valid/partials/chapter.cln"]
 
 [[case]]
+id = "v24"
+title = "Nested lists with mixed types"
+kind = "valid"
+path = "valid/v24-nested-lists.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "v25"
+title = "Multi-paragraph list items"
+kind = "valid"
+path = "valid/v25-multi-paragraph-items.cln"
+parse = "accept"
+validate = "accept"
+
+[[case]]
+id = "p16"
+title = "Tab in list indentation"
+kind = "parse-invalid"
+path = "parse-invalid/p16-tab-in-list-indent.cln"
+parse = "reject"
+error_kind = "invalid_list_indent"
+
+[[case]]
 id = "x16"
 title = "Duplicate anchor IDs"
 kind = "validate-invalid"

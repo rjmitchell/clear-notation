@@ -112,16 +112,20 @@ def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
 
     if isinstance(block, NUnorderedList):
         attrs = f' id="{_esc(block.id)}"' if block.id else ""
-        items = "\n".join(f"<li>{_render_inlines(item)}</li>" for item in block.items)
+        li_parts = []
+        for item in block.items:
+            li_parts.append(_render_list_item(item.content, item.blocks, headings))
+        items = "\n".join(li_parts)
         return f"<ul{attrs}>\n{items}\n</ul>"
 
     if isinstance(block, NOrderedList):
         attrs = f' id="{_esc(block.id)}"' if block.id else ""
         start = block.items[0].ordinal if block.items else 1
         start_attr = f' start="{start}"' if start != 1 else ""
-        items = "\n".join(
-            f"<li>{_render_inlines(item.content)}</li>" for item in block.items
-        )
+        li_parts = []
+        for item in block.items:
+            li_parts.append(_render_list_item(item.content, item.blocks, headings))
+        items = "\n".join(li_parts)
         return f"<ol{attrs}{start_attr}>\n{items}\n</ol>"
 
     if isinstance(block, NToc):
@@ -181,6 +185,21 @@ def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
         return f'<div data-extension="{_esc(block.type_name)}"{attrs}>{inner}</div>'
 
     return ""
+
+
+def _render_list_item(
+    content: list["NormalizedInline"],
+    blocks: list["NormalizedBlock"],
+    headings: list[NHeading],
+) -> str:
+    """Render a single <li>.  Simple items (no blocks) render content directly;
+    items with nested blocks wrap content in <p>."""
+    if not blocks:
+        return f"<li>{_render_inlines(content)}</li>"
+    parts = [f"<p>{_render_inlines(content)}</p>"]
+    for b in blocks:
+        parts.append(_render_block(b, headings))
+    return f"<li>{''.join(parts)}</li>"
 
 
 def _render_inlines(inlines: list[NormalizedInline]) -> str:
