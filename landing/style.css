@@ -566,6 +566,7 @@ footer {
   margin-top: auto;
   border-top: 1px solid var(--cn-border);
   padding: 24px;
+  background: #5f8c6b;
 }
 
 .footer-inner {
@@ -580,7 +581,7 @@ footer {
 
 .footer-left {
   font-size: 13px;
-  color: var(--cn-muted);
+  color: rgba(255, 255, 255, 0.7);
   font-family: "Geist Sans", sans-serif;
 }
 
@@ -593,13 +594,13 @@ footer {
 .footer-links a {
   font-family: "Geist Sans", sans-serif;
   font-size: 13px;
-  color: var(--cn-muted);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: color 100ms ease-out;
 }
 
 .footer-links a:hover {
-  color: var(--cn-fg);
+  color: #ffffff;
 }
 
 /* ── Responsive ──────────────────────────────────────────── */
