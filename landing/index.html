@@ -45,8 +45,8 @@
       <h1>ClearNotation</h1>
       <p class="hero-tagline">Technical documentation, clearly.</p>
       <p class="hero-description">
-        A docs-first markup language with a normative EBNF grammar, fail-closed parsing,
-        and typed extensibility. Not Markdown-compatible by design.
+        A markup language with a formal grammar, strict parsing,
+        and one way to write each thing.
       </p>
       <div class="hero-ctas">
         <a href="editor/" class="btn btn-primary">
@@ -72,8 +72,7 @@
       <p class="section-label">Syntax</p>
       <h2 class="section-title">Clean by design, not by accident</h2>
       <p class="section-subtitle">
-        ClearNotation uses explicit, unambiguous syntax. Every construct has one form.
-        The parser either succeeds completely or fails with a precise error.
+        Every construct has one form. The parser either succeeds or fails with a clear error.
       </p>
 
       <div class="comparison">
@@ -143,34 +142,34 @@ Authorization: Bearer &lt;token&gt;
   <section class="section">
     <div class="container">
       <p class="section-label">Why ClearNotation</p>
-      <h2 class="section-title">Built for documentation that ships</h2>
+      <h2 class="section-title">What you get</h2>
       <p class="section-subtitle">
-        Markdown accumulates ambiguity. ClearNotation is specified, not improvised.
+        A spec you can test against, not a collection of conventions.
       </p>
       <div class="features-grid">
         <div class="feature-item">
-          <span class="feature-title">Normative EBNF grammar</span>
-          <p class="feature-desc">The spec is the grammar. Every valid document maps unambiguously to a typed AST. No implementation-defined behavior.</p>
+          <span class="feature-title">Formal grammar</span>
+          <p class="feature-desc">The spec is a grammar. Every valid document maps to a typed AST. No implementation guesswork.</p>
         </div>
         <div class="feature-item">
-          <span class="feature-title">Fail-closed parsing</span>
-          <p class="feature-desc">Unknown directives, unresolved references, and missing includes all produce errors — not silently degraded output.</p>
+          <span class="feature-title">Strict parsing</span>
+          <p class="feature-desc">Unknown directives, bad references, and missing includes all produce errors, not silent garbage.</p>
         </div>
         <div class="feature-item">
-          <span class="feature-title">Typed extensibility</span>
-          <p class="feature-desc">Custom directives are registered in <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">clearnotation.toml</code>, never inline in documents.</p>
+          <span class="feature-title">Typed extensions</span>
+          <p class="feature-desc">Custom directives go in <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">clearnotation.toml</code>. Documents stay clean.</p>
         </div>
         <div class="feature-item">
-          <span class="feature-title">One syntax, one meaning</span>
-          <p class="feature-desc">Strong is <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">+{text}</code>. Links are <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">[label -> url]</code>. No shorthand variants to memorize or misuse.</p>
+          <span class="feature-title">One way to write it</span>
+          <p class="feature-desc">Bold is <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">+{text}</code>. Links are <code style="font-family: 'Geist Mono', monospace; font-size: 13px; background: var(--cn-code-bg); padding: 1px 4px; border-radius: 3px;">[label -> url]</code>. No shorthand variants.</p>
         </div>
         <div class="feature-item">
-          <span class="feature-title">Multi-implementation</span>
-          <p class="feature-desc">Reference Python pipeline, JavaScript normalizer/renderer, tree-sitter grammar, and VS Code extension — all from one spec.</p>
+          <span class="feature-title">Multiple implementations</span>
+          <p class="feature-desc">Python CLI, JavaScript renderer, tree-sitter grammar, and VS Code extension, all from one spec.</p>
         </div>
         <div class="feature-item">
-          <span class="feature-title">57 conformance fixtures</span>
-          <p class="feature-desc">The test suite covers valid documents, parse errors, and validation errors. New implementations can verify compliance independently.</p>
+          <span class="feature-title">70 conformance fixtures</span>
+          <p class="feature-desc">The test suite covers valid documents, parse errors, and validation errors. New implementations can check compliance on their own.</p>
         </div>
       </div>
     </div>
@@ -182,7 +181,7 @@ Authorization: Bearer &lt;token&gt;
       <p class="section-label">Get started</p>
       <h2 class="section-title">Three ways to use ClearNotation</h2>
       <p class="section-subtitle">
-        Pick the integration that fits your workflow. All three share the same spec.
+        All three share the same spec.
       </p>
 
       <div class="install-grid">
@@ -197,8 +196,8 @@ Authorization: Bearer &lt;token&gt;
           <div class="install-card-title">VS Code Extension</div>
           <div class="install-card-subtitle">Syntax highlighting, validation, and preview</div>
           <div class="install-cmd">
-            <code>ext install clearnotation.clearnotation</code>
-            <button class="copy-btn" onclick="copy(this, 'ext install clearnotation.clearnotation')" aria-label="Copy command">
+            <code>ext install ClearNotation.clearnotation</code>
+            <button class="copy-btn" onclick="copy(this, 'ext install ClearNotation.clearnotation')" aria-label="Copy command">
               <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
             </button>
           </div>
@@ -250,7 +249,7 @@ Authorization: Bearer &lt;token&gt;
       <span class="footer-left">MIT License &mdash; v1.0.0</span>
       <ul class="footer-links">
         <li><a href="https://github.com/rjmitchell/clear-notation" target="_blank" rel="noopener">GitHub</a></li>
-        <li><a href="https://github.com/rjmitchell/clear-notation/blob/main/clearnotation-v0.1.ebnf" target="_blank" rel="noopener">Grammar</a></li>
+        <li><a href="https://github.com/rjmitchell/clear-notation/blob/main/clearnotation-v1.0.ebnf" target="_blank" rel="noopener">Grammar</a></li>
         <li><a href="editor/">Editor</a></li>
       </ul>
     </div>
