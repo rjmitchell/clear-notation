@@ -18,10 +18,30 @@ Full VS Code extension with diagnostics, autocomplete for directive names/attrib
 - Priority: P2
 - Context: Include inlining now ships in v1.0. This is the remaining usability gap for multi-file projects.
 
-### JS renderer parity gaps (13 fixtures)
-The cross-implementation conformance suite identified 13 fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, list handling, inline escaping output.
+### JS renderer parity gaps (13+ fixtures)
+The cross-implementation conformance suite identified 13+ fixtures where the JS renderer diverges from the Python reference. Tracked as known gaps and skips in `clearnotation-js/src/conformance.test.ts`. Key categories: footnote HTML structure, code block wrappers, table rendering, NListItem format (v1.0 model change), inline escaping output.
 - Effort: M (CC: ~1 hour)
 - Depends on: nothing
+
+### Publish VS Code extension to marketplace
+Extension is ready (README, icon, CHANGELOG, metadata). Needs `VSCE_PAT` secret in GitHub repo, then `git tag vscode-v1.0.0 && git push origin vscode-v1.0.0` triggers publish.
+- Effort: S (manual: ~15 min for token setup)
+- Priority: P1
+- Blocked on: Azure DevOps PAT + marketplace publisher account
+
+### Publish clearnotation-js to npm
+Package is ready (README, files field, publish workflow). Needs `NPM_TOKEN` secret in GitHub repo, then `git tag npm-v1.0.0 && git push origin npm-v1.0.0` triggers publish.
+- Effort: S (manual: ~10 min for token setup)
+- Priority: P1
+- Blocked on: npm access token
+
+### Hosted editor Phase 2: Shareable URLs
+Add pako compression + base64url encoding of CLN source in the URL hash. Share button that copies the link. Documents over ~2KB compressed show a warning. Custom domain setup.
+- Effort: M (CC: ~30 min)
+- Priority: P2
+- Depends on: Phase 1 adoption metrics (gate: 10+ VS Code installs OR 5+ npm weekly downloads)
+- Design doc: `~/.gstack/projects/rjmitchell-clear-notation/ryan-docs/readme-v1-design-20260408-194517.md`
+- Implementation plan (Phase 2 not yet written): extend `docs/superpowers/plans/2026-04-08-hosted-editor-phase1.md`
 
 ---
 
@@ -62,6 +82,14 @@ The cross-implementation conformance suite identified 13 fixtures where the JS r
 - **Tree-sitter edge cases:** regression tests for `}:`, colon-in-prose, multiple styled spans
 - **Spec documents:** v1.0 EBNF, syntax, AST conformance frozen
 - **Conformance:** 70 fixtures (30 valid, 17 parse-invalid, 23 validate-invalid)
+
+### Hosted editor Phase 1: Foundation
+- **VS Code extension:** README, icon, CHANGELOG, marketplace metadata (ready to publish, needs VSCE_PAT)
+- **clearnotation-js npm:** README, removed private, files field, publish workflow (ready to publish, needs NPM_TOKEN)
+- **Landing page:** Static HTML/CSS at GitHub Pages root with CLN vs Markdown comparison, install cards, "Try the editor" CTA
+- **Editor URL:** Moved from / to /editor/ subpath
+- **Deploy workflow:** Updated to assemble landing page + editor
+- **Editor inline rendering fix:** simple-cln-loader now parses +{bold}, *{italic}, ^{notes}, `code`, [links], and renders ::math/::source/::callout bodies
 
 ### Quality and DX (P2)
 - **ReDoS audit:** All regex patterns verified safe (20 tests)
