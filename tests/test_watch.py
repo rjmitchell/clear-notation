@@ -122,6 +122,64 @@ class WatchSubcommandTests(unittest.TestCase):
             self.assertEqual(rc, 1)
             self.assertIn("watchdog is required", buf.getvalue())
 
+    def test_watch_rebuilds_includers_on_included_file_change(self) -> None:
+        """When an included file changes, the including file is rebuilt."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src_dir = Path(tmpdir) / "src"
+            src_dir.mkdir()
+            out_dir = Path(tmpdir) / "dist"
+
+            # Create a minimal project config so includes resolve within src_dir
+            (src_dir / "clearnotation.toml").write_text('[project]\nroot = "."\n')
+
+            # Create main.cln that includes part.cln
+            part = src_dir / "part.cln"
+            part.write_text("This is the included part.\n")
+            main = src_dir / "main.cln"
+            main.write_text(
+                '= Main\n\n::include[src="part.cln"]\n'
+            )
+
+            from clearnotation_reference.cli import (
+                IncludeGraph, extract_includes, _build_file,
+            )
+            from clearnotation_reference.parser import ReferenceParser
+            from clearnotation_reference.config import load_config
+            from clearnotation_reference.registry import Registry
+
+            out_dir.mkdir()
+            graph = IncludeGraph()
+
+            for cln_file in sorted(src_dir.rglob("*.cln")):
+                out_file = (out_dir / cln_file.relative_to(src_dir)).with_suffix(".html")
+                build_result = _build_file(cln_file, out_file, None, "human", return_doc=True)
+                assert isinstance(build_result, tuple)
+                rc, doc = build_result
+                if doc is not None:
+                    graph.update(cln_file.resolve(), extract_includes(doc, cln_file))
+
+            # Verify graph: part.cln is included by main.cln
+            to_rebuild = graph.files_to_rebuild(part.resolve())
+            self.assertIn(main.resolve(), to_rebuild)
+            self.assertIn(part.resolve(), to_rebuild)
+
+            # Record main.html mtime, then rebuild
+            main_html = out_dir / "main.html"
+            self.assertTrue(main_html.exists())
+            old_mtime = main_html.stat().st_mtime
+
+            import time
+            time.sleep(0.05)
+
+            # Rebuild all files that the graph says need it
+            for f in to_rebuild:
+                rel = f.relative_to(src_dir.resolve())
+                dest = (out_dir / rel).with_suffix(".html")
+                _build_file(f, dest, None, "human")
+
+            new_mtime = main_html.stat().st_mtime
+            self.assertGreater(new_mtime, old_mtime)
+
 
 try:
     import watchdog
