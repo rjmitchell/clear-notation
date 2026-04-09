@@ -34,6 +34,8 @@ No `*` vs `**` ambiguity. No flavor differences. No inline HTML.
 
 ## Try it
 
+**[Project site](https://rjmitchell.github.io/clear-notation/)** — overview, syntax comparison, and install instructions.
+
 **[Live editor](https://rjmitchell.github.io/clear-notation/editor/)** — visual editing on the left, ClearNotation source on the right, live bidirectional sync.
 
 **Features:** templates (PRD, design doc, meeting notes), dark mode, keyboard shortcuts, syntax cheat sheet, Markdown paste auto-conversion, File System Access API for open/save, localStorage autosave, HTML export, WCAG 2.1 AA accessibility.
@@ -49,7 +51,7 @@ No `*` vs `**` ambiguity. No flavor differences. No inline HTML.
 Search "ClearNotation" in the extensions marketplace, or:
 
 ```
-ext install clearnotation.clearnotation
+ext install ClearNotation.clearnotation
 ```
 
 ### Python toolchain (CLI, LSP, renderer)
@@ -174,7 +176,7 @@ pnpm workspace (repo root)
 ## Running the test suite
 
 ```bash
-# Python tests (336 tests)
+# Python tests (349 tests)
 python3 -m unittest discover -s tests -v
 
 # Conformance fixture harness (70 cases)
@@ -184,7 +186,7 @@ python3 -m clearnotation_harness --manifest fixtures/manifest.toml \
 # Editor tests (316 tests)
 cd editor && pnpm test
 
-# JS normalizer/renderer tests (106 tests)
+# JS normalizer/renderer tests (116 tests)
 cd clearnotation-js && pnpm test
 ```
 
