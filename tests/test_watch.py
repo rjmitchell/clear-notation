@@ -150,6 +150,45 @@ class RebuildHandlerTests(unittest.TestCase):
         self.assertFalse(event.is_directory)
 
 
+class ExtractIncludesTests(unittest.TestCase):
+    """Tests for include dependency extraction."""
+
+    def test_no_includes(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, Heading
+        doc = Document(path=Path("/tmp/test.cln"), meta={}, blocks=[Heading(level=1, children=[], id=None, source_line=1)])
+        result = extract_includes(doc, Path("/tmp/test.cln"))
+        self.assertEqual(result, set())
+
+    def test_single_include(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[
+            BlockDirective(name="include", attrs={"src": "chapter1.cln"}, body_mode="none"),
+        ])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/chapter1.cln").resolve()})
+
+    def test_nested_directive_with_include(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        inner = BlockDirective(name="include", attrs={"src": "part.cln"}, body_mode="none")
+        outer = BlockDirective(name="callout", attrs={"kind": "note"}, body_mode="blocks", blocks=[inner])
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[outer])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/part.cln").resolve()})
+
+    def test_multiple_includes(self) -> None:
+        from clearnotation_reference.cli import extract_includes
+        from clearnotation_reference.models import Document, BlockDirective
+        doc = Document(path=Path("/project/main.cln"), meta={}, blocks=[
+            BlockDirective(name="include", attrs={"src": "a.cln"}, body_mode="none"),
+            BlockDirective(name="include", attrs={"src": "b.cln"}, body_mode="none"),
+        ])
+        result = extract_includes(doc, Path("/project/main.cln"))
+        self.assertEqual(result, {Path("/project/a.cln").resolve(), Path("/project/b.cln").resolve()})
+
+
 def _find_free_port() -> int:
     import socket
 

@@ -198,6 +198,32 @@ def _parse_and_normalize(
     return ndoc, registry, doc
 
 
+def extract_includes(doc: "Document", source_path: Path) -> set[Path]:
+    """Extract resolved include paths from a parsed document."""
+    from .models import BlockDirective
+
+    result: set[Path] = set()
+    _walk_includes(doc.blocks, source_path, result)
+    return result
+
+
+def _walk_includes(
+    blocks: list,
+    source_path: Path,
+    result: set[Path],
+) -> None:
+    from .models import BlockDirective
+
+    for block in blocks:
+        if isinstance(block, BlockDirective):
+            if block.name == "include":
+                src = block.attrs.get("src")
+                if src:
+                    target = (source_path.parent / src).resolve()
+                    result.add(target)
+            _walk_includes(block.blocks, source_path, result)
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)
