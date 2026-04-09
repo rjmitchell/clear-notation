@@ -240,6 +240,33 @@ def files_to_rebuild(
     return result
 
 
+class IncludeGraph:
+    """Tracks forward and reverse include dependencies for cln watch."""
+
+    def __init__(self) -> None:
+        self._includes: dict[Path, set[Path]] = {}
+        self._included_by: dict[Path, set[Path]] = {}
+
+    def update(self, source: Path, includes: set[Path]) -> None:
+        """Replace the include set for *source*, updating the reverse map."""
+        for old_target in self._includes.get(source, set()):
+            refs = self._included_by.get(old_target)
+            if refs is not None:
+                refs.discard(source)
+                if not refs:
+                    del self._included_by[old_target]
+        if includes:
+            self._includes[source] = set(includes)
+        else:
+            self._includes.pop(source, None)
+        for target in includes:
+            self._included_by.setdefault(target, set()).add(source)
+
+    def files_to_rebuild(self, changed: Path) -> set[Path]:
+        """Return *changed* plus all transitive includers."""
+        return files_to_rebuild(changed, self._included_by)
+
+
 def _cmd_build(input_path: Path, output: str | None, config_path: str | None, fmt: str) -> int:
     if input_path.is_dir():
         return _build_directory(input_path, output, config_path, fmt)

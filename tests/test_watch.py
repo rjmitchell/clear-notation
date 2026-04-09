@@ -150,6 +150,38 @@ class RebuildHandlerTests(unittest.TestCase):
         self.assertFalse(event.is_directory)
 
 
+class IncludeGraphTests(unittest.TestCase):
+    def test_empty_graph(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        self.assertEqual(graph.files_to_rebuild(Path("/p/a.cln")), {Path("/p/a.cln")})
+
+    def test_update_and_query(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        main, chapter = Path("/project/main.cln"), Path("/project/chapter.cln")
+        graph.update(main, {chapter})
+        self.assertEqual(graph.files_to_rebuild(chapter), {main, chapter})
+
+    def test_update_removes_stale_deps(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        main, old, new = Path("/project/main.cln"), Path("/project/old.cln"), Path("/project/new.cln")
+        graph.update(main, {old})
+        self.assertEqual(graph.files_to_rebuild(old), {main, old})
+        graph.update(main, {new})
+        self.assertEqual(graph.files_to_rebuild(old), {old})
+        self.assertEqual(graph.files_to_rebuild(new), {main, new})
+
+    def test_transitive_rebuild(self) -> None:
+        from clearnotation_reference.cli import IncludeGraph
+        graph = IncludeGraph()
+        a, b, c = Path("/p/a.cln"), Path("/p/b.cln"), Path("/p/c.cln")
+        graph.update(a, {b})
+        graph.update(b, {c})
+        self.assertEqual(graph.files_to_rebuild(c), {a, b, c})
+
+
 class FilesToRebuildTests(unittest.TestCase):
     def test_standalone_file(self) -> None:
         from clearnotation_reference.cli import files_to_rebuild
