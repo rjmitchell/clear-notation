@@ -1,0 +1,77 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "multi-paragraph-ordered",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Multi-Paragraph Ordered"
+        }
+      ]
+    },
+    {
+      "type": "NOrderedList",
+      "items": [
+        {
+          "type": "NOrderedItem",
+          "ordinal": 1,
+          "content": [
+            {
+              "type": "Text",
+              "value": "First step."
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NParagraph",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "Additional details about step one."
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 2,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Second step stands alone."
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 3,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Third step."
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NParagraph",
+              "content": [
+                {
+                  "type": "Text",
+                  "value": "More about step three."
+                }
+              ],
+              "id": null
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

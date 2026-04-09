@@ -1,0 +1,79 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "styled-nested-lists",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Styled Nested Lists"
+        }
+      ]
+    },
+    {
+      "type": "NUnorderedList",
+      "items": [
+        {
+          "content": [
+            {
+              "type": "Strong",
+              "children": [
+                {
+                  "type": "Text",
+                  "value": "Bold parent"
+                }
+              ]
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NUnorderedList",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "type": "Emphasis",
+                      "children": [
+                        {
+                          "type": "Text",
+                          "value": "Italic child"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "content": [
+                    {
+                      "type": "CodeSpan",
+                      "value": "code child"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "content": [
+            {
+              "type": "Link",
+              "label": [
+                {
+                  "type": "Text",
+                  "value": "Link item"
+                }
+              ],
+              "target": "https://example.com"
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

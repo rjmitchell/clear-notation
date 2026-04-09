@@ -1,0 +1,61 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "comment-edge-cases",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Comment Edge Cases"
+        }
+      ]
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "URL in prose: "
+        },
+        {
+          "type": "Link",
+          "label": [
+            {
+              "type": "Text",
+              "value": "site"
+            }
+          ],
+          "target": "https://example.com"
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Code span with slashes "
+        },
+        {
+          "type": "CodeSpan",
+          "value": "http://localhost"
+        }
+      ],
+      "id": null
+    },
+    {
+      "type": "NParagraph",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Text with http://example.com is not a comment."
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

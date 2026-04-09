@@ -1,0 +1,95 @@
+{
+  "meta": {},
+  "blocks": [
+    {
+      "type": "NHeading",
+      "level": 1,
+      "id": "mixed-nesting",
+      "content": [
+        {
+          "type": "Text",
+          "value": "Mixed Nesting"
+        }
+      ]
+    },
+    {
+      "type": "NOrderedList",
+      "items": [
+        {
+          "type": "NOrderedItem",
+          "ordinal": 1,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Ordered parent"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NUnorderedList",
+              "items": [
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Unordered child A"
+                    }
+                  ]
+                },
+                {
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Unordered child B"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        },
+        {
+          "type": "NOrderedItem",
+          "ordinal": 2,
+          "content": [
+            {
+              "type": "Text",
+              "value": "Second ordered"
+            }
+          ],
+          "blocks": [
+            {
+              "type": "NOrderedList",
+              "items": [
+                {
+                  "type": "NOrderedItem",
+                  "ordinal": 1,
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Nested ordered one"
+                    }
+                  ]
+                },
+                {
+                  "type": "NOrderedItem",
+                  "ordinal": 2,
+                  "content": [
+                    {
+                      "type": "Text",
+                      "value": "Nested ordered two"
+                    }
+                  ]
+                }
+              ],
+              "id": null
+            }
+          ]
+        }
+      ],
+      "id": null
+    }
+  ],
+  "notes": []
+}

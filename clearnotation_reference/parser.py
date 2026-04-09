@@ -111,9 +111,11 @@ class ReferenceParser:
         if trimmed.startswith(">"):
             return self._parse_blockquote(lines, index)
         if trimmed.startswith("-"):
-            return self._parse_unordered_list(lines, index)
-        if ORDERED_RE.match(line):
-            return self._parse_ordered_list(lines, index)
+            line_indent = len(line) - len(line.lstrip(" "))
+            return self._parse_unordered_list(lines, index, indent=line_indent)
+        if ORDERED_RE.match(trimmed):
+            line_indent = len(line) - len(line.lstrip(" "))
+            return self._parse_ordered_list(lines, index, indent=line_indent)
         directive_name = self._directive_name(trimmed)
         if directive_name is not None:
             if directive_name == "meta":
