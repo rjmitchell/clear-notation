@@ -90,9 +90,9 @@ cln lint docs/ --schema schema.toml  # validate corpus against a TOML schema
 ## What's in the box
 
 ### Language and toolchain
-- **Normative EBNF grammar** (`clearnotation-v0.1.ebnf`)
+- **Normative EBNF grammar** (`clearnotation-v1.0.ebnf`)
 - **Reference parser, validator, normalizer, and HTML renderer** in Python
-- **57 conformance fixtures** with a manifest-driven test harness and AST snapshot assertions
+- **70 conformance fixtures** with a manifest-driven test harness and AST snapshot assertions
 - **Default stylesheet** (`clearnotation.css`) with light/dark mode, callouts, tables, footnotes, TOC
 - **Formatter** (`cln fmt`) with roundtrip-correct formatting
 - **Multi-error diagnostics** for the validator (reports all block-level errors, not just the first)
@@ -172,10 +172,10 @@ cd clearnotation-js && pnpm test
 
 ## Spec documents
 
-- `clearnotation-v0.1.ebnf` — normative grammar
-- `clearnotation-v0.1-syntax.md` — syntax decisions
+- `clearnotation-v1.0.ebnf` — normative grammar
+- `clearnotation-v1.0-syntax.md` — syntax decisions
+- `clearnotation-v1.0-ast-conformance.md` — AST model and conformance
 - `clearnotation-v0.1-config.md` — config contract
-- `clearnotation-v0.1-ast-conformance.md` — AST model and conformance
 - `clearnotation-v0.1-examples.md` — conformance corpus
 
 ## License
