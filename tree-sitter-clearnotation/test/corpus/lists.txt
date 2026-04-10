@@ -1,0 +1,98 @@
+================
+Flat unordered list
+================
+
+- Alpha
+- Beta
+- Gamma
+
+---
+
+(document
+  (unordered_list
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))))
+
+================
+Flat ordered list
+================
+
+1. First
+2. Second
+3. Third
+
+---
+
+(document
+  (ordered_list
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))))
+
+================
+Nested unordered list
+================
+
+- Top item
+  - Nested one
+  - Nested two
+- Another top
+
+---
+
+(document
+  (unordered_list
+    (unordered_list_item
+      (unordered_list_marker)
+      (inline_content (text))
+      (list_item_body
+        (nested_list
+          (unordered_list
+            (unordered_list_item (unordered_list_marker) (inline_content (text)))
+            (unordered_list_item (unordered_list_marker) (inline_content (text)))))))
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))))
+
+================
+Nested ordered list
+================
+
+1. First
+  1. Inner one
+  2. Inner two
+2. Second
+
+---
+
+(document
+  (ordered_list
+    (ordered_list_item
+      (ordered_list_marker)
+      (inline_content (text))
+      (list_item_body
+        (nested_list
+          (ordered_list
+            (ordered_list_item (ordered_list_marker) (inline_content (text)))
+            (ordered_list_item (ordered_list_marker) (inline_content (text)))))))
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))))
+
+================
+Multi-paragraph list item
+================
+
+- First item
+
+  continuation of first
+- Second item
+
+---
+
+(document
+  (unordered_list
+    (unordered_list_item
+      (unordered_list_marker)
+      (inline_content (text))
+      (list_item_body
+        (list_item_continuation
+          (inline_content (text)))))
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))))

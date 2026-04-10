@@ -146,126 +146,145 @@ static bool scan_raw_content(TSLexer *lexer, const char *delimiter) {
  * false otherwise. Updates `state->after_blank_line` as it encounters
  * blank lines.
  *
- * Design for zero-width DEDENT tokens: we call lexer->mark_end(lexer)
- * immediately on entry (before any advance), which pins the token's end
- * at the current position. For INDENT and LIST_CONTINUATION we call
- * mark_end AGAIN after counting the leading spaces of the significant
- * line, so those tokens consume the indent whitespace. For DEDENT we
- * leave the initial mark in place, producing a zero-width token before
- * the first blank line we skipped (or the start position if there were
- * none).
+ * CASE MATRIX (after skipping blanks and counting indent of next line):
+ *
+ *   INDENT             : indent > current_top AND next line starts with
+ *                        a list marker (- or N.). Zero-width at entry;
+ *                        marker matched by the internal lexer next.
+ *   LIST_CONTINUATION  : indent >= current_top AND next line is NOT a
+ *                        list marker AND a blank line was seen. Token
+ *                        extends from entry through the leading spaces.
+ *   DEDENT             : indent < current_top. Zero-width at entry.
+ *   return false       : everything else (same-level sibling items, plain
+ *                        text at list's own indent with no blank, etc.)
+ *
+ * Token-boundary strategy:
+ *   - mark_end at entry pins the zero-width point for DEDENT.
+ *   - For INDENT and LIST_CONTINUATION we call mark_end AGAIN after the
+ *     leading spaces of the non-blank line, so those tokens consume the
+ *     blank lines and leading indent. The list marker is NOT consumed
+ *     by the scanner — the internal lexer matches it next, starting
+ *     from the mark_end position. (The grammar's list marker rule
+ *     accepts optional leading whitespace for sibling items at nested
+ *     levels, where the scanner does not fire because indent equals
+ *     current_top.)
+ *
+ * `after_blank_line` is cleared whenever a list marker is seen so a
+ * subsequent scanner call starts fresh.
  */
 static bool scan_indent_tokens(TSLexer *lexer, ScannerState *state,
                                const bool *valid_symbols) {
-  // Pin the token's end at the current position so that DEDENT — which
-  // should be zero-width at the point where the scanner was invoked —
-  // does not accidentally consume any of the blank lines or leading
-  // spaces we examine below.
+  // Column gate: only run at the start of a line.
+  if (lexer->get_column(lexer) != 0) return false;
+
+  // Pin the token end at the entry position. DEDENT will use this
+  // (zero-width at entry). For INDENT and LIST_CONTINUATION we call
+  // mark_end AGAIN after the leading spaces of the target line, so
+  // those tokens consume the blank lines and leading indent.
   lexer->mark_end(lexer);
 
-  // Skip any number of blank lines. A blank line is zero-or-more
-  // spaces/tabs followed by '\n'. We use advance(true) to mark the
-  // characters as whitespace so they are not part of any token.
+  // Skip blank lines and leading spaces using skip=false so these
+  // characters are part of the current lex range. The token end is
+  // controlled by mark_end, so skip=false on these chars is safe:
+  // for DEDENT we never call mark_end again, so the token stays at
+  // entry; for INDENT/LIST_CONTINUATION we mark_end again after the
+  // leading spaces so the token extends to that point.
   bool saw_blank = false;
-  while (!lexer->eof(lexer)) {
-    // Remember the start of this line so we can tell if it was blank.
-    // We advance through any leading spaces/tabs. If we hit '\n', the
-    // line was blank; otherwise we've consumed the leading indent and
-    // are sitting on the first non-whitespace char.
-    //
-    // Because advancing past non-blank leading spaces commits us to
-    // consuming them (they can't be un-advanced), we need to be careful
-    // here: if we find a NON-blank line, we must NOT advance past its
-    // leading spaces at this point — the decision logic below needs to
-    // both count the indent and (for DEDENT) keep the token zero-width.
-    //
-    // We peek by counting leading spaces via advance(true). We treat
-    // the advanced whitespace as "skipped" (not part of any token) for
-    // both the blank-line case AND the non-blank-line case. This is
-    // safe because a subsequent INDENT/LIST_CONTINUATION token will
-    // simply begin at the first non-whitespace char — the grammar
-    // doesn't care that the leading spaces were "consumed" as skip.
-    uint32_t indent = 0;
-    bool saw_tab = false;
-    while (lexer->lookahead == ' ' || lexer->lookahead == '\t') {
-      if (lexer->lookahead == '\t') {
-        saw_tab = true;
-      }
-      indent++;
-      lexer->advance(lexer, true);
-    }
+  for (;;) {
+    if (lexer->eof(lexer)) return false;
 
-    // Reject tabs in indentation.
-    if (saw_tab) {
-      return false;
+    while (lexer->lookahead == ' ') {
+      lexer->advance(lexer, false);
     }
+    if (lexer->lookahead == '\t') return false;
 
     if (lexer->lookahead == '\n') {
-      // Blank line — skip the newline and loop to the next line.
-      lexer->advance(lexer, true);
+      lexer->advance(lexer, false);
       saw_blank = true;
       continue;
     }
-
-    if (lexer->eof(lexer)) {
-      // EOF after possibly-blank lines. We don't emit indent tokens
-      // at EOF — let the grammar handle end-of-document.
-      return false;
-    }
-
-    // We are now at the first non-whitespace character of a non-blank
-    // line, and `indent` contains its leading-space count. We have NOT
-    // called mark_end since entry, so the token remains zero-width at
-    // the original scan position.
-    if (saw_blank) {
-      state->after_blank_line = true;
-    }
-
-    uint8_t current_top =
-        state->depth > 0 ? state->stack[state->depth - 1] : 0;
-
-    // INDENT: deeper than the current level and grammar wants one.
-    if (valid_symbols[INDENT] && indent > current_top) {
-      if (state->depth >= MAX_STACK_DEPTH) {
-        return false;
-      }
-      state->stack[state->depth] = (uint8_t)indent;
-      state->depth++;
-      state->after_blank_line = false;
-      // Extend token end to the current position (after the indent
-      // spaces) so this token consumes the leading spaces.
-      lexer->mark_end(lexer);
-      lexer->result_symbol = INDENT;
-      return true;
-    }
-
-    // DEDENT: shallower than the current level and grammar wants one.
-    if (valid_symbols[DEDENT] && indent < current_top) {
-      // Pop one level. Emit a zero-width DEDENT token. Do NOT call
-      // mark_end again — the initial mark_end at entry keeps the
-      // token's end at the position where scan was invoked, which is
-      // BEFORE the blank lines / leading spaces we examined.
-      if (state->depth > 1) {
-        state->depth--;
-      }
-      state->after_blank_line = false;
-      lexer->result_symbol = DEDENT;
-      return true;
-    }
-
-    // LIST_CONTINUATION: same indent, and we crossed a blank line.
-    if (valid_symbols[LIST_CONTINUATION] && indent == current_top &&
-        state->after_blank_line) {
-      state->after_blank_line = false;
-      lexer->mark_end(lexer);
-      lexer->result_symbol = LIST_CONTINUATION;
-      return true;
-    }
-
-    // None of the three tokens fit here. Bail out.
-    return false;
+    break;
   }
 
+  if (saw_blank) {
+    state->after_blank_line = true;
+  }
+
+  if (lexer->eof(lexer)) return false;
+
+  // Indent count of the current (non-blank) line = current column.
+  uint32_t indent = lexer->get_column(lexer);
+
+  uint8_t current_top =
+      state->depth > 0 ? state->stack[state->depth - 1] : 0;
+
+  // EARLY DEDENT check: if this line is shallower than the current
+  // level, emit DEDENT (zero-width at entry). We don't need to peek
+  // for a marker — DEDENT fires regardless.
+  if (valid_symbols[DEDENT] && indent < current_top) {
+    if (state->depth > 1) {
+      state->depth--;
+    }
+    state->after_blank_line = false;
+    // Do NOT extend mark_end — keep it at the entry position for
+    // zero-width DEDENT.
+    lexer->result_symbol = DEDENT;
+    return true;
+  }
+
+  // For INDENT/LIST_CONTINUATION we need to know if this line begins
+  // with a list marker. Mark the token end HERE — at the first non-
+  // space char of the target line — so that if we emit a token now,
+  // it ends at this point and the next lex begins at the marker (or
+  // first content character).
+  lexer->mark_end(lexer);
+
+  // Now peek for a list marker. These advances are "after mark_end",
+  // so they do not affect the current token's range. Tree-sitter
+  // will re-lex from mark_end on the next call regardless of where
+  // the lexer position ends up.
+  bool is_marker = false;
+  int32_t ch = lexer->lookahead;
+  if (ch == '-') {
+    lexer->advance(lexer, false);
+    if (lexer->lookahead == ' ') {
+      is_marker = true;
+    }
+  } else if (ch >= '0' && ch <= '9') {
+    while (lexer->lookahead >= '0' && lexer->lookahead <= '9') {
+      lexer->advance(lexer, false);
+    }
+    if (lexer->lookahead == '.') {
+      lexer->advance(lexer, false);
+      if (lexer->lookahead == ' ') {
+        is_marker = true;
+      }
+    }
+  }
+
+  // INDENT: deeper level + next line starts with a list marker.
+  if (valid_symbols[INDENT] && is_marker && indent > current_top) {
+    if (state->depth >= MAX_STACK_DEPTH) return false;
+    state->stack[state->depth] = (uint8_t)indent;
+    state->depth++;
+    state->after_blank_line = false;
+    lexer->result_symbol = INDENT;
+    return true;
+  }
+
+  // LIST_CONTINUATION: same/deeper indent, not a marker, after blank.
+  if (valid_symbols[LIST_CONTINUATION] && !is_marker &&
+      indent >= current_top && state->after_blank_line) {
+    state->after_blank_line = false;
+    lexer->result_symbol = LIST_CONTINUATION;
+    return true;
+  }
+
+  // Nothing matched. Clear after_blank_line when we saw a marker so
+  // a subsequent scanner call for a sibling item starts fresh.
+  if (is_marker) {
+    state->after_blank_line = false;
+  }
   return false;
 }
 
