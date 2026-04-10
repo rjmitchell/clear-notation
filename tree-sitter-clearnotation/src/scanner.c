@@ -130,14 +130,6 @@ static bool scan_raw_content(TSLexer *lexer, const char *delimiter) {
 // ═══════════════════════════════════════════════════════════════════════
 
 /**
- * Check whether the current line (from lexer->lookahead position) is
- * a blank line (only whitespace before newline/EOF). Does NOT advance.
- *
- * We can't peek without advancing in tree-sitter, so this helper is
- * implemented as part of the main scan loop below using mark_end.
- */
-
-/**
  * Attempt to scan an INDENT, DEDENT, or LIST_CONTINUATION token based
  * on the current indentation stack state and the indentation of the
  * next non-blank line.
@@ -273,8 +265,10 @@ static bool scan_indent_tokens(TSLexer *lexer, ScannerState *state,
   }
 
   // LIST_CONTINUATION: same/deeper indent, not a marker, after blank.
+  // Must be indent > 0: a non-indented block after a blank line is always
+  // a new document-level block, never a continuation of a list item.
   if (valid_symbols[LIST_CONTINUATION] && !is_marker &&
-      indent >= current_top && state->after_blank_line) {
+      indent > 0 && indent >= current_top && state->after_blank_line) {
     state->after_blank_line = false;
     lexer->result_symbol = LIST_CONTINUATION;
     return true;
@@ -337,7 +331,7 @@ void tree_sitter_clearnotation_external_scanner_deserialize(
     return;
   }
   uint8_t depth = (uint8_t)buffer[0];
-  if (depth > MAX_STACK_DEPTH || length < (unsigned)(2 + depth)) {
+  if (depth == 0 || depth > MAX_STACK_DEPTH || length < (unsigned)(2 + depth)) {
     state->stack[0] = 0;
     state->depth = 1;
     state->after_blank_line = false;

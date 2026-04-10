@@ -96,3 +96,60 @@ Multi-paragraph list item
         (list_item_continuation
           (inline_content (text)))))
     (unordered_list_item (unordered_list_marker) (inline_content (text)))))
+
+================
+List followed by heading
+================
+
+- Item one
+- Item two
+
+# Heading after list
+
+---
+
+(document
+  (unordered_list
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))
+    (unordered_list_item (unordered_list_marker) (inline_content (text))))
+  (heading
+    (heading_marker)
+    (inline_content (text))))
+
+================
+List followed by paragraph
+================
+
+- Item one
+- Item two
+
+Paragraph after list.
+
+---
+
+(document
+  (unordered_list
+    (unordered_list_item (unordered_list_marker) (inline_content (text)))
+    (unordered_list_item (unordered_list_marker) (inline_content (text))))
+  (paragraph
+    (paragraph_line
+      (inline_content (text)))))
+
+================
+Ordered list followed by heading
+================
+
+1. First
+2. Second
+
+# Next section
+
+---
+
+(document
+  (ordered_list
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))
+    (ordered_list_item (ordered_list_marker) (inline_content (text))))
+  (heading
+    (heading_marker)
+    (inline_content (text))))
