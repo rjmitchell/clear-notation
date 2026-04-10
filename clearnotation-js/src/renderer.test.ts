@@ -570,6 +570,7 @@ describe("renderHtml", () => {
         ] }
       ]));
       expect(html).not.toContain('href="data:');
+      expect(html).toContain('href="#"');
     });
 
     it("allows https: links", () => {
@@ -604,6 +605,17 @@ describe("renderHtml", () => {
         { type: "figure", src: "javascript:alert(1)", blocks: [] }
       ]));
       expect(html).not.toContain('src="javascript:');
+      expect(html).toContain('src="#"');
+    });
+
+    it("blocks uppercase JAVASCRIPT: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "JAVASCRIPT:alert(1)" }
+        ] }
+      ]));
+      expect(html).not.toContain('JAVASCRIPT:');
+      expect(html).toContain('href="#"');
     });
   });
 });

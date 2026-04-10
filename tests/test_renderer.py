@@ -30,6 +30,7 @@ class UrlSchemeSecurityTests(unittest.TestCase):
             ])
         ])
         self.assertNotIn('href="data:', doc_html)
+        self.assertIn('href="#"', doc_html)
 
     def test_https_link_is_allowed(self):
         from clearnotation_reference.models import NParagraph, Link, Text
@@ -64,6 +65,7 @@ class UrlSchemeSecurityTests(unittest.TestCase):
             NFigure(src="javascript:alert(1)", blocks=[])
         ])
         self.assertNotIn('src="javascript:', doc_html)
+        self.assertIn('src="#"', doc_html)
 
     def test_data_figure_src_is_sanitized(self):
         from clearnotation_reference.models import NFigure
@@ -71,6 +73,17 @@ class UrlSchemeSecurityTests(unittest.TestCase):
             NFigure(src="data:image/svg+xml,<script>alert(1)</script>", blocks=[])
         ])
         self.assertNotIn('src="data:', doc_html)
+        self.assertIn('src="#"', doc_html)
+
+    def test_uppercase_javascript_link_is_sanitized(self):
+        from clearnotation_reference.models import NParagraph, Link, Text
+        doc_html = self._render_doc([
+            NParagraph(content=[
+                Link(label=[Text("click")], target="JAVASCRIPT:alert(1)")
+            ])
+        ])
+        self.assertNotIn('JAVASCRIPT:', doc_html)
+        self.assertIn('href="#"', doc_html)
 
 
 if __name__ == "__main__":
