@@ -6,9 +6,9 @@ A docs-first, non-Turing-complete, formally specified markup language for techni
 
 ```bash
 # Run all tests
-python3 -m unittest discover -s tests -v          # 357 Python tests
-cd editor && pnpm test                             # 331 editor tests
-cd clearnotation-js && pnpm test                   # 123 JS normalizer/renderer tests
+python3 -m unittest discover -s tests -v          # 362 Python tests
+cd editor && pnpm test                             # 336 editor tests
+cd clearnotation-js && pnpm test                   # 129 JS normalizer/renderer tests
 
 # Run fixture harness (70 conformance cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter

@@ -1,19 +1,26 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.1] - 2026-04-10
 
 ### Security
 - Block `javascript:` and `data:` URI schemes in rendered link `href` and figure `src` attributes. Both Python and JS renderers now use an allowlist (`http`, `https`, `mailto`, `tel`) and fall back to `#` for any other scheme. Closes CSO audit findings #10 and #11.
+- Block protocol-relative URLs (`//evil.com`) in link `href` and figure `src`. Without this guard, browsers would load the URL under the page's own scheme, enabling open-redirect and tracker-pixel attacks from valid CLN documents.
+- Block percent-encoded dangerous schemes (`javascript%3a...`, `JAVASCRIPT%3A...`). Browsers decode percent-encoding before routing URLs, so the literal-colon check was bypassable. Both renderers now percent-decode before scheme extraction and handle malformed sequences safely.
 
 ### Added
 - Tree-sitter grammar v1.0 parity: external scanner with indent stack, nested list support (both unordered and ordered), multi-paragraph list items via `LIST_CONTINUATION` token. Grammar now matches the frozen v1.0 spec that the Python parser already implemented.
 - Editor `clnComment` block type for `// comment` lines.
 - Editor converter: nested list children populated from `list_item_body` CST nodes (nested lists become children, multi-paragraph continuations become child paragraphs).
 - Editor serializer: depth-aware indentation for nested lists and content-column alignment for multi-paragraph continuations (including double-digit ordered markers).
-- Tree-sitter corpus: 8 new list test cases (flat, nested, multi-paragraph, list-followed-by-heading regression tests).
+- Tree-sitter corpus: 9 new list test cases (flat, nested, multi-paragraph unordered + ordered, list-followed-by-heading regression tests).
 
 ### Fixed
 - Editor comment converter stripped only the `//` prefix, leaving a trailing newline in `props.text`. Now strips trailing whitespace as well, restoring round-trip fidelity.
+- Tree-sitter scanner now bails out during parser error recovery (when all external symbols are simultaneously valid), preventing corrupt indent-stack state from persisting across incremental parses.
+
+### Changed
+- `convertUnorderedList`/`convertOrderedList` share a `convertListItemBody` helper (eliminates ~30 lines of duplication).
+- Scanner uses `TREE_SITTER_SERIALIZATION_BUFFER_SIZE` instead of a magic `1024`. Removed unused `<string.h>` include and redundant deserialize guard branches.
 
 ## [1.0.0] - 2026-04-08
 
