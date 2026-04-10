@@ -118,6 +118,18 @@ export const clnMetaBlockSpec: CLNBlockSpec = {
 };
 
 // ═══════════════════════════════════════════════════════════════════
+// Comment: // ...
+// ═══════════════════════════════════════════════════════════════════
+
+export const clnCommentBlockSpec: CLNBlockSpec = {
+  type: "clnComment",
+  propSchema: {
+    text: { type: "string", default: "" },
+  },
+  content: "none",
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // Collected map of all core block specs
 // ═══════════════════════════════════════════════════════════════════
 
@@ -130,4 +142,5 @@ export const CORE_BLOCK_SPECS: Record<string, CLNBlockSpec> = {
   clnBlockquote: clnBlockquoteBlockSpec,
   clnThematicBreak: clnThematicBreakBlockSpec,
   clnMeta: clnMetaBlockSpec,
+  clnComment: clnCommentBlockSpec,
 };

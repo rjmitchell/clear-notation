@@ -20,6 +20,7 @@ export {
   clnBlockquoteBlockSpec,
   clnThematicBreakBlockSpec,
   clnMetaBlockSpec,
+  clnCommentBlockSpec,
   type CLNBlockSpec,
   type CLNPropDef,
 } from "./core-blocks";

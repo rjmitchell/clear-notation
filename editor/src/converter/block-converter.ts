@@ -48,16 +48,24 @@ export async function convertBlock(
       return [{ type: "clnThematicBreak", props: {}, content: [], children: [] }];
 
     case "unordered_list":
-      return convertUnorderedList(node);
+      return convertUnorderedList(node, options);
 
     case "ordered_list":
-      return convertOrderedList(node);
+      return convertOrderedList(node, options);
 
     case "blockquote":
       return [convertBlockquote(node)];
 
     case "meta_block":
       return [convertMetaBlock(node)];
+
+    case "comment":
+      return [{
+        type: "clnComment",
+        props: { text: node.text.replace(/^[ \t]*\/\/\s?/, "") },
+        content: [],
+        children: [],
+      }];
 
     case "block_directive_self_closing":
       return [convertSelfClosingDirective(node)];
@@ -138,23 +146,52 @@ function convertFencedCodeBlock(node: CSTNode): BNBlock {
 
 // ── unordered list ────────────────────────────────────────────
 
-function convertUnorderedList(node: CSTNode): BNBlock[] {
+function convertUnorderedList(node: CSTNode, options?: ConvertOptions): BNBlock[] {
   const items = findChildrenByType(node, "unordered_list_item");
   return items.map((item) => {
     const inlineNode = findChildByType(item, "inline_content");
     const content = inlineNode ? convertInline(inlineNode) : [];
+
+    const bodyNode = findChildByType(item, "list_item_body");
+    const children: BNBlock[] = [];
+    if (bodyNode) {
+      for (const child of bodyNode.children) {
+        if (child.type === "nested_list") {
+          const innerList = child.children.find(
+            (c: CSTNode) => c.type === "unordered_list" || c.type === "ordered_list"
+          );
+          if (innerList) {
+            const converted = innerList.type === "unordered_list"
+              ? convertUnorderedList(innerList, options)
+              : convertOrderedList(innerList, options);
+            children.push(...converted);
+          }
+        } else if (child.type === "list_item_continuation") {
+          const contInline = findChildByType(child, "inline_content");
+          if (contInline) {
+            children.push({
+              type: "clnParagraph",
+              props: {},
+              content: convertInline(contInline),
+              children: [],
+            });
+          }
+        }
+      }
+    }
+
     return {
       type: "clnUnorderedList",
       props: {},
       content,
-      children: [],
+      children,
     };
   });
 }
 
 // ── ordered list ──────────────────────────────────────────────
 
-function convertOrderedList(node: CSTNode): BNBlock[] {
+function convertOrderedList(node: CSTNode, options?: ConvertOptions): BNBlock[] {
   const items = findChildrenByType(node, "ordered_list_item");
   return items.map((item) => {
     const markerNode = findChildByType(item, "ordered_list_marker");
@@ -165,11 +202,39 @@ function convertOrderedList(node: CSTNode): BNBlock[] {
     const inlineNode = findChildByType(item, "inline_content");
     const content = inlineNode ? convertInline(inlineNode) : [];
 
+    const bodyNode = findChildByType(item, "list_item_body");
+    const children: BNBlock[] = [];
+    if (bodyNode) {
+      for (const child of bodyNode.children) {
+        if (child.type === "nested_list") {
+          const innerList = child.children.find(
+            (c: CSTNode) => c.type === "unordered_list" || c.type === "ordered_list"
+          );
+          if (innerList) {
+            const converted = innerList.type === "unordered_list"
+              ? convertUnorderedList(innerList, options)
+              : convertOrderedList(innerList, options);
+            children.push(...converted);
+          }
+        } else if (child.type === "list_item_continuation") {
+          const contInline = findChildByType(child, "inline_content");
+          if (contInline) {
+            children.push({
+              type: "clnParagraph",
+              props: {},
+              content: convertInline(contInline),
+              children: [],
+            });
+          }
+        }
+      }
+    }
+
     return {
       type: "clnOrderedList",
       props: { startNumber },
       content,
-      children: [],
+      children,
     };
   });
 }
