@@ -81,6 +81,34 @@ describe("serializeBlock", () => {
         serializeBlock(block("clnUnorderedList", {}, [text("Item")]))
       ).toBe("- Item");
     });
+
+    it("serializes nested unordered list", () => {
+      const child = block("clnUnorderedList", {}, [text("child")]);
+      expect(
+        serializeBlock(block("clnUnorderedList", {}, [text("parent")], [child]))
+      ).toBe("- parent\n  - child");
+    });
+
+    it("serializes unordered list with paragraph continuation", () => {
+      const child = block("clnParagraph", {}, [text("continuation")]);
+      expect(
+        serializeBlock(block("clnUnorderedList", {}, [text("item")], [child]))
+      ).toBe("- item\n\n  continuation");
+    });
+
+    it("serializes deeply nested unordered list", () => {
+      const grandchild = block("clnUnorderedList", {}, [text("grandchild")]);
+      const child = block("clnUnorderedList", {}, [text("child")], [grandchild]);
+      expect(
+        serializeBlock(block("clnUnorderedList", {}, [text("parent")], [child]))
+      ).toBe("- parent\n  - child\n    - grandchild");
+    });
+
+    it("serializes flat unordered list with no children unchanged", () => {
+      expect(
+        serializeBlock(block("clnUnorderedList", {}, [text("Item")], []))
+      ).toBe("- Item");
+    });
   });
 
   describe("clnOrderedList", () => {
@@ -94,6 +122,53 @@ describe("serializeBlock", () => {
       expect(
         serializeBlock(block("clnOrderedList", { startNumber: 5 }, [text("Fifth")]))
       ).toBe("5. Fifth");
+    });
+
+    it("serializes ordered list with nested unordered list", () => {
+      const child = block("clnUnorderedList", {}, [text("bullet")]);
+      expect(
+        serializeBlock(block("clnOrderedList", { startNumber: 1 }, [text("item")], [child]))
+      ).toBe("1. item\n  - bullet");
+    });
+
+    it("serializes ordered list with paragraph continuation", () => {
+      const child = block("clnParagraph", {}, [text("continuation")]);
+      expect(
+        serializeBlock(block("clnOrderedList", { startNumber: 1 }, [text("item")], [child]))
+      ).toBe("1. item\n\n   continuation");
+    });
+
+    it("serializes ordered list with paragraph continuation (double-digit number)", () => {
+      const child = block("clnParagraph", {}, [text("continuation")]);
+      expect(
+        serializeBlock(block("clnOrderedList", { startNumber: 10 }, [text("item")], [child]))
+      ).toBe("10. item\n\n    continuation");
+    });
+
+    it("serializes flat ordered list with no children unchanged", () => {
+      expect(
+        serializeBlock(block("clnOrderedList", { startNumber: 2 }, [text("Second")], []))
+      ).toBe("2. Second");
+    });
+  });
+
+  describe("clnComment", () => {
+    it("serializes comment block with text", () => {
+      expect(
+        serializeBlock(block("clnComment", { text: "hello" }))
+      ).toBe("// hello");
+    });
+
+    it("serializes comment block with empty text", () => {
+      expect(
+        serializeBlock(block("clnComment", { text: "" }))
+      ).toBe("// ");
+    });
+
+    it("serializes comment block with no text prop", () => {
+      expect(
+        serializeBlock(block("clnComment"))
+      ).toBe("// ");
     });
   });
 
