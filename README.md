@@ -176,17 +176,17 @@ pnpm workspace (repo root)
 ## Running the test suite
 
 ```bash
-# Python tests (349 tests)
+# Python tests (357 tests)
 python3 -m unittest discover -s tests -v
 
 # Conformance fixture harness (70 cases)
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml \
   --adapter clearnotation_reference.adapter:create_adapter
 
-# Editor tests (316 tests)
+# Editor tests (331 tests)
 cd editor && pnpm test
 
-# JS normalizer/renderer tests (116 tests)
+# JS normalizer/renderer tests (123 tests)
 cd clearnotation-js && pnpm test
 ```
 

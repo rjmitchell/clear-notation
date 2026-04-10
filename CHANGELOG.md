@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Security
+- Block `javascript:` and `data:` URI schemes in rendered link `href` and figure `src` attributes. Both Python and JS renderers now use an allowlist (`http`, `https`, `mailto`, `tel`) and fall back to `#` for any other scheme. Closes CSO audit findings #10 and #11.
+
+### Added
+- Tree-sitter grammar v1.0 parity: external scanner with indent stack, nested list support (both unordered and ordered), multi-paragraph list items via `LIST_CONTINUATION` token. Grammar now matches the frozen v1.0 spec that the Python parser already implemented.
+- Editor `clnComment` block type for `// comment` lines.
+- Editor converter: nested list children populated from `list_item_body` CST nodes (nested lists become children, multi-paragraph continuations become child paragraphs).
+- Editor serializer: depth-aware indentation for nested lists and content-column alignment for multi-paragraph continuations (including double-digit ordered markers).
+- Tree-sitter corpus: 8 new list test cases (flat, nested, multi-paragraph, list-followed-by-heading regression tests).
+
+### Fixed
+- Editor comment converter stripped only the `//` prefix, leaving a trailing newline in `props.text`. Now strips trailing whitespace as well, restoring round-trip fidelity.
+
 ## [1.0.0] - 2026-04-08
 
 ### Added

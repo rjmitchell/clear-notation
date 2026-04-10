@@ -20,7 +20,7 @@ This is a security fix that should ship before the grammar work. Both Python and
 - Test: `tests/test_renderer.py` (new tests)
 - Test: `clearnotation-js/src/renderer.test.ts` (new tests)
 
-- [ ] **Step 1: Write Python renderer tests for URL scheme validation**
+- [x] **Step 1: Write Python renderer tests for URL scheme validation**
 
 Add to `tests/test_renderer.py`:
 
@@ -95,12 +95,12 @@ class UrlSchemeSecurityTests(unittest.TestCase):
         self.assertNotIn('src="data:', doc_html)
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `python3 -m pytest tests/test_renderer.py::UrlSchemeSecurityTests -v 2>&1`
 Expected: Tests fail because no URL scheme validation exists.
 
-- [ ] **Step 3: Add URL sanitization to Python renderer**
+- [x] **Step 3: Add URL sanitization to Python renderer**
 
 In `clearnotation_reference/renderer.py`, add this function near the top of the file (after the imports):
 
@@ -131,7 +131,7 @@ In `_render_block` (line ~148), change the figure rendering:
 parts_list.append(f'<img src="{_esc(_safe_url(block.src))}" alt="">')
 ```
 
-- [ ] **Step 4: Run Python tests**
+- [x] **Step 4: Run Python tests**
 
 Run: `python3 -m pytest tests/test_renderer.py::UrlSchemeSecurityTests -v 2>&1`
 Expected: All 8 tests pass.
@@ -139,7 +139,7 @@ Expected: All 8 tests pass.
 Run: `python3 -m unittest discover -s tests -v 2>&1 | tail -5`
 Expected: All tests pass (no regressions).
 
-- [ ] **Step 5: Add URL sanitization to JS renderer**
+- [x] **Step 5: Add URL sanitization to JS renderer**
 
 In `clearnotation-js/src/renderer.ts`, add this function after the `escHtml` import:
 
@@ -172,7 +172,7 @@ Update the figure rendering (line ~241):
   parts.push(`<img src="${escHtml(safeUrl(block.src))}" alt="">`);
 ```
 
-- [ ] **Step 6: Add JS renderer tests**
+- [x] **Step 6: Add JS renderer tests**
 
 Add to `clearnotation-js/src/renderer.test.ts`:
 
@@ -233,12 +233,12 @@ describe("URL scheme sanitization", () => {
 });
 ```
 
-- [ ] **Step 7: Run JS tests**
+- [x] **Step 7: Run JS tests**
 
 Run: `cd clearnotation-js && pnpm test -- --reporter=verbose 2>&1 | tail -10`
 Expected: All tests pass including new URL sanitization tests.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add clearnotation_reference/renderer.py clearnotation-js/src/renderer.ts tests/test_renderer.py clearnotation-js/src/renderer.test.ts
@@ -252,7 +252,7 @@ git commit -m "security: block javascript: and data: URIs in link href and figur
 **Files:**
 - Modify: `tree-sitter-clearnotation/src/scanner.c`
 
-- [ ] **Step 1: Add indent stack constants and state struct**
+- [x] **Step 1: Add indent stack constants and state struct**
 
 At the top of `scanner.c`, after the existing `#include` and `enum TokenType`, add the new token types to the enum and define the state:
 
@@ -274,7 +274,7 @@ typedef struct {
 } ScannerState;
 ```
 
-- [ ] **Step 2: Update create/destroy to allocate state**
+- [x] **Step 2: Update create/destroy to allocate state**
 
 Replace the existing create/destroy functions:
 
@@ -294,7 +294,7 @@ void tree_sitter_clearnotation_external_scanner_destroy(void *payload) {
 }
 ```
 
-- [ ] **Step 3: Implement serialize/deserialize with bounds checking**
+- [x] **Step 3: Implement serialize/deserialize with bounds checking**
 
 Replace the existing serialize/deserialize:
 
@@ -344,7 +344,7 @@ void tree_sitter_clearnotation_external_scanner_deserialize(
 }
 ```
 
-- [ ] **Step 4: Add indent scanning logic to the scan function**
+- [x] **Step 4: Add indent scanning logic to the scan function**
 
 Add this before the existing `CODE_BLOCK_CONTENT_RAW` check in `tree_sitter_clearnotation_external_scanner_scan`:
 
@@ -402,12 +402,12 @@ Also add blank line tracking: when scanning raw content or at line boundaries, s
   }
 ```
 
-- [ ] **Step 5: Verify scanner compiles**
+- [x] **Step 5: Verify scanner compiles**
 
 Run: `cd tree-sitter-clearnotation && tree-sitter generate 2>&1`
 Expected: No errors (grammar.js hasn't been updated yet, so the new token types are in the enum but not referenced).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tree-sitter-clearnotation/src/scanner.c
@@ -422,7 +422,7 @@ git commit -m "feat: add indent stack to tree-sitter scanner for nested list sup
 - Modify: `tree-sitter-clearnotation/grammar.js:26-29,144-167`
 - Create: `tree-sitter-clearnotation/test/corpus/lists.txt`
 
-- [ ] **Step 1: Add new externals to grammar.js**
+- [x] **Step 1: Add new externals to grammar.js**
 
 In `grammar.js`, update the `externals` array (line 26-29) to include the three new tokens:
 
@@ -436,7 +436,7 @@ In `grammar.js`, update the `externals` array (line 26-29) to include the three 
   ],
 ```
 
-- [ ] **Step 2: Replace flat list rules with nested list rules**
+- [x] **Step 2: Replace flat list rules with nested list rules**
 
 Replace the entire Lists section (lines 141-167) with:
 
@@ -491,7 +491,7 @@ Replace the entire Lists section (lines 141-167) with:
       ),
 ```
 
-- [ ] **Step 3: Update scanner.c enum to match grammar externals order**
+- [x] **Step 3: Update scanner.c enum to match grammar externals order**
 
 The enum in `scanner.c` must match the order of the `externals` array in `grammar.js`. Update:
 
@@ -507,7 +507,7 @@ enum TokenType {
 
 This already matches. Verify the order is correct.
 
-- [ ] **Step 4: Generate and test grammar**
+- [x] **Step 4: Generate and test grammar**
 
 Run: `cd tree-sitter-clearnotation && tree-sitter generate 2>&1`
 Expected: Grammar generates successfully.
@@ -515,7 +515,7 @@ Expected: Grammar generates successfully.
 Run: `cd tree-sitter-clearnotation && tree-sitter test 2>&1`
 Expected: Existing tests pass (comments, basics, directives, inline, edge-cases). List tests will be added next.
 
-- [ ] **Step 5: Create list test corpus**
+- [x] **Step 5: Create list test corpus**
 
 Create `tree-sitter-clearnotation/test/corpus/lists.txt`:
 
@@ -576,21 +576,21 @@ Nested unordered list
     (unordered_list_item (unordered_list_marker) (inline_content (text)))))
 ```
 
-- [ ] **Step 6: Run tree-sitter tests**
+- [x] **Step 6: Run tree-sitter tests**
 
 Run: `cd tree-sitter-clearnotation && tree-sitter test 2>&1`
 Expected: All tests pass including new list corpus tests. If nested list tests fail, debug the scanner indent logic.
 
-- [ ] **Step 7: Build WASM**
+- [x] **Step 7: Build WASM**
 
 Run: `cd tree-sitter-clearnotation && tree-sitter build --wasm 2>&1`
 Expected: WASM binary generated successfully at `tree-sitter-clearnotation.wasm`.
 
-- [ ] **Step 8: Copy WASM to editor**
+- [x] **Step 8: Copy WASM to editor**
 
 Run: `cp tree-sitter-clearnotation/tree-sitter-clearnotation.wasm editor/public/tree-sitter-clearnotation.wasm`
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add tree-sitter-clearnotation/grammar.js tree-sitter-clearnotation/src/scanner.c tree-sitter-clearnotation/test/corpus/lists.txt editor/public/tree-sitter-clearnotation.wasm
@@ -606,7 +606,7 @@ git commit -m "feat: tree-sitter grammar v1.0 with nested lists and multi-paragr
 - Modify: `editor/src/converter/block-converter.ts:50-54,141-175`
 - Test: existing converter tests
 
-- [ ] **Step 1: Add clnComment block spec**
+- [x] **Step 1: Add clnComment block spec**
 
 In `editor/src/schema/core-blocks.ts`, add after the `clnMetaBlockSpec`:
 
@@ -626,7 +626,7 @@ export const clnCommentBlockSpec: CLNBlockSpec = {
 
 Export it from `editor/src/schema/index.ts` if needed.
 
-- [ ] **Step 2: Add comment case to block converter**
+- [x] **Step 2: Add comment case to block converter**
 
 In `editor/src/converter/block-converter.ts`, add before the `default:` case:
 
@@ -640,7 +640,7 @@ In `editor/src/converter/block-converter.ts`, add before the `default:` case:
       }];
 ```
 
-- [ ] **Step 3: Update list conversion for nested children**
+- [x] **Step 3: Update list conversion for nested children**
 
 Replace `convertUnorderedList` in `block-converter.ts`:
 
@@ -741,12 +741,12 @@ function convertOrderedList(node: CSTNode, options?: ConvertOptions): BNBlock[] 
 }
 ```
 
-- [ ] **Step 4: Run editor tests**
+- [x] **Step 4: Run editor tests**
 
 Run: `cd editor && pnpm test 2>&1 | tail -5`
 Expected: All tests pass. Flat list conversion should still work (regression).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add editor/src/schema/core-blocks.ts editor/src/converter/block-converter.ts
@@ -760,7 +760,7 @@ git commit -m "feat: add clnComment block, update converter for nested lists"
 **Files:**
 - Modify: `editor/src/serializer/block-serializer.ts:17-43,66-75`
 
-- [ ] **Step 1: Add depth parameter to serializeBlock**
+- [x] **Step 1: Add depth parameter to serializeBlock**
 
 Update the `serializeBlock` function signature and list cases:
 
@@ -795,7 +795,7 @@ export function serializeBlock(block: BNBlock, depth: number = 0): string {
 }
 ```
 
-- [ ] **Step 2: Update list serializers for nesting**
+- [x] **Step 2: Update list serializers for nesting**
 
 Replace `serializeUnorderedList`:
 
@@ -843,12 +843,12 @@ function serializeOrderedList(block: BNBlock, depth: number = 0): string {
 }
 ```
 
-- [ ] **Step 3: Run editor tests**
+- [x] **Step 3: Run editor tests**
 
 Run: `cd editor && pnpm test 2>&1 | tail -5`
 Expected: All tests pass.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add editor/src/serializer/block-serializer.ts
@@ -863,31 +863,31 @@ git commit -m "feat: depth-aware list serialization with nesting and continuatio
 - Create or modify: editor round-trip test file
 - Verify: conformance fixtures
 
-- [ ] **Step 1: Run the full editor test suite**
+- [x] **Step 1: Run the full editor test suite**
 
 Run: `cd editor && pnpm test -- --reporter=verbose 2>&1 | tail -20`
 Expected: All tests pass.
 
-- [ ] **Step 2: Run the JS renderer tests**
+- [x] **Step 2: Run the JS renderer tests**
 
 Run: `cd clearnotation-js && pnpm test -- --reporter=verbose 2>&1 | tail -10`
 Expected: All tests pass (including new URL sanitization tests).
 
-- [ ] **Step 3: Run full Python test suite**
+- [x] **Step 3: Run full Python test suite**
 
 Run: `python3 -m unittest discover -s tests -v 2>&1 | tail -5`
 Expected: All tests pass (including new URL security tests).
 
-- [ ] **Step 4: Run conformance fixture harness**
+- [x] **Step 4: Run conformance fixture harness**
 
 Run: `python3 -m clearnotation_harness --manifest fixtures/manifest.toml --adapter clearnotation_reference.adapter:create_adapter 2>&1 | tail -5`
 Expected: All 70 fixtures pass.
 
-- [ ] **Step 5: Update CLAUDE.md test counts**
+- [x] **Step 5: Update CLAUDE.md test counts**
 
 Update the test counts in CLAUDE.md to reflect new tests added.
 
-- [ ] **Step 6: Update TODOS.md**
+- [x] **Step 6: Update TODOS.md**
 
 Add to the Completed section:
 
@@ -899,7 +899,7 @@ Add to the Completed section:
 - **Security fix:** URL scheme validation blocks javascript: and data: URIs in rendered links and figures
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add CLAUDE.md TODOS.md
