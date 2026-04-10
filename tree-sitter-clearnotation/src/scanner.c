@@ -21,7 +21,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
 
 enum TokenType {
   CODE_BLOCK_CONTENT_RAW,
@@ -305,7 +304,7 @@ unsigned tree_sitter_clearnotation_external_scanner_serialize(
   ScannerState *state = (ScannerState *)payload;
   if (!state || state->depth > MAX_STACK_DEPTH) return 0;
   unsigned size = 2 + state->depth; // depth byte + flags byte + stack bytes
-  if (size > 1024) return 0;        // tree-sitter buffer limit
+  if (size > TREE_SITTER_SERIALIZATION_BUFFER_SIZE) return 0;  // tree-sitter buffer limit
   buffer[0] = (char)state->depth;
   buffer[1] = state->after_blank_line ? 1 : 0;
   for (uint8_t i = 0; i < state->depth; i++) {
@@ -318,12 +317,6 @@ void tree_sitter_clearnotation_external_scanner_deserialize(
     void *payload, const char *buffer, unsigned length) {
   ScannerState *state = (ScannerState *)payload;
   if (!state) return;
-  if (length == 0) {
-    state->stack[0] = 0;
-    state->depth = 1;
-    state->after_blank_line = false;
-    return;
-  }
   if (length < 2) {
     state->stack[0] = 0;
     state->depth = 1;
