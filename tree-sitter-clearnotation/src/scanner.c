@@ -165,6 +165,13 @@ static bool scan_raw_content(TSLexer *lexer, const char *delimiter) {
  */
 static bool scan_indent_tokens(TSLexer *lexer, ScannerState *state,
                                const bool *valid_symbols) {
+  // During error recovery, tree-sitter marks all externals valid simultaneously.
+  // Detect this state and bail — we should not emit tokens that mutate state during recovery.
+  if (valid_symbols[CODE_BLOCK_CONTENT_RAW] && valid_symbols[DIRECTIVE_BODY_CONTENT_RAW] &&
+      valid_symbols[INDENT] && valid_symbols[DEDENT] && valid_symbols[LIST_CONTINUATION]) {
+    return false;
+  }
+
   // Column gate: only run at the start of a line.
   if (lexer->get_column(lexer) != 0) return false;
 
