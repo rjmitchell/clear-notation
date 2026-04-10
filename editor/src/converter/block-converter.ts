@@ -62,7 +62,7 @@ export async function convertBlock(
     case "comment":
       return [{
         type: "clnComment",
-        props: { text: node.text.replace(/^[ \t]*\/\/\s?/, "") },
+        props: { text: node.text.replace(/^[ \t]*\/\/\s?/, "").replace(/\s+$/, "") },
         content: [],
         children: [],
       }];

@@ -24,6 +24,12 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 
 ## Completed
 
+### Editor v1.0 parity (Phase 1: grammar + converter + serializer)
+- **Security fix:** URL scheme validation blocks javascript: and data: URIs in rendered links and figures (Python + JS renderers)
+- **Tree-sitter grammar v1.0:** external scanner with indent stack, nested list support (both unordered and ordered), multi-paragraph items via LIST_CONTINUATION token
+- **Converter updates:** nested list children populated from list_item_body, clnComment block type
+- **Serializer updates:** depth-aware indentation for nested lists and continuations
+
 ### Visual Editor
 - **Phase 0:** Feasibility spikes (React + Vite + TypeScript, WASM 9KB, bundle 594KB/750KB)
 - **Phase 1:** Tree-sitter WASM parser + Web Worker (38 tests)

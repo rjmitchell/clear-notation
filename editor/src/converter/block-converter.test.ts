@@ -535,6 +535,33 @@ describe("convertBlock — parsed-mode body directives", () => {
   });
 });
 
+describe("convertBlock — comment", () => {
+  it("strips // prefix and trailing newline from comment text", async () => {
+    const comment = node("comment", "// This is a comment\n");
+    const result = await convertBlock(comment);
+    expect(result).toEqual([
+      {
+        type: "clnComment",
+        props: { text: "This is a comment" },
+        content: [],
+        children: [],
+      },
+    ]);
+  });
+
+  it("strips leading whitespace before // prefix", async () => {
+    const comment = node("comment", "  // indented\n");
+    const result = await convertBlock(comment);
+    expect(result[0].props.text).toBe("indented");
+  });
+
+  it("handles comment with no trailing newline", async () => {
+    const comment = node("comment", "// hello");
+    const result = await convertBlock(comment);
+    expect(result[0].props.text).toBe("hello");
+  });
+});
+
 describe("convertBlock — error nodes", () => {
   it("converts an error node to parseError block", async () => {
     const err = errorNode("ERROR", "broken }{");
