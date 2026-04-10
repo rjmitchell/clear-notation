@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import urllib.parse
 from typing import Any
 
 try:
@@ -44,9 +45,19 @@ _SAFE_URL_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
 def _safe_url(url: str) -> str:
     """Sanitize a URL, blocking dangerous schemes like javascript: and data:."""
     stripped = url.strip()
-    if stripped.startswith(("#", "/", "?")) or ":" not in stripped.split("/")[0]:
-        return url  # relative URL, anchor, or query — safe
-    scheme = stripped.split(":")[0].lower()
+    # Protocol-relative URLs (//evil.com) must be treated as absolute URLs, not paths
+    if stripped.startswith("//"):
+        return "#"
+    if stripped.startswith(("#", "/", "?")):
+        return url
+    # Decode percent-encoding to catch javascript%3a... bypass
+    try:
+        decoded = urllib.parse.unquote(stripped)
+    except Exception:
+        return "#"
+    if ":" not in decoded.split("/")[0]:
+        return url  # relative URL, no scheme
+    scheme = decoded.split(":")[0].lower()
     if scheme in _SAFE_URL_SCHEMES:
         return url
     return "#"

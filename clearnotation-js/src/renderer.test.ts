@@ -625,5 +625,51 @@ describe("renderHtml", () => {
       expect(html).not.toContain('src="data:');
       expect(html).toContain('src="#"');
     });
+
+    it("blocks protocol-relative URLs", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "//evil.com/path" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="//evil.com');
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks percent-encoded javascript: scheme", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript%3aalert(1)" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks uppercase percent-encoded JAVASCRIPT: scheme", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "JAVASCRIPT%3Aalert(1)" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks malformed percent encoding", () => {
+      // decodeURIComponent throws on invalid sequences like %zz
+      // our catch block returns "#"
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript%zz" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks protocol-relative figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "//tracker.example.com/pixel.gif", blocks: [] }
+      ]));
+      expect(html).toContain('src="#"');
+    });
   });
 });

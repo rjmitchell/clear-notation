@@ -28,18 +28,26 @@ const SAFE_URL_SCHEMES = new Set(["http", "https", "mailto", "tel"]);
 
 function safeUrl(url: string): string {
   const stripped = url.trim();
+  // Protocol-relative URLs (//evil.com) must be treated as absolute, not relative
+  if (stripped.startsWith("//")) {
+    return "#";
+  }
   if (stripped.startsWith("#") || stripped.startsWith("/") || stripped.startsWith("?")) {
     return url;
   }
-  const colonIndex = stripped.indexOf(":");
-  if (colonIndex === -1) {
-    return url; // no scheme separator — relative path
+  // Decode percent-encoding to catch javascript%3a... bypass
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(stripped);
+  } catch {
+    return "#";
   }
-  const slashIndex = stripped.indexOf("/");
-  if (slashIndex !== -1 && slashIndex < colonIndex) {
-    return url; // slash before colon — relative path (e.g. "../foo:bar")
+  const colonIndex = decoded.indexOf(":");
+  const slashIndex = decoded.indexOf("/");
+  if (colonIndex === -1 || (slashIndex !== -1 && slashIndex < colonIndex)) {
+    return url; // relative path, no scheme
   }
-  const scheme = stripped.slice(0, colonIndex).toLowerCase();
+  const scheme = decoded.slice(0, colonIndex).toLowerCase();
   return SAFE_URL_SCHEMES.has(scheme) ? url : "#";
 }
 
