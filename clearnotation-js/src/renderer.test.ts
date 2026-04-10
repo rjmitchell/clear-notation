@@ -551,4 +551,59 @@ describe("renderHtml", () => {
       expect(html).toContain('<table id="t1">');
     });
   });
+
+  describe("URL scheme sanitization", () => {
+    it("blocks javascript: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript:alert(1)" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="javascript:');
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks data: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "data:text/html,test" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="data:');
+    });
+
+    it("allows https: links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "https://example.com" }
+        ] }
+      ]));
+      expect(html).toContain('href="https://example.com"');
+    });
+
+    it("allows relative links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "docs" }], target: "/docs/intro" }
+        ] }
+      ]));
+      expect(html).toContain('href="/docs/intro"');
+    });
+
+    it("allows anchor links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "sec" }], target: "#overview" }
+        ] }
+      ]));
+      expect(html).toContain('href="#overview"');
+    });
+
+    it("blocks javascript: in figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "javascript:alert(1)", blocks: [] }
+      ]));
+      expect(html).not.toContain('src="javascript:');
+    });
+  });
 });
