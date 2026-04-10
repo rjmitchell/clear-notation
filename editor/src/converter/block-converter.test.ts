@@ -647,6 +647,34 @@ describe("convertBlock — ordered list with nested children", () => {
     expect(result[0].children[0].props.startNumber).toBe(1);
   });
 
+  it("populates children[] when ordered list_item_body contains a list_item_continuation", async () => {
+    const contInline = node("inline_content", "continued text", [
+      node("text", "continued text"),
+    ]);
+    const continuation = node("list_item_continuation", "   continued text", [
+      contInline,
+    ]);
+    const body = node("list_item_body", "", [continuation]);
+
+    const outerItem = node("ordered_list_item", "1. main\n   continued text", [
+      node("ordered_list_marker", "1. "),
+      node("inline_content", "main", [node("text", "main")]),
+      body,
+    ]);
+    const list = node("ordered_list", "1. main\n   continued text", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnOrderedList");
+    expect(result[0].content).toEqual([{ type: "text", text: "main", styles: {} }]);
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnParagraph");
+    expect(result[0].children[0].content).toEqual([
+      { type: "text", text: "continued text", styles: {} },
+    ]);
+    expect(result[0].children[0].children).toEqual([]);
+  });
+
   it("populates children[] when ordered list_item_body contains a nested unordered list", async () => {
     const nestedItem = node("unordered_list_item", "  - bullet", [
       node("inline_content", "bullet", [node("text", "bullet")]),

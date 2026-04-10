@@ -617,5 +617,13 @@ describe("renderHtml", () => {
       expect(html).not.toContain('JAVASCRIPT:');
       expect(html).toContain('href="#"');
     });
+
+    it("blocks data: in figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "data:image/svg+xml,<script>alert(1)</script>", blocks: [] }
+      ]));
+      expect(html).not.toContain('src="data:');
+      expect(html).toContain('src="#"');
+    });
   });
 });

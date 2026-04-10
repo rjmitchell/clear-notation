@@ -98,6 +98,27 @@ Multi-paragraph list item
     (unordered_list_item (unordered_list_marker) (inline_content (text)))))
 
 ================
+Multi-paragraph ordered list item
+================
+
+1. First item
+
+   continuation of first
+2. Second item
+
+---
+
+(document
+  (ordered_list
+    (ordered_list_item
+      (ordered_list_marker)
+      (inline_content (text))
+      (list_item_body
+        (list_item_continuation
+          (inline_content (text)))))
+    (ordered_list_item (ordered_list_marker) (inline_content (text)))))
+
+================
 List followed by heading
 ================
 
