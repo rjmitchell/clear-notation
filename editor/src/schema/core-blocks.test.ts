@@ -8,12 +8,13 @@ import {
   clnBlockquoteBlockSpec,
   clnThematicBreakBlockSpec,
   clnMetaBlockSpec,
+  clnCommentBlockSpec,
   CORE_BLOCK_SPECS,
 } from "./core-blocks";
 
 describe("Core block specs", () => {
-  it("exports all 8 core block types", () => {
-    expect(Object.keys(CORE_BLOCK_SPECS)).toHaveLength(8);
+  it("exports all 9 core block types", () => {
+    expect(Object.keys(CORE_BLOCK_SPECS)).toHaveLength(9);
   });
 
   it("heading spec has level prop with default 1", () => {
@@ -65,6 +66,13 @@ describe("Core block specs", () => {
     const spec = clnMetaBlockSpec;
     expect(spec.type).toBe("clnMeta");
     expect(spec.propSchema.entries.default).toBe("{}");
+    expect(spec.content).toBe("none");
+  });
+
+  it("comment block spec has text prop and no content", () => {
+    const spec = clnCommentBlockSpec;
+    expect(spec.type).toBe("clnComment");
+    expect(spec.propSchema.text.default).toBe("");
     expect(spec.content).toBe("none");
   });
 

@@ -551,4 +551,125 @@ describe("renderHtml", () => {
       expect(html).toContain('<table id="t1">');
     });
   });
+
+  describe("URL scheme sanitization", () => {
+    it("blocks javascript: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript:alert(1)" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="javascript:');
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks data: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "data:text/html,test" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="data:');
+      expect(html).toContain('href="#"');
+    });
+
+    it("allows https: links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "https://example.com" }
+        ] }
+      ]));
+      expect(html).toContain('href="https://example.com"');
+    });
+
+    it("allows relative links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "docs" }], target: "/docs/intro" }
+        ] }
+      ]));
+      expect(html).toContain('href="/docs/intro"');
+    });
+
+    it("allows anchor links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "sec" }], target: "#overview" }
+        ] }
+      ]));
+      expect(html).toContain('href="#overview"');
+    });
+
+    it("blocks javascript: in figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "javascript:alert(1)", blocks: [] }
+      ]));
+      expect(html).not.toContain('src="javascript:');
+      expect(html).toContain('src="#"');
+    });
+
+    it("blocks uppercase JAVASCRIPT: in links", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "JAVASCRIPT:alert(1)" }
+        ] }
+      ]));
+      expect(html).not.toContain('JAVASCRIPT:');
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks data: in figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "data:image/svg+xml,<script>alert(1)</script>", blocks: [] }
+      ]));
+      expect(html).not.toContain('src="data:');
+      expect(html).toContain('src="#"');
+    });
+
+    it("blocks protocol-relative URLs", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "//evil.com/path" }
+        ] }
+      ]));
+      expect(html).not.toContain('href="//evil.com');
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks percent-encoded javascript: scheme", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript%3aalert(1)" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks uppercase percent-encoded JAVASCRIPT: scheme", () => {
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "JAVASCRIPT%3Aalert(1)" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks malformed percent encoding", () => {
+      // decodeURIComponent throws on invalid sequences like %zz
+      // our catch block returns "#"
+      const html = renderHtml(doc([
+        { type: "paragraph", content: [
+          { type: "link", label: [{ type: "text", value: "click" }], target: "javascript%zz" }
+        ] }
+      ]));
+      expect(html).toContain('href="#"');
+    });
+
+    it("blocks protocol-relative figure src", () => {
+      const html = renderHtml(doc([
+        { type: "figure", src: "//tracker.example.com/pixel.gif", blocks: [] }
+      ]));
+      expect(html).toContain('src="#"');
+    });
+  });
 });

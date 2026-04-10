@@ -535,6 +535,172 @@ describe("convertBlock — parsed-mode body directives", () => {
   });
 });
 
+describe("convertBlock — comment", () => {
+  it("strips // prefix and trailing newline from comment text", async () => {
+    const comment = node("comment", "// This is a comment\n");
+    const result = await convertBlock(comment);
+    expect(result).toEqual([
+      {
+        type: "clnComment",
+        props: { text: "This is a comment" },
+        content: [],
+        children: [],
+      },
+    ]);
+  });
+
+  it("strips leading whitespace before // prefix", async () => {
+    const comment = node("comment", "  // indented\n");
+    const result = await convertBlock(comment);
+    expect(result[0].props.text).toBe("indented");
+  });
+
+  it("handles comment with no trailing newline", async () => {
+    const comment = node("comment", "// hello");
+    const result = await convertBlock(comment);
+    expect(result[0].props.text).toBe("hello");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Nested list paths (list_item_body children)
+// ═══════════════════════════════════════════════════════════════
+
+describe("convertBlock — unordered list with nested children", () => {
+  it("populates children[] when list_item_body contains a nested unordered list", async () => {
+    const nestedItem = node("unordered_list_item", "  - nested", [
+      node("inline_content", "nested", [node("text", "nested")]),
+    ]);
+    const nestedList = node("unordered_list", "  - nested", [nestedItem]);
+    const nestedListWrapper = node("nested_list", "  - nested", [nestedList]);
+    const body = node("list_item_body", "", [nestedListWrapper]);
+
+    const outerItem = node("unordered_list_item", "- outer\n  - nested", [
+      node("inline_content", "outer", [node("text", "outer")]),
+      body,
+    ]);
+    const list = node("unordered_list", "- outer\n  - nested", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnUnorderedList");
+    expect(result[0].content).toEqual([{ type: "text", text: "outer", styles: {} }]);
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnUnorderedList");
+    expect(result[0].children[0].content).toEqual([
+      { type: "text", text: "nested", styles: {} },
+    ]);
+  });
+
+  it("populates children[] when list_item_body contains a list_item_continuation", async () => {
+    const contInline = node("inline_content", "continued text", [
+      node("text", "continued text"),
+    ]);
+    const continuation = node("list_item_continuation", "  continued text", [
+      contInline,
+    ]);
+    const body = node("list_item_body", "", [continuation]);
+
+    const outerItem = node("unordered_list_item", "- main\n  continued text", [
+      node("inline_content", "main", [node("text", "main")]),
+      body,
+    ]);
+    const list = node("unordered_list", "- main\n  continued text", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnUnorderedList");
+    expect(result[0].content).toEqual([{ type: "text", text: "main", styles: {} }]);
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnParagraph");
+    expect(result[0].children[0].content).toEqual([
+      { type: "text", text: "continued text", styles: {} },
+    ]);
+    expect(result[0].children[0].children).toEqual([]);
+  });
+});
+
+describe("convertBlock — ordered list with nested children", () => {
+  it("populates children[] when list_item_body contains a nested ordered list", async () => {
+    const nestedItem = node("ordered_list_item", "  1. sub", [
+      node("ordered_list_marker", "1. "),
+      node("inline_content", "sub", [node("text", "sub")]),
+    ]);
+    const nestedList = node("ordered_list", "  1. sub", [nestedItem]);
+    const nestedListWrapper = node("nested_list", "  1. sub", [nestedList]);
+    const body = node("list_item_body", "", [nestedListWrapper]);
+
+    const outerItem = node("ordered_list_item", "1. outer\n  1. sub", [
+      node("ordered_list_marker", "1. "),
+      node("inline_content", "outer", [node("text", "outer")]),
+      body,
+    ]);
+    const list = node("ordered_list", "1. outer\n  1. sub", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnOrderedList");
+    expect(result[0].props.startNumber).toBe(1);
+    expect(result[0].content).toEqual([{ type: "text", text: "outer", styles: {} }]);
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnOrderedList");
+    expect(result[0].children[0].props.startNumber).toBe(1);
+  });
+
+  it("populates children[] when ordered list_item_body contains a list_item_continuation", async () => {
+    const contInline = node("inline_content", "continued text", [
+      node("text", "continued text"),
+    ]);
+    const continuation = node("list_item_continuation", "   continued text", [
+      contInline,
+    ]);
+    const body = node("list_item_body", "", [continuation]);
+
+    const outerItem = node("ordered_list_item", "1. main\n   continued text", [
+      node("ordered_list_marker", "1. "),
+      node("inline_content", "main", [node("text", "main")]),
+      body,
+    ]);
+    const list = node("ordered_list", "1. main\n   continued text", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnOrderedList");
+    expect(result[0].content).toEqual([{ type: "text", text: "main", styles: {} }]);
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnParagraph");
+    expect(result[0].children[0].content).toEqual([
+      { type: "text", text: "continued text", styles: {} },
+    ]);
+    expect(result[0].children[0].children).toEqual([]);
+  });
+
+  it("populates children[] when ordered list_item_body contains a nested unordered list", async () => {
+    const nestedItem = node("unordered_list_item", "  - bullet", [
+      node("inline_content", "bullet", [node("text", "bullet")]),
+    ]);
+    const nestedList = node("unordered_list", "  - bullet", [nestedItem]);
+    const nestedListWrapper = node("nested_list", "  - bullet", [nestedList]);
+    const body = node("list_item_body", "", [nestedListWrapper]);
+
+    const outerItem = node("ordered_list_item", "1. item\n  - bullet", [
+      node("ordered_list_marker", "1. "),
+      node("inline_content", "item", [node("text", "item")]),
+      body,
+    ]);
+    const list = node("ordered_list", "1. item\n  - bullet", [outerItem]);
+
+    const result = await convertBlock(list);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe("clnOrderedList");
+    expect(result[0].children).toHaveLength(1);
+    expect(result[0].children[0].type).toBe("clnUnorderedList");
+    expect(result[0].children[0].content).toEqual([
+      { type: "text", text: "bullet", styles: {} },
+    ]);
+  });
+});
+
 describe("convertBlock — error nodes", () => {
   it("converts an error node to parseError block", async () => {
     const err = errorNode("ERROR", "broken }{");

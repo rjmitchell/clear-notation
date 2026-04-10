@@ -26,6 +26,9 @@ module.exports = grammar({
   externals: ($) => [
     $._code_block_content_raw,
     $._directive_body_content_raw,
+    $._indent,
+    $._dedent,
+    $._list_continuation,
   ],
 
   conflicts: ($) => [],
@@ -142,28 +145,50 @@ module.exports = grammar({
     // Lists
     // ═══════════════════════════════════════════════════════════════════
 
-    unordered_list: ($) => prec.left(repeat1($.unordered_list_item)),
+    unordered_list: ($) => prec.right(repeat1($.unordered_list_item)),
 
     unordered_list_item: ($) =>
       prec(6, seq(
         $.unordered_list_marker,
         $.inline_content,
         $._line_ending,
+        optional($.list_item_body),
       )),
 
-    unordered_list_marker: (_) => token(prec(7, "- ")),
+    unordered_list_marker: (_) => token(prec(7, seq(/ */, "- "))),
 
-    ordered_list: ($) => prec.left(repeat1($.ordered_list_item)),
+    ordered_list: ($) => prec.right(repeat1($.ordered_list_item)),
 
     ordered_list_item: ($) =>
       prec(6, seq(
         $.ordered_list_marker,
         $.inline_content,
         $._line_ending,
+        optional($.list_item_body),
       )),
 
     ordered_list_marker: (_) =>
-      token(prec(7, seq(/[0-9]+/, ". "))),
+      token(prec(7, seq(/ */, /[0-9]+/, ". "))),
+
+    list_item_body: ($) =>
+      prec.left(repeat1(choice(
+        $.list_item_continuation,
+        $.nested_list,
+      ))),
+
+    list_item_continuation: ($) =>
+      seq(
+        $._list_continuation,
+        $.inline_content,
+        $._line_ending,
+      ),
+
+    nested_list: ($) =>
+      seq(
+        $._indent,
+        choice($.unordered_list, $.ordered_list),
+        $._dedent,
+      ),
 
     // ═══════════════════════════════════════════════════════════════════
     // Paragraph: fallback for non-blank lines

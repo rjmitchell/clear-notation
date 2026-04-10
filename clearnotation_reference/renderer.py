@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import urllib.parse
 from typing import Any
 
 try:
@@ -37,6 +38,29 @@ from .models import (
     Strong,
     Text,
 )
+
+_SAFE_URL_SCHEMES = frozenset({"http", "https", "mailto", "tel"})
+
+
+def _safe_url(url: str) -> str:
+    """Sanitize a URL, blocking dangerous schemes like javascript: and data:."""
+    stripped = url.strip()
+    # Protocol-relative URLs (//evil.com) must be treated as absolute URLs, not paths
+    if stripped.startswith("//"):
+        return "#"
+    if stripped.startswith(("#", "/", "?")):
+        return url
+    # Decode percent-encoding to catch javascript%3a... bypass
+    try:
+        decoded = urllib.parse.unquote(stripped)
+    except Exception:
+        return "#"
+    if ":" not in decoded.split("/")[0]:
+        return url  # relative URL, no scheme
+    scheme = decoded.split(":")[0].lower()
+    if scheme in _SAFE_URL_SCHEMES:
+        return url
+    return "#"
 
 
 def render_html(document: NormalizedDocument, *, css_path: str = "clearnotation.css") -> str:
@@ -145,7 +169,7 @@ def _render_block(block: NormalizedBlock, headings: list[NHeading]) -> str:
     if isinstance(block, NFigure):
         attrs = f' id="{_esc(block.id)}"' if block.id else ""
         parts_list: list[str] = [f"<figure{attrs}>"]
-        parts_list.append(f'<img src="{_esc(block.src)}" alt="">')
+        parts_list.append(f'<img src="{_esc(_safe_url(block.src))}" alt="">')
         if block.blocks:
             parts_list.append("<figcaption>")
             for child in block.blocks:
@@ -214,7 +238,7 @@ def _render_inlines(inlines: list[NormalizedInline]) -> str:
         elif isinstance(node, Emphasis):
             parts.append(f"<em>{_render_inlines(node.children)}</em>")
         elif isinstance(node, Link):
-            parts.append(f'<a href="{_esc(node.target)}">{_render_inlines(node.label)}</a>')
+            parts.append(f'<a href="{_esc(_safe_url(node.target))}">{_render_inlines(node.label)}</a>')
         elif isinstance(node, Note):
             assert node.number is not None
             n = node.number

@@ -14,7 +14,7 @@ import { escapeAttribute, escapeTableCell } from "./escaping";
 /**
  * Serialize a single BlockNote block to ClearNotation source text.
  */
-export function serializeBlock(block: BNBlock): string {
+export function serializeBlock(block: BNBlock, depth: number = 0): string {
   // parseError blocks emit raw text as-is
   if (block.parseError && block.props.rawContent) {
     return String(block.props.rawContent);
@@ -30,13 +30,15 @@ export function serializeBlock(block: BNBlock): string {
     case "clnThematicBreak":
       return "---";
     case "clnUnorderedList":
-      return serializeUnorderedList(block);
+      return serializeUnorderedList(block, depth);
     case "clnOrderedList":
-      return serializeOrderedList(block);
+      return serializeOrderedList(block, depth);
     case "clnBlockquote":
       return serializeBlockquote(block);
     case "clnMeta":
       return serializeMeta(block);
+    case "clnComment":
+      return `// ${block.props.text || ""}`;
     default:
       return serializeDirective(block);
   }
@@ -63,15 +65,42 @@ function serializeCodeBlock(block: BNBlock): string {
   return "```" + lang + "\n" + code + "\n```";
 }
 
-function serializeUnorderedList(block: BNBlock): string {
+function serializeUnorderedList(block: BNBlock, depth: number = 0): string {
+  const indent = "  ".repeat(depth);
   const inline = serializeInline(block.content);
-  return `- ${inline}`;
+  const lines = [`${indent}- ${inline}`];
+
+  for (const child of block.children) {
+    if (child.type === "clnUnorderedList" || child.type === "clnOrderedList") {
+      lines.push(serializeBlock(child, depth + 1));
+    } else if (child.type === "clnParagraph") {
+      const childIndent = indent + "  ";
+      lines.push("");  // blank line before continuation
+      lines.push(`${childIndent}${serializeInline(child.content)}`);
+    }
+  }
+
+  return lines.join("\n");
 }
 
-function serializeOrderedList(block: BNBlock): string {
+function serializeOrderedList(block: BNBlock, depth: number = 0): string {
+  const indent = "  ".repeat(depth);
   const num = typeof block.props.startNumber === "number" ? block.props.startNumber : 1;
+  const marker = `${num}. `;
   const inline = serializeInline(block.content);
-  return `${num}. ${inline}`;
+  const lines = [`${indent}${marker}${inline}`];
+
+  for (const child of block.children) {
+    if (child.type === "clnUnorderedList" || child.type === "clnOrderedList") {
+      lines.push(serializeBlock(child, depth + 1));
+    } else if (child.type === "clnParagraph") {
+      const childIndent = indent + " ".repeat(marker.length);
+      lines.push("");  // blank line before continuation
+      lines.push(`${childIndent}${serializeInline(child.content)}`);
+    }
+  }
+
+  return lines.join("\n");
 }
 
 function serializeBlockquote(block: BNBlock): string {

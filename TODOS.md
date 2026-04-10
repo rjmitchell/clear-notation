@@ -24,6 +24,13 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 
 ## Completed
 
+### Editor v1.0 parity + URL security (v1.0.1)
+- **Security fix:** URL scheme validation blocks `javascript:`, `data:`, protocol-relative (`//evil.com`), and percent-encoded (`javascript%3a`) schemes in rendered links and figures. Both Python and JS renderers. Closes CSO audit findings #10 and #11.
+- **Tree-sitter grammar v1.0:** external scanner with indent stack, nested list support (both unordered and ordered), multi-paragraph items via LIST_CONTINUATION token. Scanner also bails during tree-sitter error recovery to prevent corrupt state.
+- **Converter updates:** nested list children populated from list_item_body, shared `convertListItemBody` helper, clnComment block type.
+- **Serializer updates:** depth-aware indentation for nested lists and content-column alignment for continuations.
+- **Completed:** v1.0.1 (2026-04-10)
+
 ### Visual Editor
 - **Phase 0:** Feasibility spikes (React + Vite + TypeScript, WASM 9KB, bundle 594KB/750KB)
 - **Phase 1:** Tree-sitter WASM parser + Web Worker (38 tests)

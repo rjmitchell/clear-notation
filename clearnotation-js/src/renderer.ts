@@ -24,6 +24,33 @@ import type {
 
 import { escHtml } from "./utils";
 
+const SAFE_URL_SCHEMES = new Set(["http", "https", "mailto", "tel"]);
+
+function safeUrl(url: string): string {
+  const stripped = url.trim();
+  // Protocol-relative URLs (//evil.com) must be treated as absolute, not relative
+  if (stripped.startsWith("//")) {
+    return "#";
+  }
+  if (stripped.startsWith("#") || stripped.startsWith("/") || stripped.startsWith("?")) {
+    return url;
+  }
+  // Decode percent-encoding to catch javascript%3a... bypass
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(stripped);
+  } catch {
+    return "#";
+  }
+  const colonIndex = decoded.indexOf(":");
+  const slashIndex = decoded.indexOf("/");
+  if (colonIndex === -1 || (slashIndex !== -1 && slashIndex < colonIndex)) {
+    return url; // relative path, no scheme
+  }
+  const scheme = decoded.slice(0, colonIndex).toLowerCase();
+  return SAFE_URL_SCHEMES.has(scheme) ? url : "#";
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -238,7 +265,7 @@ function renderCallout(block: NCallout, headings: NHeading[]): string {
 function renderFigure(block: NFigure, headings: NHeading[]): string {
   const attrs = block.id ? ` id="${escHtml(block.id)}"` : "";
   const parts: string[] = [`<figure${attrs}>`];
-  parts.push(`<img src="${escHtml(block.src)}" alt="">`);
+  parts.push(`<img src="${escHtml(safeUrl(block.src))}" alt="">`);
   if (block.blocks.length > 0) {
     parts.push("<figcaption>");
     for (const child of block.blocks) {
@@ -331,7 +358,7 @@ function renderInlines(inlines: NormalizedInline[]): string {
         break;
       case "link":
         parts.push(
-          `<a href="${escHtml(node.target)}">${renderInlines(node.label)}</a>`,
+          `<a href="${escHtml(safeUrl(node.target))}">${renderInlines(node.label)}</a>`,
         );
         break;
       case "note":

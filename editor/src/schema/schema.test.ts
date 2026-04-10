@@ -16,7 +16,7 @@ describe("schema integration", () => {
     const allCount = Object.keys(ALL_BLOCK_SPECS).length;
 
     expect(allCount).toBe(coreCount + directiveCount);
-    expect(allCount).toBe(16); // 8 core + 8 directive
+    expect(allCount).toBe(17); // 9 core + 8 directive
   });
 
   it("no type name collisions between core and directive specs", () => {
