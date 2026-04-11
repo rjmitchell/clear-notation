@@ -6,12 +6,20 @@
  * direction so that parsed CLN source can be loaded into BlockNote.
  */
 
-import type { BNBlock, BNInlineContent, BNStyledText, BNLink } from "../converter/types";
+import type {
+  BNBlock,
+  BNInlineContent,
+  BNStyledText,
+  BNLink,
+  BNNote,
+  BNRef,
+} from "../converter/types";
 
 /* ─── Block type mapping (CLN → BlockNote) ─── */
 const BLOCK_TYPE_REVERSE: Record<string, string> = {
   clnHeading: "heading",
   clnParagraph: "paragraph",
+  clnBlockquote: "quote",
   clnUnorderedList: "bulletListItem",
   clnOrderedList: "numberedListItem",
   clnCodeBlock: "codeBlock",
@@ -24,16 +32,14 @@ const STYLE_REVERSE: Record<string, string> = {
   clnCode: "code",
 };
 
-/** Styles that have no BlockNote equivalent — silently dropped. */
-const DROPPED_STYLES = new Set(["clnNote", "clnRef"]);
-
 /**
  * Convert a single CLN styled text span to BlockNote format.
  */
 function convertStyledText(item: BNStyledText): Record<string, any> {
   const styles: Record<string, boolean | string> = {};
   for (const [key, value] of Object.entries(item.styles)) {
-    if (DROPPED_STYLES.has(key)) continue;
+    // Note: clnNote and clnRef are no longer styles — they're structured
+    // inline content variants handled in convertInlineContent. See Task 6.
     const mapped = STYLE_REVERSE[key] || key;
     styles[mapped] = value;
   }
@@ -57,6 +63,23 @@ function convertInlineContent(items: BNInlineContent[]): any[] {
         content: link.content.map(convertStyledText),
       };
     }
+    if (item.type === "ref") {
+      // Emit as BlockNote custom inline content node (clnRef pill).
+      const ref = item as BNRef;
+      return {
+        type: "clnRef",
+        props: { target: ref.target },
+      };
+    }
+    if (item.type === "note") {
+      // Emit as BlockNote custom inline content node with nested styled content.
+      const note = item as BNNote;
+      return {
+        type: "clnNote",
+        props: {},
+        content: convertInlineContent(note.content),
+      };
+    }
     return convertStyledText(item as BNStyledText);
   });
 }
@@ -78,6 +101,12 @@ function convertBlock(block: BNBlock): any {
   }
   if (type === "numberedListItem" && block.props.startNumber != null) {
     props.startNumber = block.props.startNumber;
+  }
+
+  // Forward anchorId for any addressable block type.
+  // Empty string means no anchor — skip it to avoid polluting props.
+  if (typeof block.props.anchorId === "string" && block.props.anchorId.length > 0) {
+    props.anchorId = block.props.anchorId;
   }
 
   // Convert content

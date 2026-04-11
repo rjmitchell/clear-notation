@@ -97,15 +97,6 @@ describe("bnBlocksToBlockNote", () => {
     expect(result[0].content[0].styles).toEqual({ code: true });
   });
 
-  it("drops clnNote and clnRef styles", () => {
-    const result = bnBlocksToBlockNote([
-      block("clnParagraph", {}, [
-        text("annotated", { clnNote: true, clnRef: true, clnStrong: true }),
-      ]),
-    ]);
-    expect(result[0].content[0].styles).toEqual({ bold: true });
-  });
-
   /* ─── Links ─── */
 
   it("passes through links with style mapping", () => {
@@ -152,5 +143,110 @@ describe("bnBlocksToBlockNote", () => {
       block("clnCodeBlock", { language: "js", code: "" }),
     ]);
     expect(result[0].content).toEqual([]);
+  });
+});
+
+describe("bn-to-blocknote — anchorId prop forwarding", () => {
+  it("forwards non-empty anchorId on a heading block", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnHeading", { level: 1, anchorId: "intro" }, [text("Title")]),
+    ]);
+    expect(result[0].props.anchorId).toBe("intro");
+  });
+
+  it("forwards anchorId on a paragraph block", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnParagraph", { anchorId: "section-1" }, [text("prose")]),
+    ]);
+    expect(result[0].props.anchorId).toBe("section-1");
+  });
+
+  it("omits anchorId when empty string", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnHeading", { level: 1, anchorId: "" }, [text("Title")]),
+    ]);
+    expect(result[0].props.anchorId).toBeUndefined();
+  });
+
+  it("omits anchorId when absent", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnHeading", { level: 1 }, [text("Title")]),
+    ]);
+    expect(result[0].props.anchorId).toBeUndefined();
+  });
+});
+
+describe("bn-to-blocknote — ref inline content", () => {
+  it("maps { type: 'ref', target } to a clnRef BlockNote custom inline content node", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnParagraph", {}, [{ type: "ref", target: "intro" }]),
+    ]);
+    expect(result[0].content[0]).toEqual({
+      type: "clnRef",
+      props: { target: "intro" },
+    });
+  });
+});
+
+describe("bn-to-blocknote — note inline content", () => {
+  it("maps { type: 'note', content } to a clnNote BlockNote custom inline content node with nested content", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnParagraph", {}, [
+        {
+          type: "note",
+          content: [text("footnote")],
+        },
+      ]),
+    ]);
+    expect(result[0].content[0]).toEqual({
+      type: "clnNote",
+      props: {},
+      content: [{ type: "text", text: "footnote", styles: {} }],
+    });
+  });
+
+  it("preserves nested ref inside note", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnParagraph", {}, [
+        {
+          type: "note",
+          content: [text("See "), { type: "ref", target: "intro" }],
+        },
+      ]),
+    ]);
+    expect(result[0].content[0]).toEqual({
+      type: "clnNote",
+      props: {},
+      content: [
+        { type: "text", text: "See ", styles: {} },
+        { type: "clnRef", props: { target: "intro" } },
+      ],
+    });
+  });
+
+  it("preserves styled content inside note (bold)", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnParagraph", {}, [
+        {
+          type: "note",
+          content: [text("important", { clnStrong: true })],
+        },
+      ]),
+    ]);
+    // The inner clnStrong style should map to bold via STYLE_REVERSE
+    expect(result[0].content[0]).toEqual({
+      type: "clnNote",
+      props: {},
+      content: [{ type: "text", text: "important", styles: { bold: true } }],
+    });
+  });
+});
+
+describe("bn-to-blocknote — clnBlockquote mapping", () => {
+  it("maps clnBlockquote to the 'quote' BlockNote type", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnBlockquote", {}, [text("quoted")]),
+    ]);
+    expect(result[0].type).toBe("quote");
   });
 });
