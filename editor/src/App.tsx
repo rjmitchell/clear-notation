@@ -28,7 +28,7 @@ export default function App() {
     source,
     setSource,
     syncing,
-    parseError,
+    syncState,
     onVisualChange,
     onSourceChange,
     documentToLoad,
@@ -203,6 +203,7 @@ export default function App() {
                   documentToLoad={documentToLoad}
                   blockNoteBlocksToLoad={blockNoteBlocksToLoad}
                   onDocumentLoaded={clearDocumentToLoad}
+                  syncState={syncState}
                 />
               </div>
             }
@@ -211,7 +212,7 @@ export default function App() {
                 source={source}
                 onSourceChange={onSourceChange}
                 syncing={syncing}
-                parseError={parseError}
+                syncState={syncState}
               />
             }
           />
