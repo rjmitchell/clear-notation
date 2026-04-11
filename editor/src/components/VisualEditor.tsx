@@ -5,10 +5,11 @@ import "@blocknote/mantine/style.css";
 import type { BNBlock, BNInlineContent, BNStyledText, BNLink } from "../converter/types";
 import { bnBlocksToBlockNote } from "../lib/bn-to-blocknote";
 import type { SyncState } from "../lib/parse-source";
+import { clnSchema } from "../schema/cln-schema";
 
 interface VisualEditorProps {
   onDocumentChange: (blocks: BNBlock[]) => void;
-  editorRef?: React.MutableRefObject<BlockNoteEditor | null>;
+  editorRef?: React.MutableRefObject<BlockNoteEditor<any, any, any> | null>;
   darkMode?: boolean;
   documentToLoad?: BNBlock[] | null;
   /** BlockNote-format blocks for direct loading (no conversion needed). */
@@ -23,6 +24,7 @@ interface VisualEditorProps {
 const BLOCK_TYPE_MAP: Record<string, string> = {
   heading: "clnHeading",
   paragraph: "clnParagraph",
+  quote: "clnBlockquote",
   bulletListItem: "clnUnorderedList",
   numberedListItem: "clnOrderedList",
   codeBlock: "clnCodeBlock",
@@ -50,6 +52,17 @@ function convertInlineContent(items: unknown[]): BNInlineContent[] {
         content: (item.content || []).map((c: any) => convertStyledText(c)),
       };
       return link;
+    }
+    if (item.type === "clnRef") {
+      // BlockNote custom inline content (atomic) → BNRef structured variant
+      return { type: "ref", target: (item.props?.target ?? "") as string };
+    }
+    if (item.type === "clnNote") {
+      // BlockNote custom inline content (content: "styled") → BNNote structured variant.
+      // Recurse into item.content to unpack the nested inline tree (which may include
+      // more clnRef, bold/italic/code, links, etc.).
+      const content = Array.isArray(item.content) ? convertInlineContent(item.content) : [];
+      return { type: "note", content };
     }
     return convertStyledText(item);
   });
@@ -94,6 +107,14 @@ function convertBlock(block: any): BNBlock {
     props.startNumber = block.props.startNumber;
   }
 
+  // Forward anchorId for any block whose BlockNote prop carries it.
+  // After Task 4, the custom block specs (clnHeading, clnParagraph,
+  // clnBlockquote, clnBulletListItem, clnNumberedListItem) all declare
+  // anchorId in their propSchema, so BlockNote will store it as a block prop.
+  if (typeof block.props?.anchorId === "string" && block.props.anchorId.length > 0) {
+    props.anchorId = block.props.anchorId;
+  }
+
   // Convert inline content (for non-code blocks)
   let content: BNInlineContent[] = [];
   if (block.type !== "codeBlock" && Array.isArray(block.content)) {
@@ -125,7 +146,7 @@ export default function VisualEditor({
   syncState = "valid",
 }: VisualEditorProps) {
   const editor = useMemo(() => {
-    return BlockNoteEditor.create();
+    return BlockNoteEditor.create({ schema: clnSchema });
   }, []);
 
   // Guard: skip the next onChange after we programmatically replace blocks
