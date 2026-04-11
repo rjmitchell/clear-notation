@@ -4,6 +4,7 @@ import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import type { BNBlock, BNInlineContent, BNStyledText, BNLink } from "../converter/types";
 import { bnBlocksToBlockNote } from "../lib/bn-to-blocknote";
+import type { SyncState } from "../lib/parse-source";
 
 interface VisualEditorProps {
   onDocumentChange: (blocks: BNBlock[]) => void;
@@ -13,6 +14,7 @@ interface VisualEditorProps {
   /** BlockNote-format blocks for direct loading (no conversion needed). */
   blockNoteBlocksToLoad?: any[] | null;
   onDocumentLoaded?: () => void;
+  syncState?: SyncState;
 }
 
 /**
@@ -120,6 +122,7 @@ export default function VisualEditor({
   documentToLoad,
   blockNoteBlocksToLoad,
   onDocumentLoaded,
+  syncState = "valid",
 }: VisualEditorProps) {
   const editor = useMemo(() => {
     return BlockNoteEditor.create();
@@ -171,13 +174,17 @@ export default function VisualEditor({
     onDocumentChange(converted);
   }, [editor, onDocumentChange]);
 
+  const isBroken = syncState === "broken";
+  const className = isBroken ? "visual-editor visual-editor--stale" : "visual-editor";
+
   return (
-    <div className="visual-editor">
+    <div className={className}>
       <BlockNoteView
         editor={editor}
         onChange={handleChange}
         theme={darkMode ? "dark" : "light"}
         formattingToolbar={false}
+        editable={!isBroken}
       />
     </div>
   );

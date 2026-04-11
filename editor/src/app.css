@@ -265,6 +265,17 @@ body {
   overflow: auto;
 }
 
+/* Bidirectional trust — visual pane dim when sync is broken */
+.visual-editor--stale {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .visual-editor--stale {
+    transition: opacity 150ms ease-out;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Source Pane
    ═══════════════════════════════════════════════════════════════════ */
