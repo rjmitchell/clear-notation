@@ -287,8 +287,8 @@ describe("convertInline — links", () => {
   });
 
   it("preserves parent styles on link content", () => {
-    // A link nested inside a note: ^{See [guide -> /g].}
-    // The note wraps the link, so link content inherits clnNote
+    // A link nested inside a strong style: exercises the style-inheritance
+    // mechanism for any active style active on the parent context.
     const link = node("link", "[guide -> /g]", [
       node("link_open", "["),
       node("link_label", "guide", [
@@ -298,12 +298,12 @@ describe("convertInline — links", () => {
       node("link_target", "/g"),
       node("link_close", "]"),
     ]);
-    const result = convertInline(link, { clnNote: true });
+    const result = convertInline(link, { clnStrong: true });
     expect(result).toEqual([
       {
         type: "link",
         href: "/g",
-        content: [{ type: "text", text: "guide", styles: { clnNote: true } }],
+        content: [{ type: "text", text: "guide", styles: { clnStrong: true } }],
       },
     ]);
   });
@@ -312,7 +312,7 @@ describe("convertInline — links", () => {
 // ── inline refs ─────────────────────────────────────────────
 
 describe("convertInline — inline refs", () => {
-  it("converts ::ref[target=\"intro\"] to styled text with clnRef", () => {
+  it("converts ::ref[target=\"intro\"] to a structured BNRef", () => {
     const ref = node("inline_directive", "::ref[target=\"intro\"]", [
       node("directive_marker", "::"),
       node("directive_name", "ref"),
@@ -329,15 +329,11 @@ describe("convertInline — inline refs", () => {
     ]);
     const result = convertInline(ref);
     expect(result).toEqual([
-      {
-        type: "text",
-        text: "intro",
-        styles: { clnRef: "intro" },
-      },
+      { type: "ref", target: "intro" },
     ]);
   });
 
-  it("preserves parent styles on ref", () => {
+  it("ref does NOT inherit parent styles (ref is atomic typed object)", () => {
     const ref = node("inline_directive", "::ref[target=\"sec1\"]", [
       node("directive_marker", "::"),
       node("directive_name", "ref"),
@@ -354,11 +350,7 @@ describe("convertInline — inline refs", () => {
     ]);
     const result = convertInline(ref, { clnStrong: true });
     expect(result).toEqual([
-      {
-        type: "text",
-        text: "sec1",
-        styles: { clnStrong: true, clnRef: "sec1" },
-      },
+      { type: "ref", target: "sec1" },
     ]);
   });
 });
@@ -366,7 +358,7 @@ describe("convertInline — inline refs", () => {
 // ── notes ───────────────────────────────────────────────────
 
 describe("convertInline — notes", () => {
-  it("converts a simple note ^{a note}", () => {
+  it("converts a simple note ^{a note} to a structured BNNote", () => {
     const note = node("note", "^{a note}", [
       node("note_open", "^{"),
       node("note_text", "a note"),
@@ -374,7 +366,7 @@ describe("convertInline — notes", () => {
     ]);
     const result = convertInline(note);
     expect(result).toEqual([
-      { type: "text", text: "a note", styles: { clnNote: true } },
+      { type: "note", content: [{ type: "text", text: "a note", styles: {} }] },
     ]);
   });
 
@@ -396,15 +388,18 @@ describe("convertInline — notes", () => {
     ]);
     const result = convertInline(note);
     expect(result).toEqual([
-      { type: "text", text: "See ", styles: { clnNote: true } },
       {
-        type: "link",
-        href: "/g",
+        type: "note",
         content: [
-          { type: "text", text: "guide", styles: { clnNote: true } },
+          { type: "text", text: "See ", styles: {} },
+          {
+            type: "link",
+            href: "/g",
+            content: [{ type: "text", text: "guide", styles: {} }],
+          },
+          { type: "text", text: ".", styles: {} },
         ],
       },
-      { type: "text", text: ".", styles: { clnNote: true } },
     ]);
   });
 
@@ -427,15 +422,44 @@ describe("convertInline — notes", () => {
     const result = convertInline(note);
     expect(result).toEqual([
       {
-        type: "text",
-        text: "key",
-        styles: { clnNote: true, clnStrong: true },
+        type: "note",
+        content: [
+          { type: "text", text: "key", styles: { clnStrong: true } },
+          { type: "text", text: " is ", styles: {} },
+          { type: "text", text: "val", styles: { clnCode: true } },
+        ],
       },
-      { type: "text", text: " is ", styles: { clnNote: true } },
+    ]);
+  });
+
+  it("converts a note containing a ref ^{See ::ref[target=\"intro\"]}", () => {
+    const note = node("note", "^{See ::ref[target=\"intro\"]}", [
+      node("note_open", "^{"),
+      node("note_text", "See "),
+      node("inline_directive", "::ref[target=\"intro\"]", [
+        node("directive_marker", "::"),
+        node("directive_name", "ref"),
+        node("attribute_list", "[target=\"intro\"]", [
+          node("attribute", "target=\"intro\"", [
+            node("attribute_key", "target"),
+            node("value", "\"intro\"", [
+              node("string", "\"intro\"", [
+                node("string_content", "intro"),
+              ]),
+            ]),
+          ]),
+        ]),
+      ]),
+      node("note_close", "}"),
+    ]);
+    const result = convertInline(note);
+    expect(result).toEqual([
       {
-        type: "text",
-        text: "val",
-        styles: { clnNote: true, clnCode: true },
+        type: "note",
+        content: [
+          { type: "text", text: "See ", styles: {} },
+          { type: "ref", target: "intro" },
+        ],
       },
     ]);
   });
