@@ -20,6 +20,19 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 - Design doc: `~/.gstack/projects/rjmitchell-clear-notation/ryan-docs/readme-v1-design-20260408-194517.md`
 - Implementation plan (Phase 2 not yet written): extend `docs/superpowers/plans/2026-04-08-hosted-editor-phase1.md`
 
+### Editor load/restore trust hole
+`setSource()` in `editor/src/hooks/useSync.ts:101` uses `simple-cln-loader` (line-based approximation) instead of tree-sitter. When a user opens a `.cln` file or restores from autosave, the initial visual-pane rendering is lossy — directives are approximated, some constructs are skipped. "Bidirectional trust" only holds once the user types something to trigger the real parser path. Surfaced by Codex outside voice during the 2026-04-11 bidirectional trust review.
+- Effort: M (design + implementation)
+- Priority: P2
+- Design options: (a) route `setSource` through `parseSourceToBlocks` with a WASM-loading state for the cold-start case, (b) teach `simple-cln-loader` to handle more CLN constructs, (c) keep the line-based loader as a fast preview and do a full tree-sitter parse in the background.
+- Related: `editor/src/lib/simple-cln-loader.ts`, Design 1 bidirectional trust spec §6 item 3.
+
+### Editor `errorBlock` serializer contract mismatch
+Pre-existing bug in the converter's dead-code error-block path. `editor/src/converter/block-converter.ts:468` (`errorBlock()`) sets `parseError: true` on the block but does NOT set `props.rawContent`. `editor/src/serializer/block-serializer.ts:19` only preserves the raw error text when `props.rawContent` exists. So if a parseError block ever round-trips through the visual pipeline, serialization will mangle it. Currently invisible because `parseSourceToBlocks` bails at the top-level `tree.hasError` check before the converter runs — the error path is dead code. Surfaced by Codex outside voice during the 2026-04-11 bidirectional trust review.
+- Effort: S (~20 min fix — either set `rawContent` in `errorBlock` or change the serializer check to use `content`)
+- Priority: P3 — only matters if someone turns on the dead code path later (e.g., brainstorm's Approach 2)
+- Related: `editor/src/converter/block-converter.ts:462-470`, `editor/src/serializer/block-serializer.ts:17-22`
+
 ---
 
 ## Completed
