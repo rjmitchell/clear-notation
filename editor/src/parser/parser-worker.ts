@@ -48,17 +48,23 @@ function serializeNode(node: SyntaxNode): CSTNode {
 
 async function handleInit(wasmUrl: string): Promise<void> {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const TreeSitter = (await import("web-tree-sitter")).default as any;
-    await TreeSitter.init({
+    // web-tree-sitter 0.26.x uses named exports — there is no default export.
+    // Previously this file imported `.default`, which was always undefined and
+    // caused init to throw with "Cannot read properties of undefined (reading 'init')".
+    const { Parser, Language } = await import("web-tree-sitter");
+    await Parser.init({
       locateFile: (path: string) => {
-        // Serve tree-sitter engine WASM from the public directory
-        if (path.endsWith(".wasm")) return "/tree-sitter.wasm";
+        // Serve tree-sitter engine WASM from the public directory.
+        // Use Vite's BASE_URL so this works under any deploy base
+        // (dev + GH Pages + any prod base path).
+        if (path.endsWith(".wasm")) {
+          return `${import.meta.env.BASE_URL}tree-sitter.wasm`;
+        }
         return path;
       },
     });
 
-    parser = new TreeSitter();
+    parser = new Parser();
 
     const response = await fetch(wasmUrl);
     if (!response.ok) {
@@ -67,7 +73,7 @@ async function handleInit(wasmUrl: string): Promise<void> {
       );
     }
     const wasmBuffer = await response.arrayBuffer();
-    const lang = await TreeSitter.Language.load(new Uint8Array(wasmBuffer));
+    const lang = await Language.load(new Uint8Array(wasmBuffer));
     parser.setLanguage(lang);
 
     post({ type: "init-ok" });

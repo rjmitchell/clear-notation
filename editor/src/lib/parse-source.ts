@@ -33,7 +33,9 @@ let initPromise: Promise<void> | null = null;
 async function ensureParser(): Promise<ClearNotationParser> {
   if (!parser) {
     parser = new ClearNotationParser();
-    initPromise = parser.init("/tree-sitter-clearnotation.wasm").catch((err) => {
+    // Use Vite's BASE_URL so the WASM fetch resolves under any deploy base.
+    const wasmUrl = `${import.meta.env.BASE_URL}tree-sitter-clearnotation.wasm`;
+    initPromise = parser.init(wasmUrl).catch((err) => {
       console.error("[parse-source] Parser init failed:", err);
       parser = null;
       initPromise = null;
