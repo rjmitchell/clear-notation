@@ -75,6 +75,7 @@ export default function SourcePane({
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const onSourceChangeRef = useRef(onSourceChange);
+  const prevSyncStateRef = useRef<SyncState | undefined>(undefined);
   const [liveMessage, setLiveMessage] = useState("");
 
   // Keep the callback ref current without recreating the editor
@@ -142,11 +143,16 @@ export default function SourcePane({
     });
   }, [syncState]);
 
-  // Drive the aria-live region — announce broken + valid transitions, silent on recovered
+  // Drive the aria-live region — announce broken + valid TRANSITIONS only.
+  // On initial mount (prev === undefined) we never announce, so SR users
+  // don't hear a spurious "Visual editor is active." on every page load.
   useEffect(() => {
-    if (syncState === "broken") {
+    const prev = prevSyncStateRef.current;
+    prevSyncStateRef.current = syncState;
+    if (prev === undefined) return; // first render, no announcement
+    if (syncState === "broken" && prev !== "broken") {
       setLiveMessage("Source has a syntax error. Visual editor is read-only.");
-    } else if (syncState === "valid") {
+    } else if (syncState === "valid" && prev !== "valid") {
       setLiveMessage("Visual editor is active.");
     }
     // "recovered" is intentionally silent — no announcement

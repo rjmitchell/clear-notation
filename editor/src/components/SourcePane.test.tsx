@@ -59,7 +59,9 @@ describe("SourcePane — error state UX", () => {
       />
     );
     await waitFor(() => {
-      expect(liveRegion?.textContent).toContain("Source has a syntax error");
+      expect(liveRegion?.textContent).toBe(
+        "Source has a syntax error. Visual editor is read-only."
+      );
     });
   });
 
@@ -73,6 +75,22 @@ describe("SourcePane — error state UX", () => {
     );
     const liveRegion = container.querySelector('[aria-live="polite"]');
     // "recovered" is silent — the live region exists but has empty content
+    expect(liveRegion?.textContent).toBe("");
+  });
+
+  it("aria-live region is silent on initial mount even when syncState === 'valid'", () => {
+    const { container } = render(
+      <SourcePane source="" onSourceChange={() => {}} syncState="valid" />
+    );
+    const liveRegion = container.querySelector('[aria-live="polite"]');
+    expect(liveRegion?.textContent).toBe("");
+  });
+
+  it("aria-live region is silent on initial mount when syncState === 'broken'", () => {
+    const { container } = render(
+      <SourcePane source="" onSourceChange={() => {}} syncState="broken" />
+    );
+    const liveRegion = container.querySelector('[aria-live="polite"]');
     expect(liveRegion?.textContent).toBe("");
   });
 });

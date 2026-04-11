@@ -323,6 +323,11 @@ body {
   margin: 6px auto 0;
 }
 
+/* Reserve a fixed gutter lane so marker toggle doesn't shift layout */
+.cn-source-error-gutter-wrap {
+  width: 14px;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Status Bar
    ═══════════════════════════════════════════════════════════════════ */
