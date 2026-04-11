@@ -114,6 +114,10 @@ export function useSync() {
    */
   const setSource = useCallback((text: string) => {
     setSourceState(text);
+    // Any user-initiated setSource is a fresh starting point — always
+    // reset sync state so previously-broken state doesn't leak into a
+    // new file, template, or restored snapshot.
+    setSyncState("valid");
     activeGenRef.current = null;
 
     if (!text.trim()) {
@@ -128,7 +132,6 @@ export function useSync() {
     const bnBlocks = clnTextToBlockNoteBlocks(text);
     if (bnBlocks.length > 0) {
       setBlockNoteBlocksToLoad(bnBlocks);
-      setSyncState("valid");
     }
   }, []);
 

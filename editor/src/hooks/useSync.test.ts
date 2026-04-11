@@ -168,6 +168,20 @@ describe("useSync — async race guard", () => {
   });
 });
 
+describe("useSync — setSource behavior", () => {
+  it("setSource('') resets broken state to valid", async () => {
+    const { result } = renderHook(() => useSync());
+    act(() => {
+      result.current.onSourceChange('::callout[type="note\n  body\n}\n');
+    });
+    await waitFor(() => expect(result.current.syncState).toBe("broken"));
+    act(() => {
+      result.current.setSource("");
+    });
+    expect(result.current.syncState).toBe("valid");
+  });
+});
+
 describe("useSync — screenshot reproduction (IRON RULE regression guards)", () => {
   it("typing '+{bold}' without trailing newline produces recovered state with bold block", async () => {
     const { result } = renderHook(() => useSync());
