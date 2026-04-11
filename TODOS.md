@@ -1,5 +1,14 @@
 # TODOS
 
+## In progress — ready to implement
+
+### Bidirectional trust (Design 1)
+Fixes the source→visual freeze when typing `+{bold}` without a trailing newline. Spec + plan written, reviewed through design review, eng review, and cross-model outside voices (Claude subagent + Codex/GPT-5.4). Scope-reduced by cross-model consensus to Rule 1 only (append trailing newline) + async race guard + minimal broken-state UX. Ready for TDD implementation.
+- Effort: ~2 hours with CC+gstack
+- Spec: `docs/superpowers/specs/2026-04-11-bidirectional-trust-design.md` (commit `6fc3451`)
+- Plan: `docs/superpowers/plans/2026-04-11-bidirectional-trust.md` (commit `27d2f3c`)
+- Kickoff: "Execute the plan at docs/superpowers/plans/2026-04-11-bidirectional-trust.md using superpowers:subagent-driven-development"
+
 ## Open
 
 ### VS Code custom editor provider (v1.1)
