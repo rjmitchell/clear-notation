@@ -55,6 +55,15 @@ function serializeItems(items: BNInlineContent[]): string {
       continue;
     }
 
+    // BNNote and BNRef handling is wired up in later Phase A tasks.
+    // The converter does not emit these variants yet, so this branch
+    // is unreachable at runtime today — it exists only to narrow the
+    // union so the remaining code can treat `item` as BNStyledText.
+    if (item.type === "note" || item.type === "ref") {
+      i++;
+      continue;
+    }
+
     // Text item — check for clnRef style (special: emits a directive)
     if (typeof item.styles.clnRef === "string" && item.styles.clnRef) {
       result.push(`::ref[target="${item.styles.clnRef}"]`);
