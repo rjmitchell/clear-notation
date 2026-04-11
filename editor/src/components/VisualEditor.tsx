@@ -131,6 +131,15 @@ export default function VisualEditor({
   // Guard: skip the next onChange after we programmatically replace blocks
   const suppressNextChange = useRef(false);
 
+  // Track syncState in a ref so handleChange always sees the current value
+  // without needing to be re-created on every syncState change (which would
+  // re-attach BlockNoteView's onChange listener unnecessarily).
+  // Assignment during render is intentional: a useEffect runs AFTER render,
+  // so it would be a tick late when BlockNote fires onChange synchronously
+  // as a side effect of the editable prop flipping true→false.
+  const syncStateRef = useRef(syncState);
+  syncStateRef.current = syncState;
+
   // Expose editor instance to parent via ref
   useEffect(() => {
     if (editorRef) {
@@ -169,6 +178,13 @@ export default function VisualEditor({
       suppressNextChange.current = false;
       return;
     }
+    // In broken sync state, the visual pane is a stale mirror and cannot
+    // be trusted as a source of truth. BlockNote fires onChange when the
+    // `editable` prop flips (e.g. on the valid→broken transition), and we
+    // must not propagate that spurious event back to the source — doing so
+    // would overwrite the user's broken source buffer with whatever stale
+    // content the visual pane happens to be showing.
+    if (syncStateRef.current === "broken") return;
     const doc = editor.document;
     const converted = convertDocument(doc as any[]);
     onDocumentChange(converted);
