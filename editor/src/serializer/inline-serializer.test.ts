@@ -58,33 +58,28 @@ describe("serializeInline", () => {
   });
 
   it("serializes a ref", () => {
-    expect(
-      serializeInline([text("", { clnRef: "intro" })])
-    ).toBe('::ref[target="intro"]');
+    const input: BNInlineContent[] = [{ type: "ref", target: "intro" }];
+    expect(serializeInline(input)).toBe('::ref[target="intro"]');
   });
 
   it("serializes a note", () => {
-    expect(
-      serializeInline([text("a note", { clnNote: true })])
-    ).toBe("^{a note}");
+    const input: BNInlineContent[] = [
+      { type: "note", content: [text("a note")] },
+    ];
+    expect(serializeInline(input)).toBe("^{a note}");
   });
 
   it("serializes a note with nested link", () => {
-    const noteContent: BNInlineContent[] = [
-      text("see ", { clnNote: true }),
-      // Links inside notes: the note wraps around text items only,
-      // so we simulate by having a text with clnNote and then a link.
-      // Actually, since note is a mark on text, links in notes would
-      // be separate items. The note mark groups consecutive text items.
+    const input: BNInlineContent[] = [
+      {
+        type: "note",
+        content: [
+          text("see "),
+          link("/docs", [text("docs")]),
+        ],
+      },
     ];
-    // A note containing "see link": the note mark is on the text items,
-    // and the link is a separate item in the content array.
-    // For a note that contains a link, we'd need the note to wrap
-    // text + link, but since note is a text style, the link would
-    // break the group. Let's test a simpler case: note with text only.
-    expect(serializeInline([text("see docs", { clnNote: true })])).toBe(
-      "^{see docs}"
-    );
+    expect(serializeInline(input)).toBe("^{see [docs -> /docs]}");
   });
 
   it("serializes mixed content: plain + bold + plain", () => {
@@ -98,13 +93,17 @@ describe("serializeInline", () => {
   });
 
   it("serializes note with strong and code", () => {
-    expect(
-      serializeInline([
-        text("key", { clnNote: true, clnStrong: true }),
-        text(" is ", { clnNote: true }),
-        text("val", { clnNote: true, clnCode: true }),
-      ])
-    ).toBe("^{+{key} is `val`}");
+    const input: BNInlineContent[] = [
+      {
+        type: "note",
+        content: [
+          text("key", { clnStrong: true }),
+          text(" is "),
+          text("val", { clnCode: true }),
+        ],
+      },
+    ];
+    expect(serializeInline(input)).toBe("^{+{key} is `val`}");
   });
 
   it("groups consecutive items sharing the same mark", () => {
@@ -127,10 +126,7 @@ describe("serializeInline", () => {
   });
 
   it("serializes nested strong inside emphasis", () => {
-    // Emphasis wraps strong when both are present:
-    // Since clnStrong has higher priority than clnEmphasis,
-    // strong is outermost, emphasis is nested inside.
-    // Wait — priority is outermost first: clnNote > clnStrong > clnEmphasis
+    // Priority is outermost first: clnStrong > clnEmphasis > clnCode.
     // So if both strong and emphasis are set, strong is outermost.
     expect(
       serializeInline([text("both", { clnStrong: true, clnEmphasis: true })])
@@ -149,5 +145,57 @@ describe("serializeInline", () => {
 
   it("handles text with only special characters", () => {
     expect(serializeInline([text("{}[]")])).toBe("\\{\\}\\[\\]");
+  });
+});
+
+describe("inline-serializer — structured note/ref", () => {
+  it("serializes { type: 'ref', target } to ::ref[target=\"x\"]", () => {
+    const input: BNInlineContent[] = [{ type: "ref", target: "intro" }];
+    expect(serializeInline(input)).toBe('::ref[target="intro"]');
+  });
+
+  it("serializes { type: 'note', content } to ^{content}", () => {
+    const input: BNInlineContent[] = [
+      {
+        type: "note",
+        content: [{ type: "text", text: "simple note", styles: {} }],
+      },
+    ];
+    expect(serializeInline(input)).toBe("^{simple note}");
+  });
+
+  it("serializes a note with nested ref", () => {
+    const input: BNInlineContent[] = [
+      {
+        type: "note",
+        content: [
+          { type: "text", text: "See ", styles: {} },
+          { type: "ref", target: "intro" },
+          { type: "text", text: " for details", styles: {} },
+        ],
+      },
+    ];
+    expect(serializeInline(input)).toBe(
+      '^{See ::ref[target="intro"] for details}'
+    );
+  });
+
+  it("serializes a note with nested bold", () => {
+    const input: BNInlineContent[] = [
+      {
+        type: "note",
+        content: [
+          { type: "text", text: "important", styles: { clnStrong: true } },
+        ],
+      },
+    ];
+    expect(serializeInline(input)).toBe("^{+{important}}");
+  });
+
+  it("escapes double quotes in ref target", () => {
+    const input: BNInlineContent[] = [
+      { type: "ref", target: 'weird"id' },
+    ];
+    expect(serializeInline(input)).toBe('::ref[target="weird\\"id"]');
   });
 });

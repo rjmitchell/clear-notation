@@ -8,18 +8,16 @@
  */
 
 import type { BNInlineContent, BNStyledText, BNLink } from "../converter/types";
-import { escapeInline } from "./escaping";
+import { escapeInline, escapeAttribute } from "./escaping";
 
 /**
  * Mark priority order (outermost first).
  * Higher-priority marks wrap lower-priority ones.
  */
 const MARK_PRIORITY: string[] = [
-  "clnNote",
   "clnStrong",
   "clnEmphasis",
   "clnCode",
-  "clnRef",
 ];
 
 /** Opening/closing delimiters for each mark type. */
@@ -27,7 +25,6 @@ const MARK_DELIMITERS: Record<string, [string, string]> = {
   clnStrong: ["+{", "}"],
   clnEmphasis: ["*{", "}"],
   clnCode: ["`", "`"],
-  clnNote: ["^{", "}"],
 };
 
 /**
@@ -55,18 +52,17 @@ function serializeItems(items: BNInlineContent[]): string {
       continue;
     }
 
-    // BNNote and BNRef handling is wired up in later Phase A tasks.
-    // The converter does not emit these variants yet, so this branch
-    // is unreachable at runtime today — it exists only to narrow the
-    // union so the remaining code can treat `item` as BNStyledText.
-    if (item.type === "note" || item.type === "ref") {
+    // Note — wrap inner content in ^{...} using recursive serialization
+    if (item.type === "note") {
+      const inner = serializeItems(item.content);
+      result.push(`^{${inner}}`);
       i++;
       continue;
     }
 
-    // Text item — check for clnRef style (special: emits a directive)
-    if (typeof item.styles.clnRef === "string" && item.styles.clnRef) {
-      result.push(`::ref[target="${item.styles.clnRef}"]`);
+    // Ref — atomic directive emission
+    if (item.type === "ref") {
+      result.push(`::ref[target="${escapeAttribute(item.target)}"]`);
       i++;
       continue;
     }
