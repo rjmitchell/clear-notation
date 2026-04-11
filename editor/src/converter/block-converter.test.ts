@@ -348,7 +348,11 @@ describe("convertBlock — self-closing directives", () => {
     ]);
   });
 
-  it("converts ::anchor[id=\"top\"] with attribute", async () => {
+  it("skips ::anchor[id=\"top\"] (returns empty — fold handled by convertDocument)", async () => {
+    // Anchors are now absorbed by the document walker and do NOT produce
+    // standalone blocks. convertBlock returns [] for an anchor node.
+    // See convertDocument — anchor fold tests in converter.test.ts for the
+    // end-to-end fold behavior.
     const anchor = node("block_directive_self_closing", '::anchor[id="top"]', [
       node("directive_marker", "::"),
       node("directive_name", "anchor"),
@@ -364,9 +368,7 @@ describe("convertBlock — self-closing directives", () => {
       ]),
     ]);
     const result = await convertBlock(anchor);
-    expect(result).toEqual([
-      { type: "clnAnchor", props: { id: "top" }, content: [], children: [] },
-    ]);
+    expect(result).toEqual([]);
   });
 
   it("falls back to paragraph for unknown self-closing directive", async () => {

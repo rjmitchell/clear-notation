@@ -18,6 +18,28 @@ import {
 } from "../parser/cst-utils";
 import { getDirectiveSpecByName } from "../schema";
 
+// ── addressable helper ────────────────────────────────────────
+
+/**
+ * CLN block types that can hold an anchorId per spec §3.7.
+ * An anchor directive attaches to the next addressable block's anchorId prop.
+ */
+const ADDRESSABLE_TYPES = new Set([
+  "clnHeading",
+  "clnParagraph",
+  "clnBlockquote",
+  "clnUnorderedList",
+  "clnOrderedList",
+]);
+
+/**
+ * Returns true if the given block can hold an anchorId.
+ * Used by the document walker's anchor fold.
+ */
+export function isAddressable(block: BNBlock): boolean {
+  return ADDRESSABLE_TYPES.has(block.type);
+}
+
 // ── public API ────────────────────────────────────────────────
 
 /**
@@ -67,8 +89,10 @@ export async function convertBlock(
         children: [],
       }];
 
-    case "block_directive_self_closing":
-      return [convertSelfClosingDirective(node)];
+    case "block_directive_self_closing": {
+      const selfClosing = convertSelfClosingDirective(node);
+      return selfClosing ? [selfClosing] : [];
+    }
 
     case "block_directive_with_body":
       return [await convertBodyDirective(node, options)];
@@ -311,8 +335,16 @@ function parseMetaValue(valueNode: CSTNode): unknown {
 
 // ── self-closing directive ────────────────────────────────────
 
-function convertSelfClosingDirective(node: CSTNode): BNBlock {
+function convertSelfClosingDirective(node: CSTNode): BNBlock | null {
   const name = getDirectiveName(node);
+
+  // Anchors are handled by the document walker's pendingAnchor fold —
+  // they do NOT produce standalone blocks. Return null so the caller
+  // knows to skip emission.
+  if (name === "anchor") {
+    return null;
+  }
+
   const spec = name ? getDirectiveSpecByName(name) : undefined;
 
   if (!spec) {
