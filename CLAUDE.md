@@ -7,7 +7,7 @@ A docs-first, non-Turing-complete, formally specified markup language for techni
 ```bash
 # Run all tests
 python3 -m unittest discover -s tests -v          # 362 Python tests
-cd editor && pnpm test                             # 336 editor tests
+cd editor && pnpm test                             # 424 editor tests
 cd clearnotation-js && pnpm test                   # 129 JS normalizer/renderer tests
 
 # Run fixture harness (70 conformance cases)

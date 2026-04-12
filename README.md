@@ -118,7 +118,9 @@ cln lint docs/ --schema schema.toml  # validate corpus against a TOML schema
 
 ### Browser editor
 - **Visual editor** (BlockNote/React) with live CLN source pane (CodeMirror)
-- **Bidirectional sync** with generation counters, 300ms debounce, error recovery
+- **Bidirectional sync** with a discriminated-union `syncState` (`valid | recovered | broken`), 300ms debounce, async race guard via generation counter, and recovery for incomplete source (e.g. `+{bold}` without a trailing newline still renders as bold)
+- **Round-trip correctness** for footnotes (`^{...}`), cross-references (`::ref[target="x"]`), and anchors (`::anchor[id="..."]`) — structural content survives open → edit → save → reload byte-identical when unedited
+- **Broken-state UX** when source has a genuine syntax error: visual pane dims + read-only, source pane shows a CodeMirror gutter marker, `aria-live` announces the state change
 - **Templates, dark mode, keyboard shortcuts, cheat sheet, Markdown paste conversion**
 - **File operations** (File System Access API, download fallback, localStorage autosave)
 - **Tree-sitter WASM playground** at `/playground.html`
@@ -183,7 +185,7 @@ python3 -m unittest discover -s tests -v
 python3 -m clearnotation_harness --manifest fixtures/manifest.toml \
   --adapter clearnotation_reference.adapter:create_adapter
 
-# Editor tests (336 tests)
+# Editor tests (424 tests)
 cd editor && pnpm test
 
 # JS normalizer/renderer tests (129 tests)

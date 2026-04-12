@@ -1,5 +1,49 @@
 # Changelog
 
+## [1.0.2] - 2026-04-11
+
+Editor-only release. No spec, grammar, Python reference, or CLI changes.
+
+### Added
+- **Editor bidirectional trust** (Design 1). Typing `+{bold}` without a trailing newline now renders as bold in the visual pane instead of freezing behind a yellow "Syntax error" banner. A new `editor/src/lib/live-recovery.ts` module appends a synthetic trailing newline on the parse-side copy only (the user's source buffer is untouched). `parseSourceToBlocks` returns a `ParseResult` discriminated union with three states (`valid | recovered | broken`). `useSync` exposes `syncState` and adds an async race guard via a generation counter so rapid typing never loses keystrokes to a stale parse committing over a newer one.
+- **Editor broken-state UX.** When a parse is genuinely unrecoverable (unclosed fence, malformed attribute list), the visual pane dims to 60% opacity and becomes read-only (`editable={false}`), a CodeMirror gutter marker appears on line 1 of the source pane, and a visually-hidden `aria-live="polite"` region announces the state change (only on transitions, not on initial mount). The old yellow top banner is deleted. Toolbar format shortcuts (Cmd+B, Cmd+I, Cmd+E, Cmd+K) early-return on broken state to prevent bypassing `editable={false}` via programmatic `editor.toggleStyles()` calls.
+- **Editor round-trip correctness for three cross-reference constructs** (Design 2 Phase A):
+  - **Footnotes** (`^{...}`) are preserved through open → edit → save → reload instead of being silently stripped at `bn-to-blocknote.ts`. Footnotes use BlockNote's native `content: "styled"` custom inline content so nested cross-references, bold, italic, code, and links inside footnotes round-trip correctly.
+  - **Cross-references** (`::ref[target="..."]`) now render as visually distinct pills (`#intro` with a subtle accent background) instead of being silently dropped. Atomic BlockNote custom inline content node with a `target` string prop.
+  - **Anchors** (`::anchor[id="..."]`) fold into the next addressable block's `anchorId` prop during conversion (matching the Python normalizer's `pending_anchor` semantic) and unfold to `::anchor[id="..."]\n` prefixing the target block on serialization. Multiple anchors before one block, anchors before thematic breaks, and anchors at EOF are handled per spec §3.7.
+- **Custom `clnSchema`** (`editor/src/schema/cln-schema.ts`) is now passed to `BlockNoteEditor.create()`. Adds five rebuilt addressable block specs (heading, paragraph, quote, bulletListItem, numberedListItem) with `anchorId` as a first-class prop, plus two custom inline content specs (`clnNote`, `clnRef`). Other BlockNote defaults (codeBlock, image, file, etc.) are kept as-is.
+- **54 new editor tests** (370 → 424 passing). Includes 7 byte-identical round-trip integration tests that verify the full `parseSourceToBlocks → serializeDocument` pipeline for each construct plus a mixed-all-three case, and 3 IRON RULE regression tests reproducing the exact screenshot bug that Design 1 exists to fix.
+- **Test infrastructure**: `@testing-library/react` + `@testing-library/react-hooks` as devDependencies, `vitest.config.ts` now discovers `.test.tsx` files with a `src/test-setup.ts` hook (includes a JSDOM `window.matchMedia` shim for Mantine-backed component tests).
+
+### Fixed
+- **Pre-existing parser-worker bug.** `editor/src/parser/parser-worker.ts` imported `(await import("web-tree-sitter")).default` but `web-tree-sitter@0.26.x` has only named exports. The live-edit path has been broken at runtime since the initial parser commit. Fixed by switching to `const { Parser, Language } = await import(...)`. Uncovered during Design 1 Task 7 manual smoke testing.
+- **Pre-existing WASM fetch path bug.** `parser-worker.ts` and `parse-source.ts` both used hardcoded absolute paths (`/tree-sitter.wasm`, `/tree-sitter-clearnotation.wasm`) that only resolve when Vite `base` is `/`. The editor moved to `base: "/clear-notation/editor/"` in April 2026 but the parser paths were never updated, so WASM fetches returned the SPA's `index.html` with a "magic word" compile error. Both paths now use `import.meta.env.BASE_URL`.
+- **Pre-existing BlockNote editable-flip onChange loop.** When `syncState` flipped from `valid` to `broken`, `VisualEditor` set `editable={false}` on `BlockNoteView`, which triggered BlockNote's `onChange` event as a side effect of the prop change (not a real user edit). The event propagated to `useSync.onVisualChange`, which serialized the visual pane's (empty) content and overwrote the user's broken source buffer, resetting `syncState` back to `valid`. Net effect: broken state never appeared in the DOM. Fixed by early-returning from `VisualEditor.handleChange` when `syncStateRef.current === "broken"`, with the ref assigned during render (not in a `useEffect`) so it's current by the time BlockNote fires the spurious onChange.
+- **Pre-existing `startNumber` vs `start` drift.** `VisualEditor.tsx`, `bn-to-blocknote.ts`, and the CLN converter/serializer all used `startNumber` as the numbered-list prop name, but BlockNote's default ordered-list block spec uses `start`. The mismatch meant the visual pane always displayed "1." regardless of source. Fixed by rebuilding the numbered-list block spec as a custom `clnNumberedListItem` with `startNumber` in its propSchema.
+- `SourcePane` aria-live region no longer announces "Visual editor is active" on initial page load. It now fires only on state transitions (valid ↔ broken), detected via a `prevSyncStateRef` that distinguishes the first render from subsequent ones.
+- `useSync.setSource` now resets `syncState` to "valid" on any user-initiated document load (new file, template, open, restore). Previously an empty `setSource("")` preserved a broken state from a prior session, which would have become user-visible once Design 1's read-only broken-state UX landed.
+
+### Changed
+- Deleted the `DROPPED_STYLES` set in `editor/src/lib/bn-to-blocknote.ts` that silently stripped `clnNote` and `clnRef` style flags. Both constructs now flow through the conversion path as structured custom inline content nodes.
+- Removed the standalone `clnAnchor` block emission path from `block-converter.ts`. `convertDocument` now folds anchors into the next addressable block's `anchorId` prop.
+- `inline-converter.ts` emits `{ type: "note", content: [...] }` and `{ type: "ref", target }` structured inline content instead of styled text with `clnNote`/`clnRef` style flags.
+- `inline-serializer.ts` handles structured note/ref entries directly. The dead `clnRef`-as-style branch is deleted.
+- `block-serializer.ts` emits `::anchor[id="..."]\n` before any block with a non-empty `anchorId` prop.
+- `bn-to-blocknote.ts` adds `clnBlockquote → quote` to its CLN → BlockNote type mapping (was previously falling through to "paragraph" default).
+- `VisualEditor.tsx` now passes `clnSchema` to `BlockNoteEditor.create()` and unpacks `clnNote`/`clnRef`/`anchorId` from the BlockNote document when converting back to BNBlocks.
+
+### NOT in scope for this release (deferred to Phase B)
+- Authoring UI: slash menu items for `/footnote` and `/ref`, a ref picker popover, a side-menu button to set/clear a block's anchor ID.
+- Async load-path rework: file-open and autosave-restore still go through the line-based `simple-cln-loader` instead of `parseSourceToBlocks`. The "load/restore trust hole" remains a known bug.
+- Broken-ref detection: refs to non-existent anchors compile through to dangling `<a href="#missing">` without a warning.
+- Validity checks on authoring (empty slug, duplicate anchor, dangling ref). Will become mandatory when authoring UI ships.
+- Custom BlockNote default UI takeover: slash menu and side menu are still BlockNote defaults.
+- Scaffolding for future block directives (callout, figure, math, table, source, toc).
+
+### Known follow-ups
+- **List item Enter UX regression.** Rebuilding the bullet/numbered list block specs required omitting BlockNote's internal `handleEnter` helper (it depends on `splitBlockTr`, which is not exported from `@blocknote/core`). Pressing Enter on an empty bullet or numbered list item no longer exits the list; it now inserts a newline. Input rules for `- `, `* `, `1. ` and other keymaps still work.
+- **Numbered list visual starting number.** BlockNote's `NumberedListIndexingDecorationPlugin` reads `attrs["start"]` while our custom spec uses `startNumber`. The HTML render path computes display indices independently, so the rendered output is correct, but the in-editor visual display shows "1." regardless of source `startNumber`.
+
 ## [1.0.1] - 2026-04-10
 
 ### Security
