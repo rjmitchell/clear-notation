@@ -1,14 +1,5 @@
 # TODOS
 
-## In progress — ready to implement
-
-### Notes, refs, anchors — Phase A (Design 2)
-Round-trip correctness for footnotes (`^{...}`), cross-references (`::ref[target="..."]`), and anchors (`::anchor[id="..."]`). Eliminates the `DROPPED_STYLES` silent data loss in `bn-to-blocknote.ts:28` and removes the wrong standalone `clnAnchor` block path in favor of fold-into-next-addressable semantics matching the Python normalizer. Ships with 5 rebuilt addressable block specs (heading, paragraph, blockquote, bulletListItem, numberedListItem) that add `anchorId` as a first-class prop. Also incidentally fixes the pre-existing `startNumber` → `start` drift that Codex caught during the outside-voice review. NO authoring UI, NO async load-path rework, NO scaffolding for future directives — those are all Phase B, gated on Design 1 adoption signal. Spec reviewed through design review, eng review, and two outside voices (Claude subagent + Codex/GPT-5.4) that converged on the Phase A/B split.
-- Effort: ~3-4 hours with CC+gstack
-- Spec: `docs/superpowers/specs/2026-04-11-notes-refs-anchors-design.md` (commit `68959db`)
-- Plan: not yet written — user approved execution, plan to be drafted via `superpowers:writing-plans`
-- Kickoff: "Update TODOS.md then implement phase A as-specced"
-
 ## Open
 
 ### VS Code custom editor provider (v1.1)
@@ -46,14 +37,17 @@ Pre-existing bug in the converter's dead-code error-block path. `editor/src/conv
 
 ## Completed
 
-### Bidirectional trust — Design 1 (Phase 1)
-Fixes the source→visual freeze when typing `+{bold}` without a trailing newline. Full TDD implementation via `superpowers:subagent-driven-development` — fresh subagent per task, two-stage review after each, ~34 new tests passing out of the gate. Resolved with Rule 1 (append trailing newline) + async race guard (`sourceGenRef`) + minimal broken-state UX (dim + gutter marker + aria-live) + toolbar shortcut early-return. Manual smoke test in Task 7 caught three additional pre-existing bugs that would have shipped silently: parser-worker's wrong web-tree-sitter named-import (dead code on main-thread), WASM paths missing the Vite `BASE_URL` prefix (404 returning HTML that fails the WebAssembly magic word check), and the Task 4 BlockNote `editable` toggle firing an onChange that overwrote the broken source with the visual pane's empty content. All three fixed. IRON RULE regression tests (`+{bold}` no newline → recovered state with `<strong>bold</strong>` in visual pane) pass both in unit tests and in the real browser.
-- **Shipped:** 2026-04-11
-- **Commits:** `deaaef6..56ae72e` on main (11 commits)
+### Notes, refs, anchors — Phase A (Design 2)
+Round-trip correctness for footnotes (`^{...}`), cross-references (`::ref[target="..."]`), and anchors (`::anchor[id="..."]`). Eliminates the `DROPPED_STYLES` silent data loss in `bn-to-blocknote.ts` and removes the wrong standalone `clnAnchor` block path in favor of fold-into-next-addressable semantics matching the Python normalizer. Ships with 5 rebuilt addressable block specs (heading, paragraph, blockquote, bulletListItem, numberedListItem) that add `anchorId` as a first-class prop. Incidentally fixes the pre-existing `startNumber` vs `start` drift that Codex caught during the outside-voice review. NO authoring UI, NO async load-path rework, NO scaffolding for future directives — those are all Phase B, gated on Design 1 adoption signal. Spec reviewed through design review, eng review, and two outside voices (Claude subagent + Codex) that converged on the Phase A/B split; scope dropped from ~55-60 tests to ~33 and from 6-8h to 3-4h after the reduction. Seven byte-identical round-trip integration tests verify the full pipeline for each construct plus a mixed-all-three case.
+- **Shipped:** 2026-04-11 (PR #20)
+- **Tests:** 424 passing (370 baseline + 54 new)
+- **Known follow-ups:** List item Enter UX regression (press Enter on empty list item no longer exits the list — BlockNote's `handleEnter` helper isn't exported, so the rebuilt spec can't include it). Numbered list visual starting number always displays "1." in the editor because BlockNote's `NumberedListIndexingDecorationPlugin` reads `attrs["start"]` while our custom spec uses `startNumber` — HTML output is correct, only the in-editor display is affected.
+
+### Bidirectional trust — Design 1
+Fixes the source→visual freeze when typing `+{bold}` without a trailing newline. Full TDD implementation via `superpowers:subagent-driven-development` — fresh subagent per task, two-stage review after each, ~34 new tests passing out of the gate. Resolved with Rule 1 (append trailing newline) + async race guard (`sourceGenRef`) + minimal broken-state UX (dim + gutter marker + aria-live) + toolbar shortcut early-return. Manual smoke test in Task 7 caught three additional pre-existing bugs that would have shipped silently: parser-worker's wrong `web-tree-sitter` default import (dead code on main-thread), WASM paths missing the Vite `BASE_URL` prefix (404 returning HTML that fails the WebAssembly magic word check), and the Task 4 BlockNote `editable` toggle firing an onChange that overwrote the broken source with the visual pane's empty content. All three fixed. IRON RULE regression tests (`+{bold}` no newline → recovered state with `<strong>bold</strong>` in visual pane) pass in unit tests and in the real browser.
+- **Shipped:** 2026-04-11 (PR #20)
 - **Tests:** 370 passing (336 baseline + 34 new)
-- **Spec:** `docs/superpowers/specs/2026-04-11-bidirectional-trust-design.md`
-- **Plan:** `docs/superpowers/plans/2026-04-11-bidirectional-trust.md`
-- **Known follow-ups:** Editor load/restore trust hole (below) and errorBlock serializer contract mismatch (below) — both are pre-existing bugs surfaced by the Design 1 Codex review, both deferred.
+- **Known follow-ups:** Editor load/restore trust hole (below) and errorBlock serializer contract mismatch (below) — both are pre-existing bugs surfaced by the Codex outside-voice review, both deferred.
 
 ### Editor v1.0 parity + URL security (v1.0.1)
 - **Security fix:** URL scheme validation blocks `javascript:`, `data:`, protocol-relative (`//evil.com`), and percent-encoded (`javascript%3a`) schemes in rendered links and figures. Both Python and JS renderers. Closes CSO audit findings #10 and #11.
