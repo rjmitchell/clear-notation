@@ -1,14 +1,31 @@
 /**
- * Source text → BNBlock[] pipeline.
+ * Source text → ParseResult pipeline.
  *
- * Lazily initializes the tree-sitter WASM parser, parses CLN source,
- * and converts the resulting CST to BNBlocks via the converter module.
- * Returns null when the parse tree contains errors (fail-closed).
+ * Three-state discriminated union:
+ *   valid     — raw source parsed cleanly
+ *   recovered — raw source had errors, normalized source parsed cleanly
+ *   broken    — even the normalized source fails to parse
+ *
+ * The user's buffer is never mutated — normalization happens on a copy
+ * passed to tree-sitter. See docs/superpowers/specs/2026-04-11-bidirectional-trust-design.md.
  */
 
 import { ClearNotationParser } from "../parser";
 import { convertDocument } from "../converter";
 import type { BNBlock } from "../converter/types";
+import { normalizeForLiveParse } from "./live-recovery";
+
+export type SyncState = "valid" | "recovered" | "broken";
+
+/**
+ * Discriminated union — type system enforces "broken → no blocks".
+ * Consumers should `switch (result.state)` rather than checking
+ * `blocks === null` manually.
+ */
+export type ParseResult =
+  | { state: "valid"; blocks: BNBlock[] }
+  | { state: "recovered"; blocks: BNBlock[] }
+  | { state: "broken"; blocks: null };
 
 let parser: ClearNotationParser | null = null;
 let initPromise: Promise<void> | null = null;
@@ -16,7 +33,9 @@ let initPromise: Promise<void> | null = null;
 async function ensureParser(): Promise<ClearNotationParser> {
   if (!parser) {
     parser = new ClearNotationParser();
-    initPromise = parser.init("/tree-sitter-clearnotation.wasm").catch((err) => {
+    // Use Vite's BASE_URL so the WASM fetch resolves under any deploy base.
+    const wasmUrl = `${import.meta.env.BASE_URL}tree-sitter-clearnotation.wasm`;
+    initPromise = parser.init(wasmUrl).catch((err) => {
       console.error("[parse-source] Parser init failed:", err);
       parser = null;
       initPromise = null;
@@ -28,23 +47,40 @@ async function ensureParser(): Promise<ClearNotationParser> {
 }
 
 /**
- * Parse ClearNotation source text into BNBlocks.
+ * Parse ClearNotation source text into a ParseResult.
  *
- * Returns null if the source has parse errors (the visual editor
- * should keep showing the last valid state in that case).
+ * Control flow:
+ *   1. Try parsing source as-is. If !tree.hasError → valid.
+ *   2. Otherwise normalize (append trailing newline) and parse again.
+ *      If the normalized parse succeeds → recovered.
+ *   3. Otherwise → broken.
+ *   4. If ensureParser() throws (WASM fetch fails, etc.) → broken.
  */
-export async function parseSourceToBlocks(
-  source: string
-): Promise<BNBlock[] | null> {
-  const p = await ensureParser();
-  const result = await p.parse(source);
-
-  // Fail-closed: if the tree has any errors, refuse to convert
-  if (result.tree.hasError) {
-    console.warn("[parse-source] Parse tree has errors, skipping conversion");
-    return null;
+export async function parseSourceToBlocks(source: string): Promise<ParseResult> {
+  let p: ClearNotationParser;
+  try {
+    p = await ensureParser();
+  } catch {
+    return { state: "broken", blocks: null };
   }
 
-  const blocks = await convertDocument(result.tree);
-  return blocks;
+  // Step 1: try raw source
+  const rawTree = await p.parse(source);
+  if (!rawTree.tree.hasError) {
+    const blocks = await convertDocument(rawTree.tree);
+    return { state: "valid", blocks };
+  }
+
+  // Step 2: try normalized source
+  const { normalized } = normalizeForLiveParse(source);
+  if (normalized !== source) {
+    const normalizedTree = await p.parse(normalized);
+    if (!normalizedTree.tree.hasError) {
+      const blocks = await convertDocument(normalizedTree.tree);
+      return { state: "recovered", blocks };
+    }
+  }
+
+  // Step 3: broken
+  return { state: "broken", blocks: null };
 }

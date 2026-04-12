@@ -73,9 +73,12 @@ export function convertInline(
     return recurseChildren(node, { ...activeStyles, clnEmphasis: true });
   }
 
-  // ── note: ^{...} ──────────────────────────────────────
+  // ── note: ^{...} — wrap children in a structured BNNote ─
   if (type === "note") {
-    return recurseChildren(node, { ...activeStyles, clnNote: true });
+    // Note is a typed object — its children start with fresh inline styles,
+    // not the parent's style stack. The note itself carries no styles.
+    const content = recurseChildren(node, {});
+    return [{ type: "note", content }];
   }
 
   // ── code_span: `...` ──────────────────────────────────
@@ -154,7 +157,9 @@ function convertInlineDirective(
   if (name === "ref") {
     const attrs = getAttributeMap(node);
     const target = typeof attrs.target === "string" ? attrs.target : "";
-    return [styledText(target, { ...activeStyles, clnRef: target })];
+    // Ref is atomic — emit a BNRef variant. Active styles are discarded
+    // because refs are typed objects, not styled text.
+    return [{ type: "ref", target }];
   }
 
   // Unknown inline directive — pass through text

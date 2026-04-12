@@ -23,8 +23,22 @@ export interface BNLink {
   content: BNStyledText[];
 }
 
-/** Inline content: either styled text or a link. */
-export type BNInlineContent = BNStyledText | BNLink;
+/** A footnote with nested inline content (maps to BlockNote's custom clnNote inline content). */
+export interface BNNote {
+  type: "note";
+  /** Nested inline content inside the footnote. Recursive BNInlineContent[]. */
+  content: BNInlineContent[];
+}
+
+/** A cross-reference to an anchor or heading auto-slug (atomic — no nested content). */
+export interface BNRef {
+  type: "ref";
+  /** The anchor id or heading slug this ref points at. */
+  target: string;
+}
+
+/** Inline content: styled text, link, note, or ref. */
+export type BNInlineContent = BNStyledText | BNLink | BNNote | BNRef;
 
 /** A single row in a table block. */
 export interface BNTableRow {
@@ -46,7 +60,10 @@ export interface BNTableContent {
 export interface BNBlock {
   id?: string;
   type: string;
-  props: Record<string, string | number | boolean>;
+  props: Record<string, string | number | boolean> & {
+    /** Anchor id for addressable blocks. Undefined or empty means no anchor. */
+    anchorId?: string;
+  };
   content: BNInlineContent[];
   children: BNBlock[];
   parseError?: boolean;

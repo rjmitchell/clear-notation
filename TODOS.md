@@ -1,5 +1,14 @@
 # TODOS
 
+## In progress — ready to implement
+
+### Notes, refs, anchors — Phase A (Design 2)
+Round-trip correctness for footnotes (`^{...}`), cross-references (`::ref[target="..."]`), and anchors (`::anchor[id="..."]`). Eliminates the `DROPPED_STYLES` silent data loss in `bn-to-blocknote.ts:28` and removes the wrong standalone `clnAnchor` block path in favor of fold-into-next-addressable semantics matching the Python normalizer. Ships with 5 rebuilt addressable block specs (heading, paragraph, blockquote, bulletListItem, numberedListItem) that add `anchorId` as a first-class prop. Also incidentally fixes the pre-existing `startNumber` → `start` drift that Codex caught during the outside-voice review. NO authoring UI, NO async load-path rework, NO scaffolding for future directives — those are all Phase B, gated on Design 1 adoption signal. Spec reviewed through design review, eng review, and two outside voices (Claude subagent + Codex/GPT-5.4) that converged on the Phase A/B split.
+- Effort: ~3-4 hours with CC+gstack
+- Spec: `docs/superpowers/specs/2026-04-11-notes-refs-anchors-design.md` (commit `68959db`)
+- Plan: not yet written — user approved execution, plan to be drafted via `superpowers:writing-plans`
+- Kickoff: "Update TODOS.md then implement phase A as-specced"
+
 ## Open
 
 ### VS Code custom editor provider (v1.1)
@@ -20,9 +29,31 @@ Add pako compression + base64url encoding of CLN source in the URL hash. Share b
 - Design doc: `~/.gstack/projects/rjmitchell-clear-notation/ryan-docs/readme-v1-design-20260408-194517.md`
 - Implementation plan (Phase 2 not yet written): extend `docs/superpowers/plans/2026-04-08-hosted-editor-phase1.md`
 
+### Editor load/restore trust hole
+`setSource()` in `editor/src/hooks/useSync.ts:101` uses `simple-cln-loader` (line-based approximation) instead of tree-sitter. When a user opens a `.cln` file or restores from autosave, the initial visual-pane rendering is lossy — directives are approximated, some constructs are skipped. "Bidirectional trust" only holds once the user types something to trigger the real parser path. Surfaced by Codex outside voice during the 2026-04-11 bidirectional trust review.
+- Effort: M (design + implementation)
+- Priority: P2
+- Design options: (a) route `setSource` through `parseSourceToBlocks` with a WASM-loading state for the cold-start case, (b) teach `simple-cln-loader` to handle more CLN constructs, (c) keep the line-based loader as a fast preview and do a full tree-sitter parse in the background.
+- Related: `editor/src/lib/simple-cln-loader.ts`, Design 1 bidirectional trust spec §6 item 3.
+
+### Editor `errorBlock` serializer contract mismatch
+Pre-existing bug in the converter's dead-code error-block path. `editor/src/converter/block-converter.ts:468` (`errorBlock()`) sets `parseError: true` on the block but does NOT set `props.rawContent`. `editor/src/serializer/block-serializer.ts:19` only preserves the raw error text when `props.rawContent` exists. So if a parseError block ever round-trips through the visual pipeline, serialization will mangle it. Currently invisible because `parseSourceToBlocks` bails at the top-level `tree.hasError` check before the converter runs — the error path is dead code. Surfaced by Codex outside voice during the 2026-04-11 bidirectional trust review.
+- Effort: S (~20 min fix — either set `rawContent` in `errorBlock` or change the serializer check to use `content`)
+- Priority: P3 — only matters if someone turns on the dead code path later (e.g., brainstorm's Approach 2)
+- Related: `editor/src/converter/block-converter.ts:462-470`, `editor/src/serializer/block-serializer.ts:17-22`
+
 ---
 
 ## Completed
+
+### Bidirectional trust — Design 1 (Phase 1)
+Fixes the source→visual freeze when typing `+{bold}` without a trailing newline. Full TDD implementation via `superpowers:subagent-driven-development` — fresh subagent per task, two-stage review after each, ~34 new tests passing out of the gate. Resolved with Rule 1 (append trailing newline) + async race guard (`sourceGenRef`) + minimal broken-state UX (dim + gutter marker + aria-live) + toolbar shortcut early-return. Manual smoke test in Task 7 caught three additional pre-existing bugs that would have shipped silently: parser-worker's wrong web-tree-sitter named-import (dead code on main-thread), WASM paths missing the Vite `BASE_URL` prefix (404 returning HTML that fails the WebAssembly magic word check), and the Task 4 BlockNote `editable` toggle firing an onChange that overwrote the broken source with the visual pane's empty content. All three fixed. IRON RULE regression tests (`+{bold}` no newline → recovered state with `<strong>bold</strong>` in visual pane) pass both in unit tests and in the real browser.
+- **Shipped:** 2026-04-11
+- **Commits:** `deaaef6..56ae72e` on main (11 commits)
+- **Tests:** 370 passing (336 baseline + 34 new)
+- **Spec:** `docs/superpowers/specs/2026-04-11-bidirectional-trust-design.md`
+- **Plan:** `docs/superpowers/plans/2026-04-11-bidirectional-trust.md`
+- **Known follow-ups:** Editor load/restore trust hole (below) and errorBlock serializer contract mismatch (below) — both are pre-existing bugs surfaced by the Design 1 Codex review, both deferred.
 
 ### Editor v1.0 parity + URL security (v1.0.1)
 - **Security fix:** URL scheme validation blocks `javascript:`, `data:`, protocol-relative (`//evil.com`), and percent-encoded (`javascript%3a`) schemes in rendered links and figures. Both Python and JS renderers. Closes CSO audit findings #10 and #11.

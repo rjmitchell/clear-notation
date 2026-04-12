@@ -1,7 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, expectTypeOf } from "vitest";
 import type {
   BNStyledText,
   BNLink,
+  BNNote,
+  BNRef,
   BNInlineContent,
   BNTableRow,
   BNTableContent,
@@ -86,6 +88,35 @@ describe("BNInlineContent union", () => {
     ];
     expect(items[0].type).toBe("text");
     expect(items[1].type).toBe("link");
+  });
+
+  it("includes BNNote variant with content field holding nested BNInlineContent", () => {
+    const note: BNNote = {
+      type: "note",
+      content: [{ type: "text", text: "hello", styles: {} }],
+    };
+    expectTypeOf(note).toMatchTypeOf<BNInlineContent>();
+  });
+
+  it("includes BNRef variant with target string field", () => {
+    const ref: BNRef = { type: "ref", target: "intro" };
+    expectTypeOf(ref).toMatchTypeOf<BNInlineContent>();
+  });
+
+  it("BNRef is atomic (no nested content)", () => {
+    expectTypeOf<BNRef>().not.toHaveProperty("content");
+  });
+});
+
+describe("BNBlock.props anchorId", () => {
+  it("has optional anchorId", () => {
+    const block: BNBlock = {
+      type: "clnParagraph",
+      props: { anchorId: "intro" },
+      content: [],
+      children: [],
+    };
+    expectTypeOf(block.props.anchorId).toEqualTypeOf<string | undefined>();
   });
 });
 

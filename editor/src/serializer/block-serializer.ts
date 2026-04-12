@@ -20,28 +20,50 @@ export function serializeBlock(block: BNBlock, depth: number = 0): string {
     return String(block.props.rawContent);
   }
 
+  // Anchor prefix: any block with a non-empty anchorId prop emits
+  // `::anchor[id="..."]\n` before its body. This is the unfold side
+  // of the anchor fold — the block-converter's pendingAnchor buffer
+  // attaches the id during conversion; we emit it here on the way out.
+  const anchorPrefix =
+    typeof block.props.anchorId === "string" && block.props.anchorId.length > 0
+      ? `::anchor[id="${escapeAttribute(block.props.anchorId)}"]\n`
+      : "";
+
+  let body: string;
   switch (block.type) {
     case "clnHeading":
-      return serializeHeading(block);
+      body = serializeHeading(block);
+      break;
     case "clnParagraph":
-      return serializeParagraph(block);
+      body = serializeParagraph(block);
+      break;
     case "clnCodeBlock":
-      return serializeCodeBlock(block);
+      body = serializeCodeBlock(block);
+      break;
     case "clnThematicBreak":
-      return "---";
+      body = "---";
+      break;
     case "clnUnorderedList":
-      return serializeUnorderedList(block, depth);
+      body = serializeUnorderedList(block, depth);
+      break;
     case "clnOrderedList":
-      return serializeOrderedList(block, depth);
+      body = serializeOrderedList(block, depth);
+      break;
     case "clnBlockquote":
-      return serializeBlockquote(block);
+      body = serializeBlockquote(block);
+      break;
     case "clnMeta":
-      return serializeMeta(block);
+      body = serializeMeta(block);
+      break;
     case "clnComment":
-      return `// ${block.props.text || ""}`;
+      body = `// ${block.props.text || ""}`;
+      break;
     default:
-      return serializeDirective(block);
+      body = serializeDirective(block);
+      break;
   }
+
+  return anchorPrefix + body;
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -28,7 +28,7 @@ export default function App() {
     source,
     setSource,
     syncing,
-    parseError,
+    syncState,
     onVisualChange,
     onSourceChange,
     documentToLoad,
@@ -107,23 +107,27 @@ export default function App() {
 
   // Formatting handlers that use the BlockNote editor API
   const handleToggleBold = useCallback(() => {
+    if (syncState === "broken") return;
     editorRef.current?.toggleStyles({ bold: true });
-  }, []);
+  }, [syncState]);
 
   const handleToggleItalic = useCallback(() => {
+    if (syncState === "broken") return;
     editorRef.current?.toggleStyles({ italic: true });
-  }, []);
+  }, [syncState]);
 
   const handleToggleCode = useCallback(() => {
+    if (syncState === "broken") return;
     editorRef.current?.toggleStyles({ code: true });
-  }, []);
+  }, [syncState]);
 
   const handleInsertLink = useCallback(() => {
+    if (syncState === "broken") return;
     const url = prompt("Enter URL:");
     if (url && editorRef.current) {
       editorRef.current.createLink(url);
     }
-  }, []);
+  }, [syncState]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -203,6 +207,7 @@ export default function App() {
                   documentToLoad={documentToLoad}
                   blockNoteBlocksToLoad={blockNoteBlocksToLoad}
                   onDocumentLoaded={clearDocumentToLoad}
+                  syncState={syncState}
                 />
               </div>
             }
@@ -211,7 +216,7 @@ export default function App() {
                 source={source}
                 onSourceChange={onSourceChange}
                 syncing={syncing}
-                parseError={parseError}
+                syncState={syncState}
               />
             }
           />

@@ -24,3 +24,6 @@ clearnotation.css
 .aider*
 .gstack/
 .superpowers/
+
+# Planning/spec docs — kept locally, not pushed to the repo
+docs/superpowers/

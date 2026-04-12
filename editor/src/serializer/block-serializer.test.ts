@@ -225,12 +225,6 @@ describe("serializeBlock", () => {
       expect(serializeBlock(block("clnToc"))).toBe("::toc");
     });
 
-    it("serializes anchor directive with required attr", () => {
-      expect(
-        serializeBlock(block("clnAnchor", { id: "intro" }))
-      ).toBe('::anchor[id="intro"]');
-    });
-
     it("serializes include directive", () => {
       expect(
         serializeBlock(block("clnInclude", { src: "header.cln" }))
@@ -340,6 +334,42 @@ describe("serializeBlock", () => {
         parseError: true,
       };
       expect(serializeBlock(b)).toBe("some broken :: syntax");
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // Anchor prefix emission
+  // ═══════════════════════════════════════════════════════════════
+
+  describe("anchor prefix emission", () => {
+    it("emits ::anchor[id=\"x\"] before a heading with non-empty anchorId", () => {
+      const b = block("clnHeading", { level: 1, anchorId: "intro" }, [text("Introduction")]);
+      expect(serializeBlock(b)).toBe('::anchor[id="intro"]\n# Introduction');
+    });
+
+    it("emits ::anchor before a paragraph with anchorId", () => {
+      const b = block("clnParagraph", { anchorId: "section-1" }, [text("Some prose")]);
+      expect(serializeBlock(b)).toBe('::anchor[id="section-1"]\nSome prose');
+    });
+
+    it("emits ::anchor before a blockquote with anchorId", () => {
+      const b = block("clnBlockquote", { anchorId: "q1" }, [text("A quote")]);
+      expect(serializeBlock(b)).toBe('::anchor[id="q1"]\n> A quote');
+    });
+
+    it("does NOT emit anchor line when anchorId is empty string", () => {
+      const b = block("clnHeading", { level: 1, anchorId: "" }, [text("Title")]);
+      expect(serializeBlock(b)).toBe("# Title");
+    });
+
+    it("does NOT emit anchor line when anchorId is absent", () => {
+      const b = block("clnHeading", { level: 1 }, [text("Title")]);
+      expect(serializeBlock(b)).toBe("# Title");
+    });
+
+    it("escapes double quotes in anchor id", () => {
+      const b = block("clnHeading", { level: 1, anchorId: 'with"quote' }, [text("H")]);
+      expect(serializeBlock(b)).toBe('::anchor[id="with\\"quote"]\n# H');
     });
   });
 });

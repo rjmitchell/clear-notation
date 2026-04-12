@@ -1,30 +1,41 @@
 import { useCallback, useRef, useState } from "react";
 import type { BNBlock } from "../converter/types";
 import { serializeDocument } from "../serializer";
-import { parseSourceToBlocks } from "../lib/parse-source";
+import { parseSourceToBlocks, type SyncState } from "../lib/parse-source";
 import { clnTextToBlockNoteBlocks } from "../lib/simple-cln-loader";
+
+export type { SyncState } from "../lib/parse-source";
 
 /**
  * Bidirectional sync hook.
  *
- * Manages the source text and coordinates sync between the visual
- * editor and the CodeMirror source pane. Uses generation counters
- * and an activeGen flag to prevent feedback loops. Both directions
- * are debounced at 300ms.
+ * State machine:
+ *   valid     — raw source parses cleanly
+ *   recovered — raw source had errors, normalized version parses cleanly
+ *   broken    — even the normalized version fails to parse
  *
  * Flow:
  *   Visual change → serialize → update source (CodeMirror syncs via prop)
  *   Source change → parse → convert → documentToLoad (VisualEditor replaces blocks)
+ *
+ * Async race guard:
+ *   onSourceChange captures sourceGenRef BEFORE awaiting parse. After the
+ *   await resolves, it compares the captured generation to the current one;
+ *   if they differ, a newer onSourceChange has fired, so the stale result
+ *   is discarded. This prevents older parses from silently overwriting
+ *   newer source state during rapid typing. Critical because the recovered
+ *   path does TWO tree-sitter parses, widening the race window.
  */
 export function useSync() {
   const [source, setSourceState] = useState("");
   const [syncing, setSyncing] = useState(false);
-  const [parseError, setParseError] = useState(false);
+  const [syncState, setSyncState] = useState<SyncState>("valid");
   const [documentToLoad, setDocumentToLoad] = useState<BNBlock[] | null>(null);
   /** BlockNote-format blocks for direct loading (from simple CLN loader, no conversion needed). */
   const [blockNoteBlocksToLoad, setBlockNoteBlocksToLoad] = useState<any[] | null>(null);
 
-  // Generation counters to detect and skip self-triggered updates
+  // Generation counters to detect and skip self-triggered updates,
+  // plus to discard stale async parse results.
   const visualGenRef = useRef(0);
   const sourceGenRef = useRef(0);
   const activeGenRef = useRef<"visual" | "source" | null>(null);
@@ -49,7 +60,7 @@ export function useSync() {
       const result = serializeDocument(blocks);
       setSourceState(result);
       setSyncing(false);
-      setParseError(false);
+      setSyncState("valid");
       visualTimerRef.current = null;
     }, 300);
   }, []);
@@ -66,7 +77,7 @@ export function useSync() {
       return;
     }
 
-    sourceGenRef.current++;
+    const myGen = ++sourceGenRef.current;
     activeGenRef.current = "source";
     setSourceState(text);
     setSyncing(true);
@@ -77,17 +88,20 @@ export function useSync() {
 
     sourceTimerRef.current = setTimeout(async () => {
       try {
-        const blocks = await parseSourceToBlocks(text);
-        if (blocks === null) {
-          // Parse error: keep visual editor on last valid state
-          setParseError(true);
-        } else {
-          setParseError(false);
-          setDocumentToLoad(blocks);
+        const result = await parseSourceToBlocks(text);
+        // Async race guard — a newer onSourceChange has fired during the await
+        if (myGen !== sourceGenRef.current) return;
+
+        setSyncState(result.state);
+        if (result.state === "valid" || result.state === "recovered") {
+          setDocumentToLoad(result.blocks);
         }
+        // On broken: keep the last documentToLoad so the visual pane
+        // shows the last valid state (existing behavior).
       } catch (err) {
+        if (myGen !== sourceGenRef.current) return;
         console.error("[useSync] source→visual parse failed:", err);
-        setParseError(true);
+        setSyncState("broken");
       }
       setSyncing(false);
       sourceTimerRef.current = null;
@@ -100,6 +114,10 @@ export function useSync() {
    */
   const setSource = useCallback((text: string) => {
     setSourceState(text);
+    // Any user-initiated setSource is a fresh starting point — always
+    // reset sync state so previously-broken state doesn't leak into a
+    // new file, template, or restored snapshot.
+    setSyncState("valid");
     activeGenRef.current = null;
 
     if (!text.trim()) {
@@ -114,7 +132,6 @@ export function useSync() {
     const bnBlocks = clnTextToBlockNoteBlocks(text);
     if (bnBlocks.length > 0) {
       setBlockNoteBlocksToLoad(bnBlocks);
-      setParseError(false);
     }
   }, []);
 
@@ -130,7 +147,7 @@ export function useSync() {
     source,
     setSource,
     syncing,
-    parseError,
+    syncState,
     onVisualChange,
     onSourceChange,
     documentToLoad,

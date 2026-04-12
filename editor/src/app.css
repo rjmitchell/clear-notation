@@ -265,6 +265,17 @@ body {
   overflow: auto;
 }
 
+/* Bidirectional trust — visual pane dim when sync is broken */
+.visual-editor--stale {
+  opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .visual-editor--stale {
+    transition: opacity 150ms ease-out;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Source Pane
    ═══════════════════════════════════════════════════════════════════ */
@@ -303,18 +314,18 @@ body {
   outline: none;
 }
 
-.source-pane .source-error-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: color-mix(in srgb, var(--cn-warning) 12%, var(--cn-bg));
-  color: var(--cn-warning);
-  font-family: var(--cn-font-ui);
-  font-size: 12px;
-  font-weight: 500;
-  border-bottom: 1px solid color-mix(in srgb, var(--cn-warning) 25%, transparent);
-  flex-shrink: 0;
+/* Bidirectional trust — source pane error gutter marker */
+.cn-source-error-gutter {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cn-error);
+  margin: 6px auto 0;
+}
+
+/* Reserve a fixed gutter lane so marker toggle doesn't shift layout */
+.cn-source-error-gutter-wrap {
+  width: 14px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
