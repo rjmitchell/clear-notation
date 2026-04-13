@@ -69,7 +69,7 @@ describe("bnBlocksToBlockNote", () => {
 
   it("maps unknown CLN types to paragraph as fallback", () => {
     const result = bnBlocksToBlockNote([
-      block("clnCallout", {}, [text("note")]),
+      block("clnUnknownDirective", {}, [text("note")]),
     ]);
     expect(result[0].type).toBe("paragraph");
   });
@@ -248,5 +248,68 @@ describe("bn-to-blocknote — clnBlockquote mapping", () => {
       block("clnBlockquote", {}, [text("quoted")]),
     ]);
     expect(result[0].type).toBe("quote");
+  });
+});
+
+describe("bn-to-blocknote — directive block types", () => {
+  it("passes through clnTable with all props", () => {
+    const tableData = JSON.stringify([["A", "B"], ["1", "2"]]);
+    const result = bnBlocksToBlockNote([
+      block("clnTable", { header: true, tableData, align: "left, right" }),
+    ]);
+    expect(result[0].type).toBe("clnTable");
+    expect(result[0].props.header).toBe(true);
+    expect(result[0].props.tableData).toBe(tableData);
+    expect(result[0].props.align).toBe("left, right");
+  });
+
+  it("passes through clnMath with rawContent", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnMath", { rawContent: "E = mc^2" }),
+    ]);
+    expect(result[0].type).toBe("clnMath");
+    expect(result[0].props.rawContent).toBe("E = mc^2");
+  });
+
+  it("passes through clnFigure with src", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnFigure", { src: "images/arch.svg" }),
+    ]);
+    expect(result[0].type).toBe("clnFigure");
+    expect(result[0].props.src).toBe("images/arch.svg");
+  });
+
+  it("passes through clnSource with language and rawContent", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnSource", { language: "python", rawContent: "print('hi')" }),
+    ]);
+    expect(result[0].type).toBe("clnSource");
+    expect(result[0].props.language).toBe("python");
+    expect(result[0].props.rawContent).toBe("print('hi')");
+  });
+
+  it("passes through clnCallout with kind and title", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnCallout", { kind: "warning", title: "Heads up" }),
+    ]);
+    expect(result[0].type).toBe("clnCallout");
+    expect(result[0].props.kind).toBe("warning");
+    expect(result[0].props.title).toBe("Heads up");
+  });
+
+  it("extracts text content into rawContent for parsed-mode directives", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnCallout", { kind: "info" }, [text("Body text here")]),
+    ]);
+    expect(result[0].type).toBe("clnCallout");
+    expect(result[0].props.rawContent).toBe("Body text here");
+    expect(result[0].content).toEqual([]);
+  });
+
+  it("preserves rawContent if already present (raw-mode directives)", () => {
+    const result = bnBlocksToBlockNote([
+      block("clnMath", { rawContent: "x^2" }),
+    ]);
+    expect(result[0].props.rawContent).toBe("x^2");
   });
 });

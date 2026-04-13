@@ -5,8 +5,8 @@
  * lists, code blocks, blockquotes) without needing the tree-sitter WASM
  * parser. Used when loading templates, opening files, or restoring sessions.
  *
- * Does NOT handle directives (::callout, ::meta, etc.) — those appear as
- * paragraphs. The user can edit them in the source pane.
+ * Also handles directives (::callout, ::table, ::math, ::source, ::figure)
+ * by emitting custom BlockNote block types registered in cln-schema.ts.
  */
 
 interface SimpleBlock {
@@ -87,9 +87,19 @@ function parseInline(text: string): any[] {
       }
     }
 
+    // Inline directive: ::ref[target="..."]
+    if (text[i] === ":" && text[i + 1] === ":") {
+      const refMatch = text.slice(i).match(/^::ref\[target="([^"]+)"\]/);
+      if (refMatch) {
+        result.push({ type: "clnRef", props: { target: refMatch[1] } });
+        i += refMatch[0].length;
+        continue;
+      }
+    }
+
     // Plain text: collect until the next special character
     let end = i + 1;
-    while (end < text.length && !"+*`[^".includes(text[end])) {
+    while (end < text.length && !"+*`[^:".includes(text[end])) {
       end++;
     }
     result.push({ type: "text", text: text.slice(i, end), styles: {} });
@@ -152,50 +162,81 @@ export function clnTextToBlockNoteBlocks(text: string): SimpleBlock[] {
         }
         i++; // skip closing }
 
-        // Render ::math as a code block so the formula is visible
+        const bodyText = bodyLines.join("\n").trim();
+
+        // ::math → custom clnMath block
         if (directiveName === "math") {
           blocks.push({
-            type: "codeBlock",
-            props: { language: "latex" },
-            content: [{ type: "text", text: bodyLines.join("\n"), styles: {} }],
+            type: "clnMath",
+            props: { rawContent: bodyText },
+            content: [],
             children: [],
           });
           continue;
         }
 
-        // Render ::source as a code block
+        // ::source → custom clnSource block
         if (directiveName === "source") {
           const langMatch = line.match(/language\s*=\s*"([^"]+)"/);
           blocks.push({
-            type: "codeBlock",
-            props: { language: langMatch ? langMatch[1] : "text" },
-            content: [{ type: "text", text: bodyLines.join("\n"), styles: {} }],
+            type: "clnSource",
+            props: { language: langMatch ? langMatch[1] : "", rawContent: bodyText },
+            content: [],
             children: [],
           });
           continue;
         }
 
-        // Render ::callout body as paragraphs with a title hint
+        // ::callout → custom clnCallout block
         if (directiveName === "callout") {
+          const kindMatch = line.match(/kind\s*=\s*"([^"]+)"/);
           const titleMatch = line.match(/title\s*=\s*"([^"]+)"/);
-          if (titleMatch) {
-            blocks.push({
-              type: "paragraph",
-              props: {},
-              content: [{ type: "text", text: titleMatch[1], styles: { bold: true } }],
-              children: [],
-            });
-          }
-          for (const bodyLine of bodyLines) {
-            if (bodyLine.trim()) {
-              blocks.push({
-                type: "paragraph",
-                props: {},
-                content: parseInline(bodyLine.trim()),
-                children: [],
-              });
-            }
-          }
+          blocks.push({
+            type: "clnCallout",
+            props: {
+              kind: kindMatch ? kindMatch[1] : "info",
+              title: titleMatch ? titleMatch[1] : "",
+              rawContent: bodyText,
+            },
+            content: [],
+            children: [],
+          });
+          continue;
+        }
+
+        // ::table → custom clnTable block
+        if (directiveName === "table") {
+          const headerMatch = line.match(/header\s*=\s*true/);
+          const alignMatch = line.match(/align\s*=\s*\[([^\]]+)\]/);
+          const alignStr = alignMatch
+            ? alignMatch[1].replace(/"/g, "").trim()
+            : "";
+          const tableData = bodyText
+            .split("\n")
+            .filter((l: string) => l.trim() !== "")
+            .map((l: string) => l.split("|").map((c: string) => c.trim()));
+          blocks.push({
+            type: "clnTable",
+            props: {
+              header: !!headerMatch,
+              tableData: JSON.stringify(tableData),
+              align: alignStr,
+            },
+            content: [],
+            children: [],
+          });
+          continue;
+        }
+
+        // ::figure → custom clnFigure block
+        if (directiveName === "figure") {
+          const srcMatch = line.match(/src\s*=\s*"([^"]+)"/);
+          blocks.push({
+            type: "clnFigure",
+            props: { src: srcMatch ? srcMatch[1] : "", rawContent: bodyText },
+            content: [],
+            children: [],
+          });
           continue;
         }
 
