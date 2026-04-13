@@ -206,11 +206,18 @@ function serializeDirective(block: BNBlock): string {
     }
 
     case "parsed": {
+      // Parsed-mode directives may carry body text in rawContent
+      // (from visual pane round-trip) or as nested children.
       const childLines = block.children
         .map((child) => serializeBlock(child))
         .join("\n");
       if (childLines) {
         return `::${directiveName}${attrStr}{\n${childLines}\n}`;
+      }
+      // Fallback: body text stored in rawContent prop
+      const rawBody = block.props.rawContent || "";
+      if (rawBody) {
+        return `::${directiveName}${attrStr}{\n${rawBody}\n}`;
       }
       // Empty parsed body
       return `::${directiveName}${attrStr}{\n}`;

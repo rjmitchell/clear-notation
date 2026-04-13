@@ -25,6 +25,16 @@ const BLOCK_TYPE_REVERSE: Record<string, string> = {
   clnCodeBlock: "codeBlock",
 };
 
+/** Directive block types registered as custom BlockNote block specs.
+ *  These pass through as-is (the schema knows about them). */
+const DIRECTIVE_BLOCK_TYPES = new Set([
+  "clnTable",
+  "clnMath",
+  "clnFigure",
+  "clnCallout",
+  "clnSource",
+]);
+
 /* ─── Style mapping (CLN → BlockNote) ─── */
 const STYLE_REVERSE: Record<string, string> = {
   clnStrong: "bold",
@@ -88,6 +98,28 @@ function convertInlineContent(items: BNInlineContent[]): any[] {
  * Convert a single BNBlock (CLN format) to a BlockNote default block.
  */
 function convertBlock(block: BNBlock): any {
+  // Directive block types pass through as custom BlockNote block types.
+  // Their props are forwarded as-is since the custom block specs define
+  // the matching propSchema.
+  if (DIRECTIVE_BLOCK_TYPES.has(block.type)) {
+    const props = { ...block.props };
+
+    // Parsed-mode directives (callout, figure) store body text in content
+    // rather than props.rawContent. Extract it so the block spec can render it.
+    if (!props.rawContent && block.content.length > 0) {
+      props.rawContent = block.content
+        .map((c) => ("text" in c ? (c as BNStyledText).text : ""))
+        .join("");
+    }
+
+    return {
+      type: block.type,
+      props,
+      content: [],
+      children: block.children.map(convertBlock),
+    };
+  }
+
   const type = BLOCK_TYPE_REVERSE[block.type] || "paragraph";
 
   const props: Record<string, any> = {};

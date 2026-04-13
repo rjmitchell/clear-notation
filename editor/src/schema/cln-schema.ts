@@ -6,10 +6,10 @@
  *   (codeBlock, image, audio, video, file, table, toggleListItem, etc.).
  * - Five custom addressable block specs with anchorId prop
  *   (heading, paragraph, quote, bulletListItem, numberedListItem).
+ * - Five custom directive block specs for CLN directives
+ *   (clnTable, clnMath, clnFigure, clnCallout, clnSource).
  * - BlockNote's default inline content specs (text, link).
  * - Two new custom inline content specs: clnNote and clnRef.
- *
- * Phase A scope. Phase B will extend with slash menu items + side-menu UI.
  */
 
 import {
@@ -25,6 +25,11 @@ import { clnParagraphSpec } from "./block-specs/clnParagraph";
 import { clnBlockquoteSpec } from "./block-specs/clnBlockquote";
 import { clnBulletListItemSpec } from "./block-specs/clnBulletListItem";
 import { clnNumberedListItemSpec } from "./block-specs/clnNumberedListItem";
+import { clnTableSpec } from "./block-specs/clnTable";
+import { clnMathSpec } from "./block-specs/clnMath";
+import { clnFigureSpec } from "./block-specs/clnFigure";
+import { clnCalloutSpec } from "./block-specs/clnCallout";
+import { clnSourceSpec } from "./block-specs/clnSource";
 
 export const clnSchema = BlockNoteSchema.create({
   blockSpecs: {
@@ -34,6 +39,11 @@ export const clnSchema = BlockNoteSchema.create({
     quote: clnBlockquoteSpec,
     bulletListItem: clnBulletListItemSpec,
     numberedListItem: clnNumberedListItemSpec,
+    clnTable: clnTableSpec,
+    clnMath: clnMathSpec,
+    clnFigure: clnFigureSpec,
+    clnCallout: clnCalloutSpec,
+    clnSource: clnSourceSpec,
   },
   inlineContentSpecs: {
     ...defaultInlineContentSpecs,

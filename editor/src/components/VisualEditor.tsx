@@ -83,11 +83,36 @@ function convertStyledText(item: any): BNStyledText {
   };
 }
 
+/** Directive block types registered as custom BlockNote block specs. */
+const DIRECTIVE_BLOCK_TYPES = new Set([
+  "clnTable",
+  "clnMath",
+  "clnFigure",
+  "clnCallout",
+  "clnSource",
+]);
+
 /**
  * Convert a single BlockNote block (with its children) to our BNBlock format.
  */
 function convertBlock(block: any): BNBlock {
   const type = BLOCK_TYPE_MAP[block.type] || block.type;
+
+  // Directive blocks: forward all props as-is (they're custom BlockNote types).
+  if (DIRECTIVE_BLOCK_TYPES.has(block.type)) {
+    const props: Record<string, string | number | boolean> = {};
+    if (block.props) {
+      for (const [key, value] of Object.entries(block.props)) {
+        if (value !== undefined && value !== null) {
+          props[key] = value as string | number | boolean;
+        }
+      }
+    }
+    const children: BNBlock[] = Array.isArray(block.children)
+      ? block.children.map(convertBlock)
+      : [];
+    return { type, props, content: [], children };
+  }
 
   const props: Record<string, string | number | boolean> = {};
 
